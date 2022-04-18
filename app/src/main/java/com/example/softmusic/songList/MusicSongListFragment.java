@@ -10,9 +10,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 
-import com.example.softmusic.interfaceListener.ChangeFragmentListener;
 import com.example.softmusic.MainActivity;
 import com.example.softmusic.R;
 
@@ -21,10 +22,8 @@ import java.util.List;
 
 public class MusicSongListFragment extends Fragment {
 
-    private final Context context;
+    public MusicSongListFragment(){
 
-    public MusicSongListFragment(Context context){
-        this.context = context;
     }
 
     @Nullable
@@ -32,13 +31,12 @@ public class MusicSongListFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         com.example.softmusic.databinding.FragmentSongListBinding fragmentSongListBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_song_list, container, false);
 
-        List<MusicSongList> musicSongListList = new ArrayList<>();
-        musicSongListList.add(new MusicSongList("我喜欢","4/17/22", 50,"me"));
-        musicSongListList.add(new MusicSongList("我喜欢","4/17/22", 50,"me"));
-        musicSongListList.add(new MusicSongList("我喜欢","4/17/22", 50,"me"));
+        MusicSongListViewModel model = new ViewModelProvider(requireActivity()).get(MusicSongListViewModel.class);
 
-        fragmentSongListBinding.songListList.setLayoutManager(new GridLayoutManager(context, 1, GridLayoutManager.VERTICAL, false));
-        fragmentSongListBinding.songListList.setAdapter(new MusicSongListAdapter(context, musicSongListList, fragment -> ((MainActivity)requireActivity()).replaceFragment(fragment)));
+        fragmentSongListBinding.songListList.setLayoutManager(new GridLayoutManager(requireActivity(), 1, GridLayoutManager.VERTICAL, false));
+        model.getMusicSongListData().observe(getViewLifecycleOwner(), musicSongLists ->
+                fragmentSongListBinding.songListList.setAdapter(new MusicSongListAdapter(
+                requireContext(), musicSongLists)));
         return fragmentSongListBinding.getRoot();
     }
 }

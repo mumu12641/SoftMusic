@@ -2,14 +2,17 @@ package com.example.softmusic.songList;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.softmusic.interfaceListener.ChangeFragmentListener;
 import com.example.softmusic.databinding.CardSongListBinding;
 import com.example.softmusic.musicSong.MusicSongFragment;
 import com.example.softmusic.R;
@@ -20,12 +23,10 @@ public class MusicSongListAdapter extends RecyclerView.Adapter<MusicSongListAdap
 
     private final List<MusicSongList> musicSongListList;
     private final Context context;
-    private final ChangeFragmentListener lister;
 
-    public MusicSongListAdapter(Context context, List<MusicSongList> musicSongListList, ChangeFragmentListener lister) {
+    public MusicSongListAdapter(Context context, List<MusicSongList> musicSongListList) {
         this.musicSongListList = musicSongListList;
         this.context = context;
-        this.lister = lister;
     }
 
     @NonNull
@@ -40,8 +41,9 @@ public class MusicSongListAdapter extends RecyclerView.Adapter<MusicSongListAdap
     public void onBindViewHolder(@NonNull ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         holder.getCardSongListBinding().setMusicListItem(musicSongListList.get(position));
         holder.getCardSongListBinding().songListItem.setOnClickListener(view -> {
-            MusicSongFragment musicSongFragment = new MusicSongFragment(context,musicSongListList.get(position));
-            lister.changeFragment(musicSongFragment);
+            NavController controller = Navigation.findNavController(view);
+            // TODO 传递Bundle（Room中的索引）
+            controller.navigate(R.id.action_musicSongListFragment_to_musicSongFragment);
         });
     }
 

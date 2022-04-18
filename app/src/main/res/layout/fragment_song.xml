@@ -5,7 +5,7 @@
     <data>
         <variable
             name="theMusicSongList"
-            type="com.example.softmusic.songList.MusicSongList" />
+            type="com.example.softmusic.musicSong.MusicSongViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="40dp"
             android:layout_marginTop="50dp"
-            android:text="@{theMusicSongList.songListTitle}"
+            android:text="@{theMusicSongList.musicSongListData.songListTitle}"
             app:layout_constraintStart_toEndOf="@+id/imageView"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -37,7 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="@{theMusicSongList.builder}"
+            android:text="@{theMusicSongList.musicSongListData.builder}"
             app:layout_constraintStart_toStartOf="@+id/textView"
             app:layout_constraintTop_toBottomOf="@+id/textView" />
 

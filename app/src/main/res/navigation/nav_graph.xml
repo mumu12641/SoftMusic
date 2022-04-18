@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/musicSongListFragment">
+
+    <fragment
+        android:id="@+id/musicPlayFragment"
+        android:name="com.example.softmusic.playMusic.MusicPlayFragment"
+        android:label="MusicPlayFragment" />
+    <fragment
+        android:id="@+id/musicSongListFragment"
+        android:name="com.example.softmusic.songList.MusicSongListFragment"
+        android:label="MusicSongListFragment" >
+        <action
+            android:id="@+id/action_musicSongListFragment_to_musicSongFragment"
+            app:destination="@id/musicSongFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/musicSongFragment"
+        android:name="com.example.softmusic.musicSong.MusicSongFragment"
+        android:label="MusicSongFragment" >
+        <action
+            android:id="@+id/action_musicSongFragment_to_musicPlayFragment"
+            app:destination="@id/musicPlayFragment" />
+    </fragment>
+</navigation>

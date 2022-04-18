@@ -13,21 +13,33 @@
             android:layout_height="wrap_content"
             tools:ignore="MissingConstraints">
 
-            <androidx.appcompat.widget.Toolbar
+            <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/app_bar"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/md_theme_light_primary"
                 app:title="SoftMusic"
                 app:titleTextColor="@color/white" />
         </com.google.android.material.appbar.AppBarLayout>
 
-        <FrameLayout
-            android:id="@+id/songListContent"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragmentContainerView1"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            android:layout_width="409dp"
+            android:layout_height="673dp"
+            app:defaultNavHost="true"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/app_bar_layout" />
+            app:layout_constraintTop_toBottomOf="@+id/app_bar_layout"
+            app:navGraph="@navigation/nav_graph" />
+
+
+<!--                <FrameLayout-->
+<!--            android:id="@+id/songListContent"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toBottomOf="@+id/app_bar_layout" />-->
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

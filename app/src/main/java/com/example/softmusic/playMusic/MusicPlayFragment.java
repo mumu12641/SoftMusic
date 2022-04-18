@@ -21,12 +21,11 @@ import com.example.softmusic.databinding.FragmentMusicPlayBinding;
 
 public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChangeListener, View.OnClickListener {
     private FragmentMusicPlayBinding binding;
-    private final Context context;
 
+    public MusicPlayFragment(){
 
-    public MusicPlayFragment(Context context) {
-        this.context = context;
     }
+
 
     @Nullable
     @Override
