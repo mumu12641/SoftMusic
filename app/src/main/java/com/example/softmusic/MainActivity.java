@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
 import com.example.softmusic.databinding.ActivityMainBinding;
+import com.google.android.material.color.DynamicColors;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -16,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         activityMainBinding
                 = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        DynamicColors.applyIfAvailable(this);
 
     }
     public void setTitleIcon(String title){
