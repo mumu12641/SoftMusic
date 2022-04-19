@@ -2,9 +2,7 @@ package com.example.softmusic.songList;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -14,7 +12,6 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.softmusic.databinding.CardSongListBinding;
-import com.example.softmusic.musicSong.MusicSongFragment;
 import com.example.softmusic.R;
 
 import java.util.List;
@@ -40,6 +37,8 @@ public class MusicSongListAdapter extends RecyclerView.Adapter<MusicSongListAdap
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         holder.getCardSongListBinding().setMusicListItem(musicSongListList.get(position));
+        int[] array = {R.drawable.card,R.drawable.card2,R.drawable.card3};
+        holder.getCardSongListBinding().imageSongList.setBackgroundResource(array[position]);
         holder.getCardSongListBinding().songListItem.setOnClickListener(view -> {
             NavController controller = Navigation.findNavController(view);
             // TODO 传递Bundle（Room中的索引）

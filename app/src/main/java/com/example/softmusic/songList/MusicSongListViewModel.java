@@ -9,6 +9,7 @@ import java.util.List;
 public class MusicSongListViewModel extends ViewModel {
 
     private final MutableLiveData<List<MusicSongList>> musicSongListData = new MutableLiveData<>();
+    private static final String title = "SoftMusic";
 
     public MutableLiveData<List<MusicSongList>> getMusicSongListData() {
         loadData();
@@ -21,5 +22,9 @@ public class MusicSongListViewModel extends ViewModel {
             list.add(new MusicSongList("Jay","4/17/22", 60,"me"));
             list.add(new MusicSongList("沈以诚","4/18/22", 10,"me"));
             musicSongListData.setValue(list);
+    }
+
+    public static String getTitle() {
+        return title;
     }
 }

@@ -7,7 +7,11 @@
     <fragment
         android:id="@+id/musicPlayFragment"
         android:name="com.example.softmusic.playMusic.MusicPlayFragment"
-        android:label="MusicPlayFragment" />
+        android:label="MusicPlayFragment" >
+        <action
+            android:id="@+id/action_musicPlayFragment_to_musicSongFragment"
+            app:destination="@id/musicSongFragment" />
+    </fragment>
     <fragment
         android:id="@+id/musicSongListFragment"
         android:name="com.example.softmusic.songList.MusicSongListFragment"
@@ -23,5 +27,8 @@
         <action
             android:id="@+id/action_musicSongFragment_to_musicPlayFragment"
             app:destination="@id/musicPlayFragment" />
+        <action
+            android:id="@+id/action_musicSongFragment_to_musicSongListFragment"
+            app:destination="@id/musicSongListFragment" />
     </fragment>
 </navigation>

@@ -1,6 +1,5 @@
 package com.example.softmusic.musicSong;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,19 +9,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.example.softmusic.MainActivity;
 import com.example.softmusic.databinding.FragmentSongBinding;
-import com.example.softmusic.songList.MusicSongList;
 import com.example.softmusic.R;
 
-import java.util.ArrayList;
-import java.util.List;
 
-public class MusicSongFragment extends Fragment {
+public class MusicSongFragment extends Fragment implements View.OnClickListener {
+    private FragmentSongBinding fragmentSongBinding;
     public MusicSongFragment(){
 
     }
@@ -30,23 +28,34 @@ public class MusicSongFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        FragmentSongBinding fragmentSongBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_song,container,false);
+        fragmentSongBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_song,container,false);
         MusicSongViewModel musicSongViewModel = new ViewModelProvider(requireActivity()).get(MusicSongViewModel.class);
         fragmentSongBinding.setTheMusicSongList(musicSongViewModel);
         fragmentSongBinding.songsList.setLayoutManager(new GridLayoutManager(requireContext(), 1, GridLayoutManager.VERTICAL, false));
-        musicSongViewModel.getMusicSongData().observe(getViewLifecycleOwner(), new Observer<List<MusicSong>>() {
-            @Override
-            public void onChanged(List<MusicSong> musicSongs) {
-                fragmentSongBinding.songsList.setAdapter(new MusicSongAdapter(requireContext(), musicSongs));
-            }
-        });
-        musicSongViewModel.getMusicSongListData().observe(getViewLifecycleOwner(), new Observer<MusicSongList>() {
-            @Override
-            public void onChanged(MusicSongList musicSongList) {
-                ((MainActivity)requireActivity()).setTitleIcon(musicSongList.getSongListTitle());
-            }
+        musicSongViewModel.getMusicSongData().observe(getViewLifecycleOwner(),
+                musicSongs -> fragmentSongBinding.songsList.setAdapter(new MusicSongAdapter(requireContext(), musicSongs)));
+        musicSongViewModel.getMusicSongListData().observe(getViewLifecycleOwner(),
+                musicSongList -> {
+                    ((MainActivity)requireActivity()).setTitle(musicSongList.getSongListTitle());
+
+
         });
 
         return fragmentSongBinding.getRoot();
+    }
+
+    @Override
+    public void onClick(View view) {
+        NavController controller = Navigation.findNavController(fragmentSongBinding.imageView);
+        controller.navigate(R.id.action_musicSongFragment_to_musicSongListFragment);
+        ((MainActivity)requireActivity()).getNavigationBar().setNavigationOnClickListener(null);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ((MainActivity)requireActivity()).setNavIcon(R.drawable.outline_arrow_back_24);
+        ((MainActivity)requireActivity()).getNavigationBar().setNavigationOnClickListener(this);
+        ((MainActivity)requireActivity()).hideFAB();
     }
 }

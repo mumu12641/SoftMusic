@@ -10,8 +10,11 @@
         android:id="@+id/songItem"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="20dp"
         app:cardCornerRadius="15dp"
+        app:strokeWidth="0dp"
         >
         <LinearLayout
             android:layout_width="match_parent"
@@ -34,9 +37,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@{theSong.songTitle}"
-                    android:layout_margin="15dp"
+                    android:layout_margin="10dp"
                     android:textColor="@color/black"
-                    android:textSize="20sp"/>
+                    android:textSize="15sp"/>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -44,18 +47,18 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="15dp"
+                        android:layout_marginLeft="10dp"
                         android:text="@{theSong.songSinger}"
                         android:textColor="@color/text_grey"
                         android:layout_marginBottom="10dp"
-                        android:textSize="15sp"/>
+                        android:textSize="10sp"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="10dp"
                         android:text="@{theSong.belong.songListTitle}"
                         android:textColor="@color/text_grey"
-                        android:textSize="15sp"/>
+                        android:textSize="10sp"/>
                 </LinearLayout>
         </LinearLayout>
 
