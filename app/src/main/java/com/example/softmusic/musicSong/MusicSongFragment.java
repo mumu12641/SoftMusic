@@ -11,6 +11,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
+import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 
@@ -37,6 +38,9 @@ public class MusicSongFragment extends Fragment implements View.OnClickListener 
         musicSongViewModel.getMusicSongListData().observe(getViewLifecycleOwner(),
                 musicSongList -> {
                     ((MainActivity)requireActivity()).setTitle(musicSongList.getSongListTitle());
+                    ((MainActivity)requireActivity()).setNavIcon(R.drawable.outline_arrow_back_24);
+                    ((MainActivity)requireActivity()).getNavigationBar().setNavigationOnClickListener(this);
+                    ((MainActivity)requireActivity()).hideFAB();
 
 
         });
@@ -51,11 +55,4 @@ public class MusicSongFragment extends Fragment implements View.OnClickListener 
         ((MainActivity)requireActivity()).getNavigationBar().setNavigationOnClickListener(null);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        ((MainActivity)requireActivity()).setNavIcon(R.drawable.outline_arrow_back_24);
-        ((MainActivity)requireActivity()).getNavigationBar().setNavigationOnClickListener(this);
-        ((MainActivity)requireActivity()).hideFAB();
-    }
 }

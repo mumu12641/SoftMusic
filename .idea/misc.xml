@@ -17,7 +17,7 @@
         <entry key="app/src/main/res/layout/card_song_list.xml" value="0.4466666666666667" />
         <entry key="app/src/main/res/layout/custom_player_control_view.xml" value="0.42934782608695654" />
         <entry key="app/src/main/res/layout/exo_player_control_view.xml" value="0.42934782608695654" />
-        <entry key="app/src/main/res/layout/fragment_music_play.xml" value="0.42934782608695654" />
+        <entry key="app/src/main/res/layout/fragment_music_play.xml" value="0.5" />
         <entry key="app/src/main/res/layout/fragment_song.xml" value="0.5921945701357466" />
         <entry key="app/src/main/res/layout/fragment_song_list.xml" value="0.42934782608695654" />
         <entry key="app/src/main/res/xml/network_security_config.xml" value="0.42934782608695654" />

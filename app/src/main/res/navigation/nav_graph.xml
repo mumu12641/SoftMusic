@@ -29,6 +29,12 @@
             app:destination="@id/musicPlayFragment" />
         <action
             android:id="@+id/action_musicSongFragment_to_musicSongListFragment"
-            app:destination="@id/musicSongListFragment" />
+            app:destination="@id/musicSongListFragment"
+            app:popUpTo="@+id/musicSongFragment"
+            app:launchSingleTop="true"
+            app:popUpToInclusive="true"
+            app:popUpToSaveState="true"
+            app:restoreState="true"/>
+
     </fragment>
 </navigation>
