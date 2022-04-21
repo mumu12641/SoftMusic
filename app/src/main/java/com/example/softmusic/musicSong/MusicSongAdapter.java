@@ -6,8 +6,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.softmusic.R;
@@ -36,10 +34,6 @@ public class MusicSongAdapter extends RecyclerView.Adapter<MusicSongAdapter.View
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.getCardSongListBinding().setTheSong(musicSongList.get(position));
         holder.getCardSongListBinding().number.setText(String.valueOf(position + 1));
-        holder.getCardSongListBinding().songItem.setOnClickListener(view -> {
-            NavController controller = Navigation.findNavController(view);
-            controller.navigate(R.id.action_musicSongFragment_to_musicPlayFragment);
-        });
     }
 
 

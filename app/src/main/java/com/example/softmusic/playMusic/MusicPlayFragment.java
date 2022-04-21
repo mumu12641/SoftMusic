@@ -36,6 +36,7 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
     private final String TAG = "MediaPlayer";
     private FragmentMusicPlayBinding binding;
 
+
     public MusicPlayFragment(){
 
     }
@@ -69,17 +70,6 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
         binding.playsong.setOnClickListener(this);
         binding.nextsong.setOnClickListener(this);
         binding.lastsong.setOnClickListener(this);
-//        ((MainActivity)requireActivity()).getNavigationBar().setNavigationOnClickListener(this);
-
-//        ExoPlayer player = new ExoPlayer.Builder(requireContext()).build();
-//        binding.videoView.setPlayer(player);
-//        MediaItem mediaItem = MediaItem.fromUri("https://storage.googleapis.com/exoplayer-test-media-0/play.mp3");
-//        player.setMediaItem(mediaItem);
-//        player.prepare();
-//        player.play();
-
-
-
         return binding.getRoot();
     }
 
@@ -95,7 +85,9 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-
+        int pos = seekBar.getProgress();
+        mController.getTransportControls().seekTo(pos);
+        binding.playsong.setBackgroundResource(R.drawable.outline_pause_24);
     }
 
     @SuppressLint({"SwitchIntDef", "NonConstantResourceId"})
@@ -108,23 +100,19 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
                         mController.getTransportControls().pause();
                         break;
                     case PlaybackStateCompat.STATE_PAUSED:
+                        break;
                     case PlaybackStateCompat.STATE_NONE:
                         mController.getTransportControls().play();
                         break;
                 }
             }
-            //            case R.id.lastsong:
-//                break;
-//            case R.id.nextsong:
-//                break;
         }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        ((MainActivity)requireActivity()).setTitle("播放");
-        ((MainActivity)requireActivity()).hideFAB();
+        ((MainActivity)requireActivity()).setTitle("Play");
     }
 
     // 连接状态的回调接口，连接成功的时候会调用这里的onConnected方法
@@ -141,11 +129,12 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
                 mBrowser.subscribe(mediaId,
                         mBrowserSubscriptionCallback // 这里是订阅回调接口，当Service读取数据后会把数据发送回来，调用这个回调接口
                 );
-
-
                 mController = new MediaControllerCompat(requireContext(),mBrowser.getSessionToken());
                 // 给Controller注册回调
                 mController.registerCallback(mMediaControllerCallback);
+
+                MediaMetadataCompat metadataCompat = mController.getMetadata();
+                updateDuration(metadataCompat);
             }
         }
 
@@ -157,7 +146,6 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
         @Override
         public void onConnectionFailed() {
             super.onConnectionFailed();
-            Log.d(TAG, "onConnectionFailed:");
         }
     };
 
@@ -198,15 +186,25 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
                     Toast.makeText(requireContext(),"play",Toast.LENGTH_LONG).show();
                     break;
             }
+
+            MediaMetadataCompat metadataCompat = mController.getMetadata();
+            updateDuration(metadataCompat);
         }
 
         @Override
         public void onMetadataChanged(MediaMetadataCompat metadata) {
             super.onMetadataChanged(metadata);
+            updateDuration(metadata);
         }
     };
-//    private Uri rawToUri(int id){
-//        String uriStr = "android.resource://" + requireActivity().getPackageName() + "/" + id;
-//        return Uri.parse(uriStr);
-//    }
+    private void updateDuration(MediaMetadataCompat metadataCompat){
+        if (metadataCompat != null){
+            int duration = (int) metadataCompat.getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
+            Log.d(TAG, "updateDuration: " + duration);
+            if (duration > 0){
+                binding.seekBar.setMax(duration);
+            }
+        }
+    }
+
 }

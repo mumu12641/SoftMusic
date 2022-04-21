@@ -38,9 +38,4 @@ public class MusicSongListFragment extends Fragment {
         return fragmentSongListBinding.getRoot();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        ((MainActivity)requireActivity()).showFAB();
-    }
 }

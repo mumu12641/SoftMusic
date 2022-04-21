@@ -37,12 +37,12 @@ public class MusicSongListAdapter extends RecyclerView.Adapter<MusicSongListAdap
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         holder.getCardSongListBinding().setMusicListItem(musicSongListList.get(position));
-        int[] array = {R.drawable.card,R.drawable.card2,R.drawable.card3};
+        int[] array = {R.drawable.card,R.drawable.card2,R.drawable.card3,R.drawable.card3};
         holder.getCardSongListBinding().imageSongList.setBackgroundResource(array[position]);
         holder.getCardSongListBinding().songListItem.setOnClickListener(view -> {
             NavController controller = Navigation.findNavController(view);
             // TODO 传递Bundle（Room中的索引）
-            controller.navigate(R.id.action_musicSongListFragment_to_musicSongFragment);
+            controller.navigate(R.id.action_musicSongListFragment2_to_musicSongFragment2);
         });
     }
 
