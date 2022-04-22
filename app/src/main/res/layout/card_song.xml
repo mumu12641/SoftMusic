@@ -56,7 +56,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="10dp"
-                        android:text="@{theSong.belong.songListTitle}"
+                        android:text="me"
                         android:textColor="@color/text_grey"
                         android:textAppearance="?attr/textAppearanceBodySmall"/>
                 </LinearLayout>

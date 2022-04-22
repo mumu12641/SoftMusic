@@ -1,5 +1,7 @@
 package com.example.softmusic.playMusic;
 
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -15,6 +17,7 @@ import com.example.softmusic.R;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +26,7 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat {
     private MediaSessionCompat mSession;
     private PlaybackStateCompat mPlaybackState;
     private ExoPlayer mExoPlayer;
+    private MediaPlayer mMediaPlayer;
 
     private final String TAG = "MediaPlaybackService";
     private static final String MY_MEDIA_ROOT_ID = "media_root_id";
@@ -43,10 +47,21 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat {
         mSession.setCallback(mSessionCallback);
         mSession.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         setSessionToken(mSession.getSessionToken());
-        mExoPlayer = new ExoPlayer.Builder(getApplicationContext()).build();
-        MediaItem mediaItem = MediaItem.fromUri("https://storage.googleapis.com/exoplayer-test-media-0/play.mp3");
-        mExoPlayer.setMediaItem(mediaItem);
-        mExoPlayer.prepare();
+
+//        mExoPlayer = new ExoPlayer.Builder(getApplicationContext()).build();
+//        MediaItem mediaItem = MediaItem.fromUri(rawToUri(R.raw.jinglebells));
+//        mExoPlayer.setMediaItem(mediaItem);
+//        mExoPlayer.prepare();
+
+
+        mMediaPlayer = new MediaPlayer();
+        try {
+            mMediaPlayer.setDataSource(getApplicationContext(),rawToUri(R.raw.jay));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        mMediaPlayer.prepareAsync();
+        mMediaPlayer.setOnPreparedListener(mediaPlayer -> Log.d(TAG, "onPrepared: " + mMediaPlayer.getDuration()));
     }
 
     @Override
@@ -56,6 +71,10 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat {
         if (mExoPlayer != null) {
             mExoPlayer.release();
             mExoPlayer = null;
+        }
+        if (mMediaPlayer != null){
+            mMediaPlayer.release();
+            mMediaPlayer = null;
         }
         if (mSession != null) {
             mSession.release();
@@ -77,9 +96,9 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat {
         Log.d(TAG, "onLoadChildren");
         result.detach();
         MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, ""+ R.raw.jinglebells)
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "圣诞歌")
-                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, mExoPlayer.getDuration())
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, ""+ R.raw.jay)
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "回到过去")
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, mMediaPlayer.getDuration())
                 .build();
         // 返回的数据是 MediaItem
         ArrayList<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
@@ -88,6 +107,9 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat {
                 MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
         ));
         //向Browser发送数据
+        mSession.setActive(true);
+        mSession.setMetadata(metadata);
+        Log.d(TAG, "onLoadChildren: " + mMediaPlayer.getDuration());
         result.sendResult(mediaItems);
     }
 
@@ -98,7 +120,9 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat {
             super.onPlay();
             Log.d(TAG, "onPlay");
             if(mPlaybackState.getState() == PlaybackStateCompat.STATE_PAUSED || mPlaybackState.getState() == PlaybackStateCompat.STATE_NONE){
-                mExoPlayer.play();
+//                mExoPlayer.play();
+                mMediaPlayer.start();
+
                 mPlaybackState = new PlaybackStateCompat.Builder()
                         .setState(PlaybackStateCompat.STATE_PLAYING,0,1.0f)
                         .build();
@@ -110,7 +134,8 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat {
             super.onPause();
             Log.d(TAG, "onPause");
             if(mPlaybackState.getState() == PlaybackStateCompat.STATE_PLAYING){
-                mExoPlayer.pause();
+//                mExoPlayer.pause();
+                mMediaPlayer.pause();
                 mPlaybackState = new PlaybackStateCompat.Builder()
                         .setState(PlaybackStateCompat.STATE_PAUSED,0,1.0f)
                         .build();
@@ -121,7 +146,12 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat {
         public void onSeekTo(long pos) {
             super.onSeekTo(pos);
             Log.d(TAG, "onSeekTo" + pos);
-            mExoPlayer.seekTo(pos);
+//            mExoPlayer.seekTo(pos);
+            mMediaPlayer.seekTo((int) pos);
         }
     };
+    private Uri rawToUri(int id){
+        String uriStr = "android.resource://" + getPackageName() + "/" + id;
+        return Uri.parse(uriStr);
+    }
 }

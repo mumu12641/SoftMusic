@@ -1,18 +1,27 @@
 package com.example.softmusic.musicSong;
 
-import com.example.softmusic.songList.MusicSongList;
+import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
+@Entity(tableName = "musicSong")
 public class MusicSong {
+    @NonNull
+    @PrimaryKey
     private String songTitle;
+    @ColumnInfo(name = "songSinger")
     private String songSinger;
+    @ColumnInfo(name = "songAlbum")
     private String songAlbum;
-    private MusicSongList belong;
+    @ColumnInfo(name = "mediaFileUri")
+    private String mediaFileUri;
 
-    public MusicSong(String songTitle, String songSinger, String songAlbum, MusicSongList belong) {
+    public MusicSong(String songTitle, String songSinger, String songAlbum,String mediaFileUri) {
         this.songTitle = songTitle;
         this.songSinger = songSinger;
         this.songAlbum = songAlbum;
-        this.belong = belong;
+        this.mediaFileUri = mediaFileUri;
     }
 
     public String getSongTitle() {
@@ -39,11 +48,11 @@ public class MusicSong {
         this.songAlbum = songAlbum;
     }
 
-    public MusicSongList getBelong() {
-        return belong;
+    public String getMediaFileUri() {
+        return mediaFileUri;
     }
 
-    public void setBelong(MusicSongList belong) {
-        this.belong = belong;
+    public void setMediaFileUri(String mediaFileUri) {
+        this.mediaFileUri = mediaFileUri;
     }
 }

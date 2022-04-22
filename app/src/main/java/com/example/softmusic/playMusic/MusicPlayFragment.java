@@ -3,6 +3,7 @@ package com.example.softmusic.playMusic;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -35,6 +36,9 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
     private MediaControllerCompat mController;
     private final String TAG = "MediaPlayer";
     private FragmentMusicPlayBinding binding;
+
+    private int nowPos = 0;
+    private int lastPos = -1;
 
 
     public MusicPlayFragment(){
@@ -86,7 +90,10 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
         int pos = seekBar.getProgress();
+        nowPos = pos / 1000;
+        lastPos = -1;
         mController.getTransportControls().seekTo(pos);
+        mController.getTransportControls().play();
         binding.playsong.setBackgroundResource(R.drawable.outline_pause_24);
     }
 
@@ -98,13 +105,21 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
                 switch (mController.getPlaybackState().getState()) {
                     case PlaybackStateCompat.STATE_PLAYING:
                         mController.getTransportControls().pause();
+                        lastPos = nowPos;
                         break;
                     case PlaybackStateCompat.STATE_PAUSED:
+                        mController.getTransportControls().play();
+                        lastPos = -1;
                         break;
                     case PlaybackStateCompat.STATE_NONE:
                         mController.getTransportControls().play();
+                        updateProgressThread mUpdateProgressThread = new updateProgressThread();
+                        mUpdateProgressThread.start();
                         break;
                 }
+
+                Log.d(TAG, "onClick: " + nowPos);
+                Log.d(TAG, "onClick: " + lastPos);
             }
         }
     }
@@ -132,10 +147,10 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
                 mController = new MediaControllerCompat(requireContext(),mBrowser.getSessionToken());
                 // 给Controller注册回调
                 mController.registerCallback(mMediaControllerCallback);
-
-                MediaMetadataCompat metadataCompat = mController.getMetadata();
-                updateDuration(metadataCompat);
             }
+
+            MediaMetadataCompat metadataCompat = mController.getMetadata();
+            updateDuration(metadataCompat);
         }
 
         @Override
@@ -159,11 +174,12 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
             Log.d(TAG, "onChildrenLoaded");
             // children 就是Service返回回来的数据
             for (MediaBrowserCompat.MediaItem item:children){
-                Log.e(TAG,
+                Log.d(TAG,
                         Objects.requireNonNull(item.getDescription().getTitle()).toString());
-                Log.e(TAG,
-                        String.valueOf(mController.getPlaybackState().getState()));
             }
+
+            MediaMetadataCompat metadataCompat = mController.getMetadata();
+            updateDuration(metadataCompat);
         }
     };
 
@@ -180,23 +196,22 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
                 case PlaybackStateCompat.STATE_PAUSED:
                     binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24);
                     Toast.makeText(requireContext(),"pause",Toast.LENGTH_LONG).show();
+                    Log.d(TAG, "onPlaybackStateChanged: " + (int) state.getPosition());
                     break;
                 case PlaybackStateCompat.STATE_PLAYING:
                     binding.playsong.setBackgroundResource(R.drawable.outline_pause_24);
                     Toast.makeText(requireContext(),"play",Toast.LENGTH_LONG).show();
+                    Log.d(TAG, "onPlaybackStateChanged: " + (int) state.getPosition());
                     break;
             }
-
-            MediaMetadataCompat metadataCompat = mController.getMetadata();
-            updateDuration(metadataCompat);
         }
 
         @Override
         public void onMetadataChanged(MediaMetadataCompat metadata) {
             super.onMetadataChanged(metadata);
-            updateDuration(metadata);
         }
     };
+
     private void updateDuration(MediaMetadataCompat metadataCompat){
         if (metadataCompat != null){
             int duration = (int) metadataCompat.getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
@@ -204,7 +219,23 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
             if (duration > 0){
                 binding.seekBar.setMax(duration);
             }
+        } else {
+            Log.d(TAG, "updateDuration: null" );
         }
     }
 
+    private class updateProgressThread extends Thread{
+        @Override
+        public void run() {
+            super.run();
+            while (binding.seekBar.getProgress() < binding.seekBar.getMax()){
+                if (nowPos == lastPos){
+                    continue;
+                }
+                nowPos ++;
+                binding.seekBar.setProgress(nowPos*1000);
+                SystemClock.sleep(1000);
+            }
+        }
+    }
 }

@@ -1,17 +1,35 @@
 package com.example.softmusic.songList;
 
-public class MusicSongList {
-    private String songListTitle;
-    private String createDate;
-    private int songNumber;
-    private String builder;
+import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
-    public MusicSongList(String songListTitle, String createDate, int songNumber, String builder) {
+@Entity(tableName = "musicSongList")
+public class MusicSongList {
+    @NonNull
+    @PrimaryKey
+    private String songListTitle;
+    @ColumnInfo (name = "createDate")
+    private String createDate;
+    @ColumnInfo(name = "songNumber")
+    private int songNumber;
+    @ColumnInfo(name = "builder")
+    private String builder;
+    @ColumnInfo(name = "description")
+    private String description;
+    @ColumnInfo(name = "imageFileUri")
+    private String imageFileUri;
+
+    public MusicSongList(String songListTitle, String createDate, int songNumber, String builder,String description,String imageFileUri) {
         this.songListTitle = songListTitle;
         this.createDate = createDate;
         this.songNumber = songNumber;
         this.builder = builder;
+        this.description = description;
+        this.imageFileUri = imageFileUri;
     }
+
 
     public String getSongListTitle() {
         return songListTitle;
@@ -43,5 +61,21 @@ public class MusicSongList {
 
     public void setBuilder(String builder) {
         this.builder = builder;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getImageFileUri() {
+        return imageFileUri;
+    }
+
+    public void setImageFileUri(String imageFileUri) {
+        this.imageFileUri = imageFileUri;
     }
 }
