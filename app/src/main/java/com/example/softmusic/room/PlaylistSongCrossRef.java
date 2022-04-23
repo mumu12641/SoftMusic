@@ -9,4 +9,9 @@ public class PlaylistSongCrossRef {
     public String songListTitle;
     @NonNull
     public String songTitle;
+
+    public PlaylistSongCrossRef(@NonNull String songListTitle, @NonNull String songTitle) {
+        this.songListTitle = songListTitle;
+        this.songTitle = songTitle;
+    }
 }

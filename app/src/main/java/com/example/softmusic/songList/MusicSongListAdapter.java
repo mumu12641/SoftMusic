@@ -2,6 +2,8 @@ package com.example.softmusic.songList;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -18,7 +20,9 @@ import java.util.List;
 
 public class MusicSongListAdapter extends RecyclerView.Adapter<MusicSongListAdapter.ViewHolder> {
 
-    private final List<MusicSongList> musicSongListList;
+    private static final String TAG = "MusicSongListAdapter";
+    
+    private List<MusicSongList> musicSongListList;
     private final Context context;
 
     public MusicSongListAdapter(Context context, List<MusicSongList> musicSongListList) {
@@ -42,7 +46,10 @@ public class MusicSongListAdapter extends RecyclerView.Adapter<MusicSongListAdap
         holder.getCardSongListBinding().songListItem.setOnClickListener(view -> {
             NavController controller = Navigation.findNavController(view);
             // TODO 传递Bundle（Room中的索引）
-            controller.navigate(R.id.action_musicSongListFragment2_to_musicSongFragment2);
+            Bundle bundle = new Bundle();
+            bundle.putString("key",musicSongListList.get(position).getSongListTitle());
+            Log.d(TAG, "onBindViewHolder: " + musicSongListList.get(position).getSongListTitle());
+            controller.navigate(R.id.action_musicSongListFragment2_to_musicSongFragment2,bundle);
         });
     }
 
@@ -61,5 +68,11 @@ public class MusicSongListAdapter extends RecyclerView.Adapter<MusicSongListAdap
         public CardSongListBinding getCardSongListBinding() {
             return cardSongListBinding;
         }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void setMusicSongListList(List<MusicSongList> musicSongListList) {
+        this.musicSongListList = musicSongListList;
+        notifyDataSetChanged();
     }
 }

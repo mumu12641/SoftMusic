@@ -1,29 +1,79 @@
 package com.example.softmusic.musicSong;
 
+import android.content.Context;
+import android.util.Log;
+
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.softmusic.room.MusicDao;
+import com.example.softmusic.room.MusicDataBase;
+import com.example.softmusic.room.PlaylistSongCrossRef;
+import com.example.softmusic.room.PlaylistWithSongs;
 import com.example.softmusic.songList.MusicSongList;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MusicSongViewModel extends ViewModel {
+
+    private static final String TAG = "MusicSongViewModel";
+    
     private final MutableLiveData<List<MusicSong>> musicSongData = new MutableLiveData<>();
     private final MutableLiveData<MusicSongList> musicSongListData = new MutableLiveData<>();
+    private final LiveData<PlaylistWithSongs> playlistWithSongsData;
+    private MusicDao musicDao;
+    private String key;
 
-    public MutableLiveData<List<MusicSong>> getMusicSongData() {
+    private LiveData<List<MusicSong>> test = new MutableLiveData<>();
+    private final MutableLiveData<MusicSongList> testList = new MutableLiveData<>();
 
-        List<MusicSong> list = new ArrayList<>();
-        list.add(new MusicSong("回到过去","周杰伦","八度空间","none"));
-        list.add(new MusicSong("说了再见","周杰伦","跨时代","none"));
-        list.add(new MusicSong("枫","周杰伦","11月的萧邦","none"));
-        musicSongData.setValue(list);
-        return musicSongData;
+
+    public MusicSongViewModel(Context context, String musicSongListTitle) {
+        key = musicSongListTitle;
+        MusicDataBase musicDataBase = MusicDataBase.getInstance(context);
+        musicDao = musicDataBase.getMusicDao();
+        playlistWithSongsData = musicDao.getLiveDataPlayListWithKey(musicSongListTitle);
+
+        test = musicDao.getAllMusicSong();
     }
 
-    public MutableLiveData<MusicSongList> getMusicSongListData() {
-        musicSongListData.setValue(new MusicSongList("我喜欢","4/17/22", 50,"me","none","none"));
-        return musicSongListData;
+//    public MutableLiveData<List<MusicSong>> getMusicSongData() {
+//        musicSongData.setValue(Objects.requireNonNull(playlistWithSongsData.getValue()).songs);
+//        return musicSongData;
+//    }
+//
+//    public MutableLiveData<MusicSongList> getMusicSongListData() {
+//        musicSongListData.setValue(Objects.requireNonNull(playlistWithSongsData.getValue()).playlist);
+//        return musicSongListData;
+//    }
+
+    public void insertMusicSongRef(PlaylistSongCrossRef...playlistSongCrossRefs){
+        new Thread(() -> musicDao.insertPlaylistSongCrossRef(playlistSongCrossRefs)).start();
+    }
+    public void deleteMusicSongRef(PlaylistSongCrossRef...playlistSongCrossRefs){
+        new Thread(() -> musicDao.deletePlaylistSongCrossRef(playlistSongCrossRefs)).start();
+    }
+    public void updateMusicSongRef(PlaylistSongCrossRef...playlistSongCrossRefs){
+        new Thread(() -> musicDao.deletePlaylistSongCrossRef(playlistSongCrossRefs)).start();
+    }
+
+    public void insertMusicSong(MusicSong...musicSongs){
+        new Thread(() -> musicDao.insertMusicSong(musicSongs)).start();
+    }
+    public void updateMusicSong(MusicSong...musicSongs){
+        new Thread(() -> musicDao.updateMusicSong(musicSongs)).start();
+    }
+    public void deleteMusicSong(MusicSong...musicSongs){
+        new Thread(() -> musicDao.deleteMusicSong(musicSongs)).start();
+    }
+
+    public LiveData<List<MusicSong>> getTest() {
+        return test;
+    }
+
+    public MutableLiveData<MusicSongList> getTestList() {
+        testList.setValue(new MusicSongList("我喜欢","4/17/22", 50,"me","none","none"));
+        return testList;
     }
 }

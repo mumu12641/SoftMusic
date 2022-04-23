@@ -38,8 +38,11 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat {
     @Override
     public void onCreate() {
         super.onCreate();
-        mPlaybackState = new PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_NONE,0,1.0f)
+//        mPlaybackState = new PlaybackStateCompat.Builder()
+//                .setState(PlaybackStateCompat.STATE_NONE,0,1.0f)
+//                .build();
+        mPlaybackState = new PlaybackStateCompat.Builder().setActions(PlaybackStateCompat.ACTION_PLAY |
+                PlaybackStateCompat.ACTION_PLAY_PAUSE)
                 .build();
         mSession = new MediaSessionCompat(this,TAG);
         mSession.setPlaybackState(mPlaybackState);
@@ -52,7 +55,6 @@ public class MediaPlaybackService extends MediaBrowserServiceCompat {
 //        MediaItem mediaItem = MediaItem.fromUri(rawToUri(R.raw.jinglebells));
 //        mExoPlayer.setMediaItem(mediaItem);
 //        mExoPlayer.prepare();
-
 
         mMediaPlayer = new MediaPlayer();
         try {

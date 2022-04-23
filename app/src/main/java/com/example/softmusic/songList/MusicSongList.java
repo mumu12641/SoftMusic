@@ -21,7 +21,8 @@ public class MusicSongList {
     @ColumnInfo(name = "imageFileUri")
     private String imageFileUri;
 
-    public MusicSongList(String songListTitle, String createDate, int songNumber, String builder,String description,String imageFileUri) {
+    public MusicSongList(@NonNull String songListTitle, String createDate, int songNumber, String builder,
+                         String description, String imageFileUri) {
         this.songListTitle = songListTitle;
         this.createDate = createDate;
         this.songNumber = songNumber;

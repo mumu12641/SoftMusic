@@ -63,7 +63,14 @@ public class MusicPlayFragment extends Fragment implements SeekBar.OnSeekBarChan
     @Override
     public void onStop() {
         super.onStop();
+        Log.d(TAG, "onStop");
         mBrowser.disconnect();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy");
     }
 
     @Nullable

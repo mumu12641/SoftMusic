@@ -21,6 +21,8 @@ public interface MusicDao {
     void updateMusicSong(MusicSong...songs);
     @Delete
     void deleteMusicSong(MusicSong...songs);
+    @Query("SELECT * FROM musicSong")
+    LiveData<List<MusicSong>> getAllMusicSong();
 
     @Insert
     void insertMusicSongList(MusicSongList...songLists);
@@ -28,6 +30,14 @@ public interface MusicDao {
     void updateMusicSongList(MusicSongList...songLists);
     @Delete
     void deleteMusicSongList(MusicSongList...songLists);
+
+    @Insert
+    void insertPlaylistSongCrossRef(PlaylistSongCrossRef...playlistSongCrossRefs);
+    @Update
+    void updatePlaylistSongCrossRef(PlaylistSongCrossRef...playlistSongCrossRefs);
+    @Delete
+    void deletePlaylistSongCrossRef(PlaylistSongCrossRef...playlistSongCrossRefs);
+
 
     @Query("SELECT * FROM musicSongList")
     LiveData<List<MusicSongList>> getAllMusicSongList();
@@ -37,6 +47,19 @@ public interface MusicDao {
     public List<PlaylistWithSongs> getPlaylistsWithSongs();
 
     @Transaction
+    @Query("SELECT * FROM musicSongList")
+    public LiveData<List<PlaylistWithSongs>> getLiveDataPlaylistsWithSongs();
+
+    @Transaction
+    @Query("SELECT * FROM musicSongList WHERE songListTitle = :key")
+    public LiveData<PlaylistWithSongs> getLiveDataPlayListWithKey(String key);
+
+    @Transaction
     @Query("SELECT * FROM musicSong")
     public List<SongWithPlaylists> getSongsWithPlaylists();
+
+    @Transaction
+    @Query("SELECT * FROM musicSong")
+    public LiveData<List<SongWithPlaylists>> getLiveDataSongsWithPlaylists();
+
 }
