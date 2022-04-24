@@ -23,14 +23,12 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val fragmentSongListBinding: FragmentSongListBinding =
             FragmentSongListBinding.inflate(inflater, container, false)
         viewModel = ViewModelProvider(
             requireActivity()
-        ).get(
-            MusicSongListViewModel::class.java
-        )
+        )[MusicSongListViewModel::class.java]
         fragmentSongListBinding.songListList.layoutManager =
             GridLayoutManager(requireActivity(), 1, GridLayoutManager.VERTICAL, false)
         val adapter = MusicSongListAdapter(
@@ -49,14 +47,13 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
 
     override fun onClick(view: View) {
         val dialog: AlertDialog
-        val builder: AlertDialog.Builder
-        builder = AlertDialog.Builder(requireActivity())
+        val builder: AlertDialog.Builder = AlertDialog.Builder(requireActivity())
         val inflater: LayoutInflater = requireActivity().layoutInflater
         val view1: View = inflater.inflate(R.layout.dialog_add_music_song_list, null, false)
         builder.setView(view1)
         builder.setCancelable(false)
         dialog = builder.create()
-        view1.findViewById<View>(R.id.dialog_confirm_sure).setOnClickListener { view2: View? ->
+        view1.findViewById<View>(R.id.dialog_confirm_sure).setOnClickListener {
 //            val des: String =
 //                Objects.requireNonNull<Editable>((view1.findViewById<View>(R.id.edit_description) as TextInputEditText).text)
 //                    .toString()
@@ -74,7 +71,7 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
             }
         }
         view1.findViewById<View>(R.id.dialog_confirm_cancel)
-            .setOnClickListener { view22: View? -> dialog.cancel() }
+            .setOnClickListener { dialog.cancel() }
         dialog.show()
     }
 

@@ -2,8 +2,8 @@
 
 
     <com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/songListItem"
         android:layout_width="match_parent"
         app:cardCornerRadius="15dp"
@@ -31,9 +31,9 @@
                 android:layout_marginBottom="10dp"
                 android:layout_marginEnd="10dp">
                 <TextView
+                    android:id="@+id/songListTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{musicListItem.songListTitle}"
                     android:layout_marginTop="10dp"
                     android:textColor="@color/black"
                     android:textAppearance="?attr/textAppearanceTitleMedium"/>
@@ -41,19 +41,19 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
                     <TextView
+                        android:id="@+id/songNumber"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?android:attr/textColorSecondary"
-                        android:textSize="15sp"
-                        android:text="@{String.valueOf(musicListItem.songNumber)+'首' + '，'}"/>
+                        android:textSize="15sp"/>
                     <TextView
+                        android:id="@+id/songListBuilder"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?android:attr/textColorSecondary"
                         android:textSize="15sp"
-                        android:text="@{musicListItem.builder}"
                         />
                 </LinearLayout>
 

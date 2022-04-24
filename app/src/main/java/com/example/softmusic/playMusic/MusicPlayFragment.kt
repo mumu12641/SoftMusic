@@ -58,7 +58,7 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentMusicPlayBinding.inflate(inflater, container, false)
         binding.seekBar.setOnSeekBarChangeListener(this)
         binding.playsong.setOnClickListener(this)
@@ -127,8 +127,10 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                     // 给Controller注册回调
                     mController.registerCallback(mMediaControllerCallback)
                 }
-                val metadataCompat: MediaMetadataCompat = mController.metadata
-                updateDuration(metadataCompat)
+                if (mController.metadata!=null) {
+                    val metadataCompat: MediaMetadataCompat = mController.metadata
+                    updateDuration(metadataCompat)
+                }
             }
 
         }
@@ -150,8 +152,10 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                             .toString()
                     )
                 }
-                val metadataCompat: MediaMetadataCompat = mController.metadata
-                updateDuration(metadataCompat)
+                if (mController.metadata!=null) {
+                    val metadataCompat: MediaMetadataCompat = mController.metadata
+                    updateDuration(metadataCompat)
+                }
             }
         }
 
@@ -170,12 +174,12 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                     PlaybackStateCompat.STATE_PAUSED -> {
                         binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
                         Toast.makeText(requireContext(), "pause", Toast.LENGTH_LONG).show()
-                        Log.d(TAG, "onPlaybackStateChanged: " + state.position as Int)
+                        Log.d(TAG, "onPlaybackStateChanged: " + state.position.toInt())
                     }
                     PlaybackStateCompat.STATE_PLAYING -> {
                         binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
                         Toast.makeText(requireContext(), "play", Toast.LENGTH_LONG).show()
-                        Log.d(TAG, "onPlaybackStateChanged: " + state.position as Int)
+                        Log.d(TAG, "onPlaybackStateChanged: " + state.position.toInt())
                     }
                 }
             }
@@ -184,7 +188,7 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
     private fun updateDuration(metadataCompat: MediaMetadataCompat?) {
         if (metadataCompat != null) {
-            val duration = metadataCompat.getLong(MediaMetadataCompat.METADATA_KEY_DURATION) as Int
+            val duration = metadataCompat.getLong(MediaMetadataCompat.METADATA_KEY_DURATION).toInt()
             Log.d(TAG, "updateDuration: $duration")
             if (duration > 0) {
                 binding.seekBar.max = duration

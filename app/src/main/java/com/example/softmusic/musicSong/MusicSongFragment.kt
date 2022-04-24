@@ -39,9 +39,9 @@ class MusicSongFragment : Fragment() {
         )
         //        musicSongViewModel.insertMusicSongRef(new PlaylistSongCrossRef("我喜欢","aaa"));
 //        musicSongViewModel.insertMusicSong(new MusicSong("aaa","周杰伦","八度空间","none"));
-        musicSongViewModel.test?.observe(
+        musicSongViewModel.test.observe(
             viewLifecycleOwner
-        ) { musicSongs: List<MusicSong?>? ->
+        ) { musicSongs: List<MusicSong> ->
             fragmentSongBinding.songsList.adapter = MusicSongAdapter(requireContext(), musicSongs)
         }
         musicSongViewModel.getTestList().observe(viewLifecycleOwner,
@@ -49,6 +49,7 @@ class MusicSongFragment : Fragment() {
                 (requireActivity() as MainActivity).setTitle(
                     musicSongList.songListTitle
                 )
+                fragmentSongBinding.textView.text = musicSongList.songListTitle
             })
         return fragmentSongBinding.root
     }

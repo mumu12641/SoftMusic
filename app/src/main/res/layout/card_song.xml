@@ -32,10 +32,10 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/songTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:text="@{theSong.songTitle}"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="@color/black" />
 
@@ -44,11 +44,11 @@
                 android:layout_height="wrap_content">
 
                 <TextView
+                    android:id="@+id/songSinger"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
                     android:layout_marginBottom="10dp"
-                    android:text="@{theSong.songSinger}"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="@color/text_grey" />
 

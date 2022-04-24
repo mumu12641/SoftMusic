@@ -16,7 +16,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
-        DynamicColors.applyIfAvailable(this)
         val navController: NavController =
             findNavController(R.id.nav_host_fragment_activity_main)
         val navigationView: BottomNavigationView = activityMainBinding.navView
