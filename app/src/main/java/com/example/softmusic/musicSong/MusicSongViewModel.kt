@@ -10,12 +10,12 @@ import com.example.softmusic.room.PlaylistSongCrossRef
 import com.example.softmusic.room.PlaylistWithSongs
 import com.example.softmusic.songList.MusicSongList
 
-class MusicSongViewModel(context: Context?, private val key: String?) : ViewModel() {
+class MusicSongViewModel(private val key: String?) : ViewModel() {
     private val musicSongData = MutableLiveData<List<MusicSong>>()
     private val musicSongListData = MutableLiveData<MusicSongList>()
     private val playlistWithSongsData: LiveData<PlaylistWithSongs?>?
     private val musicDao: MusicDao?
-    var test: LiveData<List<MusicSong?>?>? = MutableLiveData()
+    var test: LiveData<List<MusicSong>> = MutableLiveData()
     private val testList = MutableLiveData<MusicSongList>()
 
     //    public MutableLiveData<List<MusicSong>> getMusicSongData() {
@@ -61,7 +61,7 @@ class MusicSongViewModel(context: Context?, private val key: String?) : ViewMode
     }
 
     init {
-        val musicDataBase: MusicDataBase = MusicDataBase.Companion.getInstance(context)
+        val musicDataBase: MusicDataBase = MusicDataBase.Companion.getInstance()
         musicDao = musicDataBase.musicDao
         playlistWithSongsData = musicDao.getLiveDataPlayListWithKey(key)
         test = musicDao.allMusicSong

@@ -24,7 +24,7 @@ class MusicSongListAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
-        holder.cardSongListBinding.musicListItem = musicSongListList[position]
+        //holder.cardSongListBinding.musicListItem = musicSongListList[position]
         val array =
             intArrayOf(R.drawable.card, R.drawable.card2, R.drawable.card3, R.drawable.card3)
         holder.cardSongListBinding.imageSongList.setBackgroundResource(array[position])

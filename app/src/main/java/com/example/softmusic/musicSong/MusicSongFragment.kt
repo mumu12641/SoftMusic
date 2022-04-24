@@ -23,17 +23,17 @@ class MusicSongFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _fragmentSongBinding =
-            DataBindingUtil.inflate(inflater, R.layout.fragment_song, container, false)
+            FragmentSongBinding.inflate(inflater, container, false)
         assert(arguments != null)
         val musicSongViewModel: MusicSongViewModel = ViewModelProvider(
             requireActivity(),
-            ViewModelFactory(requireContext(), requireArguments().getString("key"))
+            ViewModelFactory(requireArguments().getString("key"))
         ).get<MusicSongViewModel>(
             MusicSongViewModel::class.java
         )
-        fragmentSongBinding.theMusicSongList = musicSongViewModel
+        //fragmentSongBinding.theMusicSongList = musicSongViewModel
         fragmentSongBinding.songsList.layoutManager = GridLayoutManager(
             requireContext(), 1, GridLayoutManager.VERTICAL, false
         )
@@ -53,10 +53,10 @@ class MusicSongFragment : Fragment() {
         return fragmentSongBinding.root
     }
 
-    internal class ViewModelFactory(private val context: Context, private val key: String?) :
+    internal class ViewModelFactory(private val key: String?) :
         ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return MusicSongViewModel(context, key) as T
+            return MusicSongViewModel(key) as T
         }
 
     }

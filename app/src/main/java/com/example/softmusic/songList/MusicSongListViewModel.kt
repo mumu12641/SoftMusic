@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.example.softmusic.room.MusicDao
 import com.example.softmusic.room.MusicDataBase
 
-class MusicSongListViewModel(context: Context?) : ViewModel() {
+class MusicSongListViewModel : ViewModel() {
     private val musicSongListData = MutableLiveData<List<MusicSongList>>()
     private val musicDao: MusicDao
     val musicSongListLiveData: LiveData<List<MusicSongList>>
@@ -41,7 +41,7 @@ class MusicSongListViewModel(context: Context?) : ViewModel() {
     }
 
     init {
-        val musicDataBase: MusicDataBase = MusicDataBase.getInstance(context)
+        val musicDataBase: MusicDataBase = MusicDataBase.getInstance()
         musicDao = musicDataBase.musicDao
         musicSongListLiveData = musicDao.allMusicSongList
     }

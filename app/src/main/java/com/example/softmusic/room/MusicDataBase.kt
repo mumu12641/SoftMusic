@@ -1,8 +1,9 @@
 package com.example.softmusic.room
 
-import android.content.Context
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.softmusic.BaseApplication
 import com.example.softmusic.musicSong.MusicSong
 import com.example.softmusic.songList.MusicSongList
 
@@ -15,10 +16,11 @@ abstract class MusicDataBase : RoomDatabase() {
     abstract val musicDao: MusicDao
 
     companion object {
-        private lateinit var musicDataBase: MusicDataBase
+        private val musicDataBase =
+            Room.databaseBuilder(BaseApplication.context, MusicDataBase::class.java, "name").build()
 
         @Synchronized
-        fun getInstance(context: Context?): MusicDataBase {
+        fun getInstance(): MusicDataBase {
             return musicDataBase
         }
     }

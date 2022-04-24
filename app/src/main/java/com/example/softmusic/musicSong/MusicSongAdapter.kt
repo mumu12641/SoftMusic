@@ -17,7 +17,7 @@ class MusicSongAdapter(private val context: Context, private val musicSongList: 
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.cardSongListBinding.theSong = musicSongList!![position]
+        //holder.cardSongListBinding.theSong = musicSongList!![position]
         holder.cardSongListBinding.number.text = (position + 1).toString()
     }
 

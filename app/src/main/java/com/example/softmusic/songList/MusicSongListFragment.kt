@@ -25,10 +25,9 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
         savedInstanceState: Bundle?
     ): View? {
         val fragmentSongListBinding: FragmentSongListBinding =
-            DataBindingUtil.inflate(inflater, R.layout.fragment_song_list, container, false)
+            FragmentSongListBinding.inflate(inflater, container, false)
         viewModel = ViewModelProvider(
-            requireActivity(),
-            ViewModelFactory(requireActivity())
+            requireActivity()
         ).get(
             MusicSongListViewModel::class.java
         )
@@ -79,10 +78,4 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
         dialog.show()
     }
 
-    internal class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
-
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return MusicSongListViewModel(context) as T
-        }
-    }
 }
