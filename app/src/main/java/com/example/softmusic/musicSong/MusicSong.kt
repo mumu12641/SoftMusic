@@ -13,5 +13,7 @@ class MusicSong(
     @field:ColumnInfo(name = "songAlbum") var songAlbum: String,
     @field:ColumnInfo(
         name = "mediaFileUri"
-    ) var mediaFileUri: String
+    ) var mediaFileUri: String,
+    @field:ColumnInfo(name = "duration") var duration:Int,
+    @field:ColumnInfo(name = "albumId") var albumId:Long
 )

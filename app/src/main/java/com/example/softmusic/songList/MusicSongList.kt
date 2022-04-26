@@ -3,6 +3,7 @@ package com.example.softmusic.songList
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.softmusic.musicSong.MusicSong
 
 @Entity(tableName = "musicSongList")
 class MusicSongList(

@@ -1,8 +1,10 @@
 package com.example.softmusic.playMusic
 
+import android.content.Intent
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
+import android.os.IBinder
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -10,6 +12,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.media.MediaBrowserServiceCompat
 import com.example.softmusic.R
+import com.example.softmusic.room.DataBaseUtils
 import com.google.android.exoplayer2.ExoPlayer
 import java.io.IOException
 
@@ -18,9 +21,14 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
     private var mPlaybackState: PlaybackStateCompat? = null
     private var mExoPlayer: ExoPlayer? = null
     private var mMediaPlayer: MediaPlayer? = null
+
+    private lateinit var songTitle:String
+
     private val TAG = "MediaPlaybackService"
+
     override fun onCreate() {
         super.onCreate()
+
         //        mPlaybackState = new PlaybackStateCompat.Builder()
 //                .setState(PlaybackStateCompat.STATE_NONE,0,1.0f)
 //                .build();
@@ -41,18 +49,18 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 //        mExoPlayer.setMediaItem(mediaItem);
 //        mExoPlayer.prepare();
         mMediaPlayer = MediaPlayer()
-        try {
-            mMediaPlayer!!.setDataSource(applicationContext, rawToUri(R.raw.jay))
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-        mMediaPlayer!!.prepareAsync()
-        mMediaPlayer!!.setOnPreparedListener { mediaPlayer: MediaPlayer? ->
-            Log.d(
-                TAG,
-                "onPrepared: " + mMediaPlayer!!.duration
-            )
-        }
+//        try {
+//            mMediaPlayer!!.setDataSource(applicationContext, rawToUri(R.raw.jay))
+//        } catch (e: IOException) {
+//            e.printStackTrace()
+//        }
+//        mMediaPlayer!!.prepareAsync()
+//        mMediaPlayer!!.setOnPreparedListener { mediaPlayer: MediaPlayer? ->
+//            Log.d(
+//                TAG,
+//                "onPrepared: " + mMediaPlayer!!.duration
+//            )
+//        }
     }
 
     override fun onDestroy() {
@@ -77,19 +85,26 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         clientUid: Int, rootHints: Bundle?
     ): BrowserRoot {
         Log.d(TAG, "onGetRoot")
+        // TODO get the bundle and set the playlist
+        songTitle = rootHints?.getString("songTitle").toString()
         return BrowserRoot(MY_MEDIA_ROOT_ID, null)
     }
 
     override fun onLoadChildren(
         parentId: String,
-        result: Result<List<MediaBrowserCompat.MediaItem>>
+        result: Result<MutableList<MediaBrowserCompat.MediaItem>>
     ) {
         Log.d(TAG, "onLoadChildren")
         result.detach()
+
+        val musicSong = DataBaseUtils.getMusicSongByKey(songTitle)
+        mMediaPlayer?.setDataSource(musicSong.mediaFileUri)
+        mMediaPlayer?.prepareAsync()
+
         val metadata = MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "" + R.raw.jay)
-            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "回到过去")
-            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, mMediaPlayer!!.duration.toLong())
+            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, songTitle)
+            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, musicSong.duration.toLong())
             .build()
         // 返回的数据是 MediaItem
         val mediaItems = ArrayList<MediaBrowserCompat.MediaItem>()

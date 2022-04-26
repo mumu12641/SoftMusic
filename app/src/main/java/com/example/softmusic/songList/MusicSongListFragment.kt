@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.softmusic.MainActivity
 import com.example.softmusic.R
 import com.example.softmusic.databinding.FragmentSongListBinding
 import com.example.softmusic.room.DataBaseUtils
@@ -73,4 +74,8 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
         dialog.show()
     }
 
+    override fun onResume() {
+        super.onResume()
+        (requireActivity() as MainActivity).setTitle(MusicSongListViewModel.title)
+    }
 }

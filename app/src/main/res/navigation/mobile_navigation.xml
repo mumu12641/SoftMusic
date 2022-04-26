@@ -19,5 +19,12 @@
     <fragment
         android:id="@+id/musicSongFragment2"
         android:name="com.example.softmusic.musicSong.MusicSongFragment"
-        android:label="MusicSongFragment" />
+        android:label="MusicSongFragment" >
+<!--        A -> B -> C，C 返回时不会经过 B，而是直接回到 A-->
+        <action
+            android:id="@+id/action_musicSongFragment2_to_play_song"
+            app:destination="@id/play_song"
+            app:popUpTo="@id/musicSongFragment2"
+            app:popUpToInclusive="true"/>
+    </fragment>
 </navigation>

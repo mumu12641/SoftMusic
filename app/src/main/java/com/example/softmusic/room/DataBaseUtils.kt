@@ -54,5 +54,23 @@ class DataBaseUtils {
         fun getAllMusicSongList():LiveData<List<MusicSongList>>{
             return musicDao.allMusicSongList
         }
+        fun getMusicSongByKey(key:String):MusicSong{
+            lateinit var result:MusicSong
+            val t = Thread {
+                result = musicDao.getMusicSongByKey(key)
+            }
+            t.start()
+            t.join()
+            return result
+        }
+        fun getPlayListSongCrossRefByKeys(songListTitle:String):LiveData<List<PlaylistSongCrossRef>>{
+            lateinit var result:LiveData<List<PlaylistSongCrossRef>>
+            val t = Thread {
+                result = musicDao.getPlayListSongCrossRefByKey(songListTitle)
+            }
+            t.start()
+            t.join()
+            return result
+        }
     }
 }

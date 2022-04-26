@@ -9,7 +9,7 @@ import com.example.softmusic.songList.MusicSongList
 
 @Database(
     entities = [MusicSongList::class, MusicSong::class, PlaylistSongCrossRef::class],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 abstract class MusicDataBase : RoomDatabase() {
@@ -17,7 +17,9 @@ abstract class MusicDataBase : RoomDatabase() {
 
     companion object {
         private val musicDataBase =
-            Room.databaseBuilder(BaseApplication.context, MusicDataBase::class.java, "name").build()
+            Room.databaseBuilder(BaseApplication.context, MusicDataBase::class.java, "name")
+                .fallbackToDestructiveMigration()
+                .build()
 
         @Synchronized
         fun getInstance(): MusicDataBase {

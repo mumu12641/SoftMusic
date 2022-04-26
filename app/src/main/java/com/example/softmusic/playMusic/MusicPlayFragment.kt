@@ -15,12 +15,19 @@ import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.example.softmusic.MainActivity
 import com.example.softmusic.R
 import com.example.softmusic.databinding.FragmentMusicPlayBinding
+import com.example.softmusic.musicSong.MusicSongFragment
+import com.example.softmusic.musicSong.MusicSongViewModel
 import java.util.*
 
 class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnClickListener {
+
+//    private lateinit var musicPlayViewModel: MusicPlayViewModel
+
     private lateinit var mBrowser: MediaBrowserCompat
     private lateinit var mController: MediaControllerCompat
     private val TAG = "MediaPlayer"
@@ -30,28 +37,33 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
     private var lastPos = -1
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val bundle = Bundle()
+        bundle.putString("songListTitle",requireArguments().getString("songListTitle"))
+        bundle.putString("songTitle",requireArguments().getString("songTitle"))
         mBrowser = MediaBrowserCompat(
             requireContext(),
             ComponentName(requireContext(), MediaPlaybackService::class.java),  //绑定服务
             mBrowserConnectionCallback,  // 设置回调
-            null
+            bundle
         )
     }
 
     override fun onStart() {
         super.onStart()
-        mBrowser.connect()
+        if (!mBrowser.isConnected) {
+            mBrowser.connect()
+        }
     }
 
     override fun onStop() {
         super.onStop()
         Log.d(TAG, "onStop")
-        mBrowser.disconnect()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "onDestroy")
+        mBrowser.disconnect()
     }
 
     override fun onCreateView(
@@ -59,6 +71,14 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
+//        musicPlayViewModel= ViewModelProvider(
+//            requireActivity(),
+//            ViewModelFactory(requireArguments().getString("songListTitle")!!)
+//        ).get<MusicPlayViewModel>(
+//            MusicPlayViewModel::class.java
+//        )
+
         _binding = FragmentMusicPlayBinding.inflate(inflater, container, false)
         binding.seekBar.setOnSeekBarChangeListener(this)
         binding.playsong.setOnClickListener(this)
@@ -211,4 +231,11 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             }
         }
     }
+//    internal class ViewModelFactory(private val key: String) :
+//        ViewModelProvider.Factory {
+//        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+//            return MusicSongViewModel(key) as T
+//        }
+//
+//    }
 }
