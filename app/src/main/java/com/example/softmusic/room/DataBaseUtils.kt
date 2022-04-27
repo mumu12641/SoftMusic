@@ -19,6 +19,15 @@ class DataBaseUtils {
         fun deleteMusicSong(vararg musicSongs: MusicSong?) {
             Thread { musicDao.deleteMusicSong(*musicSongs) }.start()
         }
+        fun getAllMusicSongs():List<MusicSong>{
+            lateinit var result:List<MusicSong>
+            val t = Thread {
+                result = musicDao.getAllMusicSongs()
+            }
+            t.start()
+            t.join()
+            return result
+        }
         fun insertMusicSongRef(vararg playlistSongCrossRefs: PlaylistSongCrossRef?) {
             Thread { musicDao.insertPlaylistSongCrossRef(*playlistSongCrossRefs) }.start()
         }
@@ -36,6 +45,16 @@ class DataBaseUtils {
 
         fun deleteMusicSongList(vararg musicSongLists: MusicSongList) {
             Thread { musicDao.deleteMusicSongList(*musicSongLists) }.start()
+        }
+
+        fun getTheMusicSongList(key:String):MusicSongList{
+            lateinit var result:MusicSongList
+            val t = Thread {
+                result = musicDao.getTheMusicSongList(key)
+            }
+            t.start()
+            t.join()
+            return result
         }
 
         fun updateMusicSongList(vararg musicSongLists: MusicSongList) {

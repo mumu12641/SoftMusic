@@ -18,6 +18,8 @@ interface MusicDao {
 
     @get:Query("SELECT * FROM musicSong")
     val allMusicSong: LiveData<List<MusicSong>>
+    @Query("SELECT * FROM musicSong")
+    fun getAllMusicSongs():List<MusicSong>
 
     @Query("SELECT * FROM musicSong WHERE songTitle = :key")
     fun getMusicSongByKey(key:String):MusicSong
@@ -30,6 +32,9 @@ interface MusicDao {
 
     @Delete
     fun deleteMusicSongList(vararg songLists: MusicSongList?)
+
+    @Query("SELECT * FROM musicSongList WHERE songListTitle =:key")
+    fun getTheMusicSongList(key:String):MusicSongList
 
     @Insert
     fun insertPlaylistSongCrossRef(vararg playlistSongCrossRefs: PlaylistSongCrossRef?)

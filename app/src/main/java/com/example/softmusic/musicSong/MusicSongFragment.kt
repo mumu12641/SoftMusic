@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -21,7 +22,6 @@ import com.example.softmusic.MainActivity
 import com.example.softmusic.databinding.FragmentSongBinding
 import com.example.softmusic.room.DataBaseUtils
 import com.example.softmusic.room.PlaylistSongCrossRef
-import com.example.softmusic.room.PlaylistWithSongs
 
 
 class MusicSongFragment : Fragment() {
@@ -61,6 +61,11 @@ class MusicSongFragment : Fragment() {
                 ActivityCompat.requestPermissions(requireActivity(),
                     arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 1)
             }
+            if (ContextCompat.checkSelfPermission(requireContext(),
+                    Manifest.permission.ACCESS_MEDIA_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(requireActivity(),
+                    arrayOf(Manifest.permission.ACCESS_MEDIA_LOCATION), 1)
+            }
             getLocalMusic()
         }
         return fragmentSongBinding.root
@@ -82,6 +87,7 @@ class MusicSongFragment : Fragment() {
             null,
             MediaStore.Audio.AudioColumns.IS_MUSIC
         )
+        var flag = false
 
         if (cursor != null) {
             while (cursor.moveToNext()) {
@@ -101,35 +107,50 @@ class MusicSongFragment : Fragment() {
                         cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)),
                         cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)),
                         cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)))
-//                if (!(musicSongViewModel.getPlaylistWithSongsData().value as PlaylistWithSongs).songs?.contains(song)!!) {
-//                    DataBaseUtils.insertMusicSong(song)
-//                }else{
-//                    Log.d("TAG", "getLocalMusic: 已经添加")
-//                }
-////                val result = DataBaseUtils.getMusicSongByKey(song.songTitle)?:DataBaseUtils.insertMusicSong(song)
-//                val playlistSongCrossRef = PlaylistSongCrossRef(
-//                    musicSongViewModel.songListTitle,
-//                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
-//                )
-//                if (!musicSongViewModel.getPlaylistSongCrossRefData()?.contains(playlistSongCrossRef)!!) {
-//                    DataBaseUtils.insertMusicSongRef(
-//                        playlistSongCrossRef
-//                    )
-//                }else{
-//                    Log.d("TAG", "getLocalMusic: 已经添加")
-//                }
-//                if (song.songTitle != "jay.mp3"){
-//                    DataBaseUtils.insertMusicSong(song)
-//                    DataBaseUtils.insertMusicSongRef(
-//                        PlaylistSongCrossRef(
-//                    musicSongViewModel.songListTitle,
-//                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))))
-//                }
+                for (i in DataBaseUtils.getPlayListsWithSongsByKey(musicSongViewModel.songListTitle)){
+                    if (i.songTitle == song.songTitle){
+                        flag = true
+                        break
+                    }
+                }
+                if (!flag){
+                    DataBaseUtils.insertMusicSongRef(
+                        PlaylistSongCrossRef(
+                         musicSongViewModel.songListTitle,
+                           cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
+                         )
+                    )
+                    val songList = DataBaseUtils.getTheMusicSongList(musicSongViewModel.songListTitle)
+                    songList.songNumber ++
+                    DataBaseUtils.updateMusicSongList(
+                        songList
+                        )
+                }
+                else{
+                    Log.d("TAG", "getLocalMusic: 已经在这个歌单添加歌曲（关系）")
+                }
+                flag = false
+                for (i in DataBaseUtils.getAllMusicSongs()){
+                    if (i.songTitle == song.songTitle){
+                        flag = true
+                        break
+                    }
+                }
+                if (!flag){
+                    DataBaseUtils.insertMusicSong(song)
+                }
+                else{
+                    Log.d("TAG", "getLocalMusic: 已经在总的歌曲中添加了该歌曲")
+                }
             }
         } else {
             Log.d("TAG", "getLocalMusic: null" )
         }
-
+        if (flag){
+            Toast.makeText(context,"你已经导入过了",Toast.LENGTH_LONG).show()
+        }else{
+            Toast.makeText(context,"导入成功",Toast.LENGTH_LONG).show()
+        }
         cursor?.close()
 
     }

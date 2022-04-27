@@ -1,10 +1,7 @@
 package com.example.softmusic.playMusic
 
-import android.content.Intent
 import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Bundle
-import android.os.IBinder
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -15,7 +12,6 @@ import com.example.softmusic.R
 import com.example.softmusic.musicSong.MusicSong
 import com.example.softmusic.room.DataBaseUtils
 import com.google.android.exoplayer2.ExoPlayer
-import java.io.IOException
 
 class MediaPlaybackService : MediaBrowserServiceCompat() {
     private var mSession: MediaSessionCompat? = null
@@ -27,7 +23,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
     private var songListTitle:String ?= null
 
     private var playNum = 0
-    private var nowNum = 0
+    var nowNum = 0
     private var list:List<MusicSong>? = null
 
     private val TAG = "MediaPlaybackService"
@@ -50,23 +46,11 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         mSession!!.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
         sessionToken = mSession!!.sessionToken
 
-//        mExoPlayer = new ExoPlayer.Builder(getApplicationContext()).build();
+        mExoPlayer = ExoPlayer.Builder(applicationContext).build()
 //        MediaItem mediaItem = MediaItem.fromUri(rawToUri(R.raw.jinglebells));
 //        mExoPlayer.setMediaItem(mediaItem);
 //        mExoPlayer.prepare();
         mMediaPlayer = MediaPlayer()
-//        try {
-//            mMediaPlayer!!.setDataSource(applicationContext, rawToUri(R.raw.jay))
-//        } catch (e: IOException) {
-//            e.printStackTrace()
-//        }
-//        mMediaPlayer!!.prepareAsync()
-//        mMediaPlayer!!.setOnPreparedListener { mediaPlayer: MediaPlayer? ->
-//            Log.d(
-//                TAG,
-//                "onPrepared: " + mMediaPlayer!!.duration
-//            )
-//        }
     }
 
     override fun onDestroy() {
@@ -185,21 +169,19 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
             override fun onSkipToNext() {
                 super.onSkipToNext()
-                nowNum ++
+                nowNum += 1
                 Log.d(TAG, "onSkipToNext: $nowNum")
-                Log.d(TAG, "onSkipToNext: " + list?.size!!)
+//                Log.d(TAG, "onSkipToNext: " + list?.size!!)
 
                 if (nowNum == list?.size!!){
                     nowNum = 0
-                    Log.d(TAG, "onSkipToNext: if  $nowNum")
                 }
-                Log.d(TAG, "onSkipToNext: $nowNum")
                 changeMusicSong(song = list?.get(nowNum)!!)
             }
 
             override fun onSkipToPrevious() {
                 super.onSkipToPrevious()
-                nowNum --
+                nowNum -= 1
                 if (nowNum < 0){
                     nowNum = list?.size?.minus(1)!!
                 }
@@ -207,10 +189,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             }
         }
 
-    private fun rawToUri(id: Int): Uri {
-        val uriStr = "android.resource://$packageName/$id"
-        return Uri.parse(uriStr)
-    }
+
 
     companion object {
         private const val MY_MEDIA_ROOT_ID = "media_root_id"
@@ -223,12 +202,17 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.duration.toLong())
             .build()
         mSession?.setMetadata(metadata)
+
         mMediaPlayer?.stop()
         mMediaPlayer?.reset()
+
         mMediaPlayer?.setDataSource(song.mediaFileUri)
-        mMediaPlayer?.prepareAsync()
+        mMediaPlayer?.prepare()
+        mMediaPlayer?.setOnCompletionListener {
+            Log.d(TAG, "changeMusicSong: done" + song.songTitle)
+        }
         mPlaybackState = PlaybackStateCompat.Builder()
-            .setState(PlaybackStateCompat.STATE_PLAYING, 0, 1.0f)
+            .setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
             .build()
         mSession!!.setPlaybackState(mPlaybackState)
     }
