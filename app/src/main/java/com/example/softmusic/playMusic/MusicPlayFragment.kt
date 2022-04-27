@@ -35,11 +35,18 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
     private val binding get() = _binding
     private var nowPos = 0
     private var lastPos = -1
+
+    private var nextFlag:Boolean = false
+
+    private var mUpdateProgressThread:updateProgressThread? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val bundle = Bundle()
-        bundle.putString("songListTitle",requireArguments().getString("songListTitle"))
-        bundle.putString("songTitle",requireArguments().getString("songTitle"))
+        if (arguments != null){
+            bundle.putString("songListTitle", requireArguments().getString("songListTitle"))
+            bundle.putString("songTitle", requireArguments().getString("songTitle"))
+        }
         mBrowser = MediaBrowserCompat(
             requireContext(),
             ComponentName(requireContext(), MediaPlaybackService::class.java),  //绑定服务
@@ -100,25 +107,58 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
     @SuppressLint("SwitchIntDef", "NonConstantResourceId")
     override fun onClick(view: View) {
-        if (view.id == R.id.playsong) {
-            if (mController != null) {
-                when (mController.playbackState.state) {
-                    PlaybackStateCompat.STATE_PLAYING -> {
-                        mController.transportControls.pause()
-                        lastPos = nowPos
+        when(view.id){
+            R.id.playsong->{
+                if (mController != null) {
+                    when (mController.playbackState.state) {
+                        PlaybackStateCompat.STATE_PLAYING -> {
+                            if (!nextFlag) {
+                                mController.transportControls.pause()
+                                lastPos = nowPos
+                            } else {
+                                nextFlag = false
+                                mController.transportControls.play()
+                                mUpdateProgressThread = updateProgressThread()
+                                mUpdateProgressThread?.start()
+                            }
+                        }
+                        PlaybackStateCompat.STATE_PAUSED -> {
+                            mController.transportControls.play()
+                            lastPos = -1
+                        }
+                        PlaybackStateCompat.STATE_NONE -> {
+                            mController.transportControls.play()
+                            Log.d(TAG, "onClick: none")
+                            mUpdateProgressThread = updateProgressThread()
+                            mUpdateProgressThread?.start()
+                        }
                     }
-                    PlaybackStateCompat.STATE_PAUSED -> {
-                        mController.transportControls.play()
-                        lastPos = -1
-                    }
-                    PlaybackStateCompat.STATE_NONE -> {
-                        mController.transportControls.play()
-                        val mUpdateProgressThread = updateProgressThread()
-                        mUpdateProgressThread.start()
-                    }
+                    Log.d(TAG, "onClick:nowPos $nowPos")
+                    Log.d(TAG, "onClick:lastPos $lastPos")
                 }
-                Log.d(TAG, "onClick: $nowPos")
-                Log.d(TAG, "onClick: $lastPos")
+
+            }
+            R.id.nextsong->{
+                mController.transportControls.skipToNext()
+                nextFlag = true
+                // next song and update duration
+                if (mController.metadata!=null) {
+                    val metadataCompat: MediaMetadataCompat = mController.metadata
+                    updateDuration(metadataCompat)
+                }
+                updateProgress()
+//                mController.playbackState.s
+                binding.playsong.performClick()
+                Log.d(TAG, "onClick: next song state" + mController.playbackState.state)
+            }
+            R.id.lastsong->{
+                mController.transportControls.skipToPrevious()
+                if (mController.metadata!=null) {
+                    val metadataCompat: MediaMetadataCompat = mController.metadata
+                    updateDuration(metadataCompat)
+                }
+                updateProgress()
+                binding.playsong.performClick()
             }
         }
     }
@@ -194,13 +234,15 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                     PlaybackStateCompat.STATE_PAUSED -> {
                         binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
                         Toast.makeText(requireContext(), "pause", Toast.LENGTH_LONG).show()
-                        Log.d(TAG, "onPlaybackStateChanged: " + state.position.toInt())
                     }
                     PlaybackStateCompat.STATE_PLAYING -> {
                         binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
                         Toast.makeText(requireContext(), "play", Toast.LENGTH_LONG).show()
-                        Log.d(TAG, "onPlaybackStateChanged: " + state.position.toInt())
                     }
+                }
+                if (mController.metadata!=null) {
+                    val metadataCompat: MediaMetadataCompat = mController.metadata
+                    updateDuration(metadataCompat)
                 }
             }
 
@@ -231,6 +273,15 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             }
         }
     }
+
+    private fun updateProgress(){
+        mUpdateProgressThread = null
+//        mUpdateProgressThread = updateProgressThread()
+//        mUpdateProgressThread?.start()
+        nowPos = 0
+        lastPos = -1
+        binding.seekBar.progress = 0
+    }
 //    internal class ViewModelFactory(private val key: String) :
 //        ViewModelProvider.Factory {
 //        override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -239,3 +290,4 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 //
 //    }
 }
+

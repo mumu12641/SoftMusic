@@ -72,5 +72,14 @@ class DataBaseUtils {
             t.join()
             return result
         }
+        fun getPlayListsWithSongsByKey(songListTitle:String):List<MusicSong>{
+            lateinit var result:PlaylistWithSongs
+            val t = Thread {
+                result = musicDao.getPlayListsWithSongsByKey(songListTitle)
+            }
+            t.start()
+            t.join()
+            return result.songs!!
+        }
     }
 }

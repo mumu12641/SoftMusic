@@ -60,6 +60,9 @@ interface MusicDao {
     @Transaction
     @Query("SELECT * FROM musicSongList WHERE songListTitle = :key")
     fun getLiveDataPlaylistsWithSongsByKey(key: String?): LiveData<PlaylistWithSongs>
+    @Query("SELECT * FROM musicSongList WHERE songListTitle = :songListTitle")
+    fun getPlayListsWithSongsByKey(songListTitle:String):PlaylistWithSongs
+
 
     @get:Query("SELECT * FROM musicSong")
     @get:Transaction
