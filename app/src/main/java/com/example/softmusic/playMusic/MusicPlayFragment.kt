@@ -13,25 +13,25 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.softmusic.MainActivity
 import com.example.softmusic.R
 import com.example.softmusic.databinding.FragmentMusicPlayBinding
+import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.log
 
 class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnClickListener {
 
-//    private lateinit var musicPlayViewModel: MusicPlayViewModel
+    private lateinit var musicPlayViewModel: MusicPlayViewModel
 
     private lateinit var mBrowser: MediaBrowserCompat
     private lateinit var mController: MediaControllerCompat
     private val TAG = "MediaPlayer"
     private lateinit var _binding: FragmentMusicPlayBinding
     private val binding get() = _binding
-    private var nowPos = 0
-    private var lastPos = -1
-
-
 
     private var mUpdateProgressThread:updateProgressThread? = null
 
@@ -48,6 +48,7 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             mBrowserConnectionCallback,  // 设置回调
             bundle
         )
+        musicPlayViewModel = ViewModelProvider(requireActivity())[MusicPlayViewModel::class.java]
     }
 
     override fun onStart() {
@@ -73,19 +74,30 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-
-//        musicPlayViewModel= ViewModelProvider(
-//            requireActivity(),
-//            ViewModelFactory(requireArguments().getString("songListTitle")!!)
-//        ).get<MusicPlayViewModel>(
-//            MusicPlayViewModel::class.java
-//        )
-
         _binding = FragmentMusicPlayBinding.inflate(inflater, container, false)
         binding.seekBar.setOnSeekBarChangeListener(this)
         binding.playsong.setOnClickListener(this)
         binding.nextsong.setOnClickListener(this)
         binding.lastsong.setOnClickListener(this)
+
+        val dateFormat = SimpleDateFormat("mm:ss", Locale.CHINA)
+        dateFormat.timeZone = TimeZone.getTimeZone("GMT+00:00")
+        musicPlayViewModel.duration.observe(viewLifecycleOwner) { duration ->
+            binding.seekBar.max = duration
+
+            binding.durationTime.text = dateFormat.format(Date(duration.toLong()))
+        }
+        musicPlayViewModel.nowPos.observe(viewLifecycleOwner) { now ->
+            binding.seekBar.progress = now * 1000
+            binding.nowTime.text = dateFormat.format(Date((now * 1000).toLong()))
+        }
+        musicPlayViewModel.nextFlag.observe(viewLifecycleOwner) {
+            if (it){
+                binding.nextsong.performClick()
+                musicPlayViewModel.setFlag(false)
+            }
+        }
+
         return binding.root
     }
 
@@ -93,8 +105,9 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
     override fun onStartTrackingTouch(seekBar: SeekBar) {}
     override fun onStopTrackingTouch(seekBar: SeekBar) {
         val pos: Int = seekBar.progress
-        nowPos = pos / 1000
-        lastPos = -1
+//        musicPlayViewModel.nowPos = pos / 1000
+        musicPlayViewModel.setNow(pos / 1000)
+        musicPlayViewModel.lastPos = -1
         mController.transportControls.seekTo(pos.toLong())
         mController.transportControls.play()
         binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
@@ -108,11 +121,11 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                     when (mController.playbackState.state) {
                         PlaybackStateCompat.STATE_PLAYING -> {
                             mController.transportControls.pause()
-                            lastPos = nowPos
+                            musicPlayViewModel.lastPos = musicPlayViewModel.nowPos.value!!
                         }
                         PlaybackStateCompat.STATE_PAUSED -> {
                             mController.transportControls.play()
-                            lastPos = -1
+                            musicPlayViewModel.lastPos = -1
                         }
                         PlaybackStateCompat.STATE_NONE -> {
                             mController.transportControls.play()
@@ -178,6 +191,10 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                 super.onChildrenLoaded(parentId, children)
                 Log.d(TAG, "onChildrenLoaded")
                 // children 就是Service返回回来的数据
+                if (children.isEmpty()){
+                    Toast.makeText(requireContext(),"你的播放列表中还什么都没有～",Toast.LENGTH_LONG).show()
+                    return
+                }
                 for (item in children) {
                     Log.d(
                         TAG,
@@ -224,7 +241,7 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             val duration = metadataCompat.getLong(MediaMetadataCompat.METADATA_KEY_DURATION).toInt()
             Log.d(TAG, "updateDuration: $duration")
             if (duration > 0) {
-                binding.seekBar.max = duration
+                musicPlayViewModel.setAllDuration(duration)
             }
         } else {
             Log.d(TAG, "updateDuration: null")
@@ -235,22 +252,21 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         override fun run() {
             super.run()
             while (binding.seekBar.progress < binding.seekBar.max) {
-                if (nowPos == lastPos) {
+                if (musicPlayViewModel.nowPos.value == musicPlayViewModel.lastPos) {
                     continue
                 }
-                nowPos++
-                binding.seekBar.progress = nowPos * 1000
+                musicPlayViewModel.postNow(musicPlayViewModel.nowPos.value!!.plus(1))
                 SystemClock.sleep(1000)
             }
             Log.d(TAG, "run: song play done" )
+            musicPlayViewModel.postFlag(true)
         }
     }
 
     private fun updateProgress(){
         mUpdateProgressThread = null
-        nowPos = 0
-        lastPos = -1
-        binding.seekBar.progress = 0
+        musicPlayViewModel.lastPos = -1
+        musicPlayViewModel.setNow(0)
     }
 }
 

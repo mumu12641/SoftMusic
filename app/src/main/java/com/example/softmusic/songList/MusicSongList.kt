@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 import com.example.softmusic.musicSong.MusicSong
 
 @Entity(tableName = "musicSongList")
-class MusicSongList(
+data class MusicSongList(
     @field:PrimaryKey var songListTitle: String,
     @field:ColumnInfo(name = "createDate") var createDate: String,
     @field:ColumnInfo(

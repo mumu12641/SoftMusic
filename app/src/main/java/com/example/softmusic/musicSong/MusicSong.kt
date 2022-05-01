@@ -5,7 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "musicSong")
-class MusicSong(
+data class MusicSong(
     @field:PrimaryKey var songTitle: String,
     @field:ColumnInfo(
         name = "songSinger"
