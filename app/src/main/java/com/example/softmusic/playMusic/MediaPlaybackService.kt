@@ -1,20 +1,26 @@
 package com.example.softmusic.playMusic
 
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.media.MediaBrowserServiceCompat
+import androidx.media.session.MediaButtonReceiver
 import com.example.softmusic.R
 import com.example.softmusic.musicSong.MusicSong
 import com.example.softmusic.room.DataBaseUtils
 import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
 import com.tencent.mmkv.MMKV
+import java.util.*
+
 
 class MediaPlaybackService : MediaBrowserServiceCompat() {
     private var mSession: MediaSessionCompat? = null
@@ -144,7 +150,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         val metadata = MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "" + R.raw.jay)
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, musicSong.songTitle)
-            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, musicSong.duration?.toLong()!!)
+            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, musicSong.duration.toLong())
             .build()
         //向Browser发送数据
         mSession!!.isActive = true
@@ -166,6 +172,80 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                         .setState(PlaybackStateCompat.STATE_PLAYING, 0, 1.0f)
                         .build()
                     mSession!!.setPlaybackState(mPlaybackState)
+
+                    val controller = mSession!!.controller
+                    val metaData = controller.metadata
+                    val des = metaData.description
+
+                    val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                    @SuppressLint("WrongConstant") val builder: NotificationCompat.Builder
+                    val channelId: String =
+                        java.lang.String.valueOf(Random().nextInt()) //自己生成的用于通知栏的channelId，高版本必备
+
+                    val mChannel: NotificationChannel?
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        mChannel = NotificationChannel(
+                            channelId,
+                            "name",
+                            NotificationManager.IMPORTANCE_HIGH
+                        )
+                        mChannel.enableVibration(true)
+                        mChannel.vibrationPattern =
+                            longArrayOf(100, 200, 300, 400, 500, 400, 300, 200, 400)
+                        manager.createNotificationChannel(mChannel)
+                        builder = NotificationCompat.Builder(applicationContext, channelId).apply {
+
+                            setContentTitle(des.title)
+                            setContentText(des.subtitle)
+                            setSubText(des.description)
+                            setLargeIcon(des.iconBitmap)
+
+                            // Enable launching the player by clicking the notification
+                            setContentIntent(controller.sessionActivity)
+                            // Stop the service when the notification is swiped away
+                            setDeleteIntent(
+                                MediaButtonReceiver.buildMediaButtonPendingIntent(
+                                    applicationContext,
+                                    PlaybackStateCompat.ACTION_STOP
+                                )
+                            )
+
+
+                            setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                            setSmallIcon(R.drawable.ic_launcher_foreground)
+
+                            addAction(
+                                NotificationCompat.Action(
+                                    R.drawable.outline_pause_24,
+                                    "暂停",
+                                    MediaButtonReceiver.buildMediaButtonPendingIntent(
+                                        applicationContext,
+                                        PlaybackStateCompat.ACTION_PAUSE
+                                    )
+                                )
+                            )
+
+                            // Take advantage of MediaStyle features
+                            setStyle(androidx.media.app.NotificationCompat.MediaStyle()
+                                .setMediaSession(mSession!!.sessionToken)
+                                .setShowActionsInCompactView(0)
+
+                                // Add a cancel button
+                                .setShowCancelButton(true)
+                                .setCancelButtonIntent(
+                                    MediaButtonReceiver.buildMediaButtonPendingIntent(
+                                        applicationContext,
+                                        PlaybackStateCompat.ACTION_STOP
+                                    )
+                                )
+                            )
+                        }
+                    } else {
+                        builder = NotificationCompat.Builder(applicationContext)
+                    }
+//                    manager.notify(1,notification)
+                    startForeground(1, builder.build())
+
                 }
             }
 
@@ -249,3 +329,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         mSession!!.setPlaybackState(mPlaybackState)
     }
 }
+
+
+
+

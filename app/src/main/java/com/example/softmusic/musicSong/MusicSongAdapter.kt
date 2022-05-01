@@ -3,9 +3,7 @@ package com.example.softmusic.musicSong
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
@@ -14,9 +12,7 @@ import com.example.softmusic.R
 import com.example.softmusic.databinding.CardSongBinding
 import com.example.softmusic.room.DataBaseUtils
 import com.example.softmusic.room.PlaylistSongCrossRef
-import com.example.softmusic.songList.MusicSongListAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlin.math.log
 
 class MusicSongAdapter(private val context: Context, private val musicSongList: List<MusicSong>?,private val songListTitle:String) :
     RecyclerView.Adapter<MusicSongAdapter.ViewHolder>() {

@@ -21,7 +21,6 @@ import com.example.softmusic.R
 import com.example.softmusic.databinding.FragmentMusicPlayBinding
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.log
 
 class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnClickListener {
 

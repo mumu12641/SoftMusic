@@ -1,7 +1,6 @@
 package com.example.softmusic.musicSong
 
 import android.Manifest
-import android.content.pm.PackageManager
 import android.database.Cursor
 import android.os.Build
 import android.os.Bundle
@@ -12,8 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -23,8 +20,6 @@ import com.example.softmusic.databinding.FragmentSongBinding
 import com.example.softmusic.room.DataBaseUtils
 import com.example.softmusic.room.PlaylistSongCrossRef
 import com.permissionx.guolindev.PermissionX
-import com.tencent.mmkv.MMKV
-import java.security.Permission
 
 
 class MusicSongFragment : Fragment() {
@@ -113,7 +108,6 @@ class MusicSongFragment : Fragment() {
             null,
             MediaStore.Audio.AudioColumns.IS_MUSIC
         )
-        var flag = false
 
         if (cursor != null) {
             while (cursor.moveToNext()) {
