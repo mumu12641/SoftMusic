@@ -24,20 +24,24 @@ class MusicSongListAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
-        holder.cardSongListBinding.songNumber.text = musicSongListList[position].songNumber.toString()
-        holder.cardSongListBinding.songListTitle.text = musicSongListList[position].songListTitle
-        holder.cardSongListBinding.songListBuilder.text = musicSongListList[position].builder
-        val array =
-            intArrayOf(R.drawable.card, R.drawable.card2, R.drawable.card3, R.drawable.card3)
-        holder.cardSongListBinding.imageSongList.setBackgroundResource(array[position])
-        holder.cardSongListBinding.songListItem.setOnClickListener { view: View ->
-            val controller: NavController = findNavController(view)
-            // TODO 传递Bundle（Room中的索引）
-            val bundle = Bundle()
-            bundle.putLong("key", musicSongListList[position].musicSongListId)
-            Log.d(TAG, "onBindViewHolder: " + musicSongListList[position].songListTitle)
-            controller.navigate(R.id.action_musicSongListFragment2_to_musicSongFragment2, bundle)
+        with(holder.cardSongListBinding)
+        {
+            songNumber.text = musicSongListList[position].songNumber.toString()
+            songListTitle.text = musicSongListList[position].songListTitle
+            songListBuilder.text = musicSongListList[position].builder
+            val array =
+                intArrayOf(R.drawable.card, R.drawable.card2, R.drawable.card3, R.drawable.card3)
+            imageSongList.setBackgroundResource(array[position])
+            songListItem.setOnClickListener { view: View ->
+                val controller: NavController = findNavController(view)
+                // TODO 传递Bundle（Room中的索引）
+                val bundle = Bundle()
+                bundle.putLong("key", musicSongListList[position].musicSongListId)
+                Log.d(TAG, "onBindViewHolder: " + musicSongListList[position].songListTitle)
+                controller.navigate(R.id.action_musicSongListFragment2_to_musicSongFragment2, bundle)
+            }
         }
+
     }
 
     override fun getItemCount(): Int {

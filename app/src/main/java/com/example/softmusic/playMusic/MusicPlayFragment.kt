@@ -56,14 +56,24 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
         mainViewModel.nowProcess.observe(viewLifecycleOwner){
             binding.seekBar.progress = (it *1000)
+            Log.d(TAG, "onCreateView: $it")
             binding.nowTime.text = dateFormat.format(Date((it * 1000).toLong()))
+        }
+
+        mainViewModel.changeFlag.observe(viewLifecycleOwner){
+            if (it == true){
+                mainViewModel.changeFlag.value = false
+                binding.playsong.performClick()
+            }
         }
 
         return binding.root
     }
 
-    override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {}
-    override fun onStartTrackingTouch(seekBar: SeekBar) {}
+    override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {}
+
+    override fun onStartTrackingTouch(p0: SeekBar?) {}
+
     override fun onStopTrackingTouch(seekBar: SeekBar) {
         val pos: Int = seekBar.progress
         mainViewModel.nowProcess.value = pos / 1000
@@ -94,19 +104,17 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                         (requireActivity() as MainActivity).thread?.start()
                         binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
                     }
-                    PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> {
-                        Log.d(TAG, "onClick: SKIP_TO_NEXT")
-
-                    }
                 }
 
             }
             R.id.nextsong->{
                 mController.transportControls.skipToNext()
                 binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
+
             }
             R.id.lastsong->{
                 mController.transportControls.skipToPrevious()
+                binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
             }
         }
     }

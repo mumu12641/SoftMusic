@@ -1,21 +1,32 @@
 package com.example.softmusic
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.content.ComponentName
+import android.database.Cursor
+import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
+import android.provider.MediaStore
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import com.example.softmusic.databinding.ActivityMainBinding
+import com.example.softmusic.entity.MusicSong
+import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.playMusic.MediaPlaybackService
+import com.example.softmusic.room.DataBaseUtils
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.permissionx.guolindev.PermissionX
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
 
     private lateinit var activityMainBinding: ActivityMainBinding
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
@@ -38,6 +50,25 @@ class MainActivity : AppCompatActivity() {
         setupWithNavController(navigationView, navController)
 
         mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        mainViewModel.nowId.observe(this){
+            // 直接重新连接？？
+            // TODO 还可以优化
+            val bundle = Bundle()
+            bundle.apply {
+                putLong("musicSongId",it[0])
+                putLong("musicSongListId",it[1])
+            }
+            MediaControllerCompat.getMediaController(this)?.unregisterCallback(mMediaControllerCallback)
+            mBrowser.disconnect()
+            mBrowser = MediaBrowserCompat(
+                this,
+                ComponentName(this, MediaPlaybackService::class.java),  //绑定服务
+                mBrowserConnectionCallback,  // 设置回调
+                bundle
+            )
+            mBrowser.connect()
+            Toast.makeText(this,"成功替换播放列表",Toast.LENGTH_LONG).show()
+        }
 
         // TODO Test Bundle
         val bundle = Bundle()
@@ -45,6 +76,7 @@ class MainActivity : AppCompatActivity() {
             putLong("musicSongListId",1)
             putLong("musicSongId",1)
         }
+
         mBrowser = MediaBrowserCompat(
             this,
             ComponentName(this, MediaPlaybackService::class.java),  //绑定服务
@@ -98,7 +130,6 @@ class MainActivity : AppCompatActivity() {
                 super.onChildrenLoaded(parentId, children)
                 val list = ArrayList<String>()
                 for (item in children){
-                    // TODO 这里load到children的数据 应该放到ViewModel中去
                     Log.d(TAG, "onChildrenLoaded: " + item.description.title)
                     list.add(item.description.title.toString())
                 }
@@ -110,51 +141,41 @@ class MainActivity : AppCompatActivity() {
         }
     private val mMediaControllerCallback: MediaControllerCompat.Callback =
         object : MediaControllerCompat.Callback() {
+            @SuppressLint("SwitchIntDef")
             override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
                 super.onPlaybackStateChanged(state)
                 when(state?.state){
                     PlaybackStateCompat.STATE_NONE -> {
-
-                    }
-                    PlaybackStateCompat.STATE_PLAYING -> {
-
-                    }
-                    PlaybackStateCompat.STATE_PAUSED -> {
-
-                    }
-                    PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> {
-                        Log.d(TAG, "onPlaybackStateChanged: state next")
-                        mainViewModel.nowProcess.value = state.position.toInt()
+                        Log.d(TAG, "onPlaybackStateChanged: state NONE")
+                        mainViewModel.nowProcess.value = 0
                         mainViewModel.lastProcess.value = -1
                         thread = null
-                    }
-                    PlaybackStateCompat.STATE_SKIPPING_TO_PREVIOUS -> {
+                        thread = UpdateProcessThread()
+                        mainViewModel.changeFlag.value = true
 
                     }
                 }
-//                mainViewModel.nowProcess.value = state?.position?.toInt()
                 mainViewModel.duration.value = mController.metadata
                     .getLong(MediaMetadataCompat.METADATA_KEY_DURATION).toInt()
             }
         }
 
     inner class UpdateProcessThread:Thread(){
-        // 更新总体process的线程
         override fun run() {
             super.run()
-            while (mainViewModel.nowProcess.value!! < mainViewModel.duration.value!!){
+            Log.d(TAG, "run: " + (mainViewModel.duration.value?.div(1000)))
+            while (mainViewModel.nowProcess.value!! < (mainViewModel.duration.value!!.div(1000))){
                 if (mainViewModel.nowProcess.value == mainViewModel.lastProcess.value){
-
                     continue
                 }
+                Log.d(TAG, "run: " + mainViewModel.nowProcess.value)
                 mainViewModel.nowProcess.postValue(mainViewModel.nowProcess.value!!.plus(1))
                 SystemClock.sleep(1000)
             }
             Log.d(TAG, "run: 播放完毕")
+            mController.transportControls.skipToNext()
         }
     }
-
-
 
     fun setTitle(title: String?) {
         activityMainBinding.appBar.title = title

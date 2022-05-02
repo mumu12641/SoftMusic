@@ -8,14 +8,19 @@ import android.view.ViewGroup
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
+import com.example.softmusic.MainActivity
 import com.example.softmusic.R
 import com.example.softmusic.databinding.CardSongBinding
 import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.room.DataBaseUtils
 import com.example.softmusic.entity.PlaylistSongCrossRef
+import com.example.softmusic.listener.ChangePlayMusicListener
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
-class MusicSongAdapter(private val context: Context, private val musicSongList: List<MusicSong>?, private val musicSongListId:Long) :
+class MusicSongAdapter(private val context: Context,
+                       private val musicSongList: List<MusicSong>?,
+                       private val musicSongListId:Long,
+                       private val listener:ChangePlayMusicListener) :
     RecyclerView.Adapter<MusicSongAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val cardSongListBinding: CardSongBinding = CardSongBinding.inflate(
@@ -48,11 +53,7 @@ class MusicSongAdapter(private val context: Context, private val musicSongList: 
             return@setOnLongClickListener true
         }
         holder.cardSongListBinding.songItem.setOnClickListener{
-            val controller: NavController = Navigation.findNavController(it)
-            val bundle = Bundle()
-            bundle.putLong("musicSongListId",musicSongListId)
-            bundle.putLong("musicSongId",musicSongList?.get(position)?.musicSongId!!)
-            controller.navigate(R.id.action_musicSongFragment2_to_play_song, bundle)
+            listener.changePlayMusic(musicSongList?.get(position)?.musicSongId!!,musicSongListId)
         }
 
     }

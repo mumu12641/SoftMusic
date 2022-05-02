@@ -72,8 +72,6 @@ interface MusicDao {
     @Query("SELECT * FROM musicSongList WHERE musicSongListId = :musicSongListId")
     fun getPlayListsWithSongsById(musicSongListId:Long): PlaylistWithSongs
 
-
-
     @get:Query("SELECT * FROM musicSong")
     @get:Transaction
     val songsWithPlaylists: List<SongWithPlaylists?>?

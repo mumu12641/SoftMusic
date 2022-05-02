@@ -5,7 +5,6 @@ import android.database.Cursor
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,8 +17,9 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.softmusic.MainActivity
 import com.example.softmusic.databinding.FragmentSongBinding
 import com.example.softmusic.entity.MusicSong
-import com.example.softmusic.room.DataBaseUtils
 import com.example.softmusic.entity.PlaylistSongCrossRef
+import com.example.softmusic.listener.ChangePlayMusicListener
+import com.example.softmusic.room.DataBaseUtils
 import com.permissionx.guolindev.PermissionX
 
 
@@ -46,7 +46,13 @@ class MusicSongFragment : Fragment() {
 
         musicSongViewModel.getPlaylistWithSongsData().observe(viewLifecycleOwner) {
             fragmentSongBinding.songsList.adapter = MusicSongAdapter(requireContext(), it?.songs,
-                requireArguments().getLong("key")
+                requireArguments().getLong("key"),
+                object : ChangePlayMusicListener {
+                    override fun changePlayMusic(musicSongId: Long, musicSongListId: Long) {
+                        val list = listOf(musicSongId,musicSongListId)
+                        (requireActivity() as MainActivity).mainViewModel.nowId.value = list
+                    }
+                }
             )
             (requireActivity() as MainActivity).setTitle(
                 it?.musicSongList?.songListTitle
@@ -76,7 +82,7 @@ class MusicSongFragment : Fragment() {
         }
 
     }
-    fun getLocalMusic(){
+    private fun getLocalMusic(){
 
         val cursor: Cursor? = requireContext().contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -88,15 +94,6 @@ class MusicSongFragment : Fragment() {
 
         if (cursor != null) {
             while (cursor.moveToNext()) {
-//                Log.d("TAG", "getLocalMusic: "+cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)))
-//                Log.d("TAG", "getLocalMusic: "+cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)))
-//                Log.d("TAG", "getLocalMusic: "+cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)))
-//                Log.d("TAG", "getLocalMusic: "+
-//                    cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)))
-//                Log.d("TAG", "getLocalMusic: "+
-//                    cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)))
-//                Log.d("TAG", "getLocalMusic: "+
-//                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)))
                 val song = MusicSong(
                     cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)),
                     cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)),
@@ -112,31 +109,8 @@ class MusicSongFragment : Fragment() {
                 val songList = DataBaseUtils.getMusicSongListById(musicSongViewModel.musicSongListId)
                 songList.songNumber ++
                 DataBaseUtils.updateMusicSongList(songList)
-
-
-//                if (!DataBaseUtils.getAllMusicSongs().contains(song)){
-//                    // 如果这首歌没有
-//                    DataBaseUtils.insertMusicSong(song)
-//                }else{
-//                    Log.d("TAG", "getLocalMusic: 已经在总的歌曲中添加了该歌曲")
-//                }
-//                if (!DataBaseUtils.getPlayListsWithSongsByKey(musicSongViewModel.songListTitle).contains(song)){
-//                    // 如果没有这个歌单和歌的关系
-//                    DataBaseUtils.insertMusicSongRef(
-//                        PlaylistSongCrossRef(
-//                            musicSongViewModel.songListTitle,
-//                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
-//                        )
-//                    )
-
-//                }else{
-//                    Log.d("TAG", "getLocalMusic: 已经在这个歌单添加歌曲（关系）")
-//                }
             }
-        } else {
-            Log.d("TAG", "getLocalMusic: null" )
         }
-
         cursor?.close()
 
     }

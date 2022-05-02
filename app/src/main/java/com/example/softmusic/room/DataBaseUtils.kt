@@ -12,7 +12,6 @@ class DataBaseUtils {
         private val dataBase : MusicDataBase = MusicDataBase.getInstance()
         private val musicDao : MusicDao = dataBase.musicDao
 //        ExecutorService exec = Executors.newCachedThreadPool();
-
         // musicSong
         fun insertMusicSong(song: MusicSong):Long {
             var result by Delegates.notNull<Long>()
@@ -61,6 +60,9 @@ class DataBaseUtils {
             Thread { musicDao.deletePlaylistSongCrossRef(*playlistSongCrossRefs) }.start()
         }
         fun insertMusicSongList(vararg musicSongLists: MusicSongList) {
+            if (musicSongLists[0].songListTitle == "本地音乐"){
+                return
+            }
             Thread { musicDao.insertMusicSongList(*musicSongLists) }.start()
         }
 
@@ -104,7 +106,6 @@ class DataBaseUtils {
         fun getAllMusicSongList():LiveData<List<MusicSongList>>{
             return musicDao.allMusicSongList
         }
-
 
         fun getPlayListsWithSongsByKey(songListTitle:String):List<MusicSong>{
             lateinit var result: PlaylistWithSongs

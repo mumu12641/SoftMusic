@@ -24,16 +24,5 @@
     <fragment
         android:id="@+id/musicSongFragment2"
         android:name="com.example.softmusic.musicSong.MusicSongFragment"
-        android:label="MusicSongFragment" >
-<!--        A -> B -> C，C 返回时不会经过 B，而是直接回到 A-->
-        <action
-            android:id="@+id/action_musicSongFragment2_to_play_song"
-            app:destination="@id/play_song"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim"
-            app:popUpTo="@id/musicSongFragment2"
-            app:popUpToInclusive="true" />
-    </fragment>
+        android:label="MusicSongFragment" />
 </navigation>
