@@ -8,7 +8,6 @@ import com.example.softmusic.entity.*
 interface MusicDao {
     @Insert
     fun insertMusicSong(song: MusicSong?):Long
-
     @Update
     fun updateMusicSong(vararg songs: MusicSong?)
 
