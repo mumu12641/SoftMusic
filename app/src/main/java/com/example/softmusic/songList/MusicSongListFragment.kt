@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.softmusic.MainActivity
 import com.example.softmusic.R
 import com.example.softmusic.databinding.FragmentSongListBinding
+import com.example.softmusic.entity.MusicSongList
 import com.example.softmusic.room.DataBaseUtils
 import com.google.android.material.textfield.TextInputEditText
 import java.util.*
@@ -65,7 +66,8 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
                     "/" + calendar[Calendar.DAY_OF_MONTH]
             if (des != "" && title != "") {
 //                viewModel.insertMusicSongList(MusicSongList(title, date, 0, "me", des, "none"))
-                DataBaseUtils.insertMusicSongList(MusicSongList(title, date, 0, "me", des, "none"))
+                DataBaseUtils.insertMusicSongList(MusicSongList(
+                    title, date, 0, "me", des, "none"))
                 dialog.cancel()
             }
         }

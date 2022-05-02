@@ -38,8 +38,8 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         super.onCreate(savedInstanceState)
         val bundle = Bundle()
         if (arguments != null){
-            bundle.putString("songListTitle", requireArguments().getString("songListTitle"))
-            bundle.putString("songTitle", requireArguments().getString("songTitle"))
+            bundle.putLong("musicSongListId", requireArguments().getLong("musicSongListId"))
+            bundle.putLong("musicSongId", requireArguments().getLong("musicSongId"))
         }
         mBrowser = MediaBrowserCompat(
             requireContext(),

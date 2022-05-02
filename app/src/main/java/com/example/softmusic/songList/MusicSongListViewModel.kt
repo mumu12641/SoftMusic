@@ -3,6 +3,7 @@ package com.example.softmusic.songList
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.softmusic.entity.MusicSongList
 import com.example.softmusic.room.DataBaseUtils
 
 class MusicSongListViewModel : ViewModel() {

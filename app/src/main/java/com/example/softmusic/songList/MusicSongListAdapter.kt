@@ -12,6 +12,7 @@ import androidx.navigation.Navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.softmusic.R
 import com.example.softmusic.databinding.CardSongListBinding
+import com.example.softmusic.entity.MusicSongList
 
 class MusicSongListAdapter(
     private val context: Context,
@@ -33,7 +34,7 @@ class MusicSongListAdapter(
             val controller: NavController = findNavController(view)
             // TODO 传递Bundle（Room中的索引）
             val bundle = Bundle()
-            bundle.putString("key", musicSongListList[position].songListTitle)
+            bundle.putLong("key", musicSongListList[position].musicSongListId)
             Log.d(TAG, "onBindViewHolder: " + musicSongListList[position].songListTitle)
             controller.navigate(R.id.action_musicSongListFragment2_to_musicSongFragment2, bundle)
         }

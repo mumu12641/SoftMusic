@@ -10,11 +10,12 @@ import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
 import com.example.softmusic.R
 import com.example.softmusic.databinding.CardSongBinding
+import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.room.DataBaseUtils
-import com.example.softmusic.room.PlaylistSongCrossRef
+import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
-class MusicSongAdapter(private val context: Context, private val musicSongList: List<MusicSong>?,private val songListTitle:String) :
+class MusicSongAdapter(private val context: Context, private val musicSongList: List<MusicSong>?, private val musicSongListId:Long) :
     RecyclerView.Adapter<MusicSongAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val cardSongListBinding: CardSongBinding = CardSongBinding.inflate(
@@ -37,9 +38,11 @@ class MusicSongAdapter(private val context: Context, private val musicSongList: 
                 }
                 .setPositiveButton("确认") { _, _ ->
                     DataBaseUtils.deleteMusicSong(musicSongList?.get(position))
-                    DataBaseUtils.deleteMusicSongRef(PlaylistSongCrossRef(songListTitle,
-                    musicSongList?.get(position)?.songTitle.toString()
-                    ))
+                    DataBaseUtils.deleteMusicSongRef(
+                        PlaylistSongCrossRef(musicSongListId,
+                            musicSongList?.get(position)?.musicSongId!!
+                    )
+                    )
                 }
                 .show()
             return@setOnLongClickListener true
@@ -47,8 +50,8 @@ class MusicSongAdapter(private val context: Context, private val musicSongList: 
         holder.cardSongListBinding.songItem.setOnClickListener{
             val controller: NavController = Navigation.findNavController(it)
             val bundle = Bundle()
-            bundle.putString("songListTitle",songListTitle)
-            bundle.putString("songTitle",musicSongList?.get(position)?.songTitle.toString())
+            bundle.putLong("musicSongListId",musicSongListId)
+            bundle.putLong("musicSongId",musicSongList?.get(position)?.musicSongId!!)
             controller.navigate(R.id.action_musicSongFragment2_to_play_song, bundle)
         }
 

@@ -15,7 +15,7 @@ import androidx.core.app.NotificationCompat
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.session.MediaButtonReceiver
 import com.example.softmusic.R
-import com.example.softmusic.musicSong.MusicSong
+import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.room.DataBaseUtils
 import com.google.android.exoplayer2.ExoPlayer
 import com.tencent.mmkv.MMKV
@@ -30,6 +30,9 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
     private var songTitle:String ?= null
     private var songListTitle:String ?= null
+
+    private var musicSongId:Long = 0
+    private var musicSongListId:Long = 0
 
     private var playNum = 0
     var nowNum = 0
@@ -67,8 +70,8 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         Log.d(TAG, "onDestroy")
 
         val kv = MMKV.defaultMMKV()
-        kv.encode("songTitle", list?.get(nowNum)?.songTitle)
-        kv.encode("songListTitle",songListTitle)
+        kv.encode("musicSongId", list?.get(nowNum)?.musicSongId!!)
+        kv.encode("musicSongListId",musicSongListId)
 
         if (mExoPlayer != null) {
             mExoPlayer!!.release()
@@ -101,8 +104,8 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 //        songTitle = rootHints?.getString("songTitle")
 //        songListTitle = rootHints?.getString("songListTitle")
         // val c = a?:b if a == null,c = b
-        songTitle = rootHints?.getString("songTitle")?:kv.decodeString("songTitle")
-        songListTitle = rootHints?.getString("songListTitle")?:kv.decodeString("songListTitle")
+        musicSongId = rootHints?.getLong("musicSongId")?:kv.decodeLong("musicSongId")
+        musicSongListId = rootHints?.getLong("musicSongListId")?:kv.decodeLong("musicSongListId")
         return BrowserRoot(MY_MEDIA_ROOT_ID, null)
     }
 
@@ -119,13 +122,11 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         if (kv.decodeString("songTitle") == null){
             Log.d(TAG, "onLoadChildren: mmkv null" )
         }
-        val musicSong = DataBaseUtils.getMusicSongByKey(songTitle.toString())
+        val musicSong = DataBaseUtils.getMusicSongById(musicSongId)
         val mediaItems = ArrayList<MediaBrowserCompat.MediaItem>()
 //        list = kv.decodeString("songListTitle")?.let { DataBaseUtils.getPlayListsWithSongsByKey(it) }
-        Log.d(TAG, "onLoadChildren: " +kv.decodeString("songTitle"))
-        Log.d(TAG, "onLoadChildren: " + kv.decodeString("songListTitle"))
-        Log.d(TAG, "onLoadChildren: $songTitle")
-        list = DataBaseUtils.getPlayListsWithSongsByKey(songListTitle!!)
+        Log.d(TAG, "onLoadChildren: $musicSongId")
+        list = DataBaseUtils.getPlayListsWithSongsById(musicSongListId)
         playNum = list!!.size
         for (i in list!!){
             val metadata = MediaMetadataCompat.Builder()
@@ -307,7 +308,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         private const val MY_MEDIA_ROOT_ID = "media_root_id"
     }
 
-    private fun changeMusicSong(song:MusicSong){
+    private fun changeMusicSong(song: MusicSong){
         val metadata = MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "" + R.raw.jay)
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.songTitle )

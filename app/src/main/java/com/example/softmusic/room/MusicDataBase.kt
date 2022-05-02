@@ -4,12 +4,13 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.softmusic.BaseApplication
-import com.example.softmusic.musicSong.MusicSong
-import com.example.softmusic.songList.MusicSongList
+import com.example.softmusic.entity.MusicSong
+import com.example.softmusic.entity.MusicSongList
+import com.example.softmusic.entity.PlaylistSongCrossRef
 
 @Database(
     entities = [MusicSongList::class, MusicSong::class, PlaylistSongCrossRef::class],
-    version = 3,
+    version = 5,
     exportSchema = false
 )
 abstract class MusicDataBase : RoomDatabase() {

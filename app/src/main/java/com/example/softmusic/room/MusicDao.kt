@@ -2,13 +2,12 @@ package com.example.softmusic.room
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import com.example.softmusic.musicSong.MusicSong
-import com.example.softmusic.songList.MusicSongList
+import com.example.softmusic.entity.*
 
 @Dao
 interface MusicDao {
     @Insert
-    fun insertMusicSong(vararg songs: MusicSong?)
+    fun insertMusicSong(song: MusicSong?):Long
 
     @Update
     fun updateMusicSong(vararg songs: MusicSong?)
@@ -22,7 +21,9 @@ interface MusicDao {
     fun getAllMusicSongs():List<MusicSong>
 
     @Query("SELECT * FROM musicSong WHERE songTitle = :key")
-    fun getMusicSongByKey(key:String):MusicSong
+    fun getMusicSongByKey(key:String): MusicSong
+    @Query("SELECT * FROM musicSong WHERE musicSongId = :key")
+    fun getMusicSongById(key:Long): MusicSong
 
     @Insert
     fun insertMusicSongList(vararg songLists: MusicSongList?)
@@ -33,8 +34,11 @@ interface MusicDao {
     @Delete
     fun deleteMusicSongList(vararg songLists: MusicSongList?)
 
+    @get:Query("SELECT * FROM musicSongList")
+    val allMusicSongList: LiveData<List<MusicSongList>>
+
     @Query("SELECT * FROM musicSongList WHERE songListTitle =:key")
-    fun getTheMusicSongList(key:String):MusicSongList
+    fun getMusicSongListByKey(key:String): MusicSongList
 
     @Insert
     fun insertPlaylistSongCrossRef(vararg playlistSongCrossRefs: PlaylistSongCrossRef?)
@@ -45,14 +49,9 @@ interface MusicDao {
     @Delete
     fun deletePlaylistSongCrossRef(vararg playlistSongCrossRefs: PlaylistSongCrossRef?)
 
-    @Query("SELECT * FROM playlistsongcrossref WHERE  songListTitle = :songListTitle")
-    fun getPlayListSongCrossRefByKey(songListTitle:String):LiveData<List<PlaylistSongCrossRef>>
-
     @get:Query("SELECT * FROM playlistsongcrossref")
     val allPlayListSongCrossRef:LiveData<List<PlaylistSongCrossRef>>
 
-    @get:Query("SELECT * FROM musicSongList")
-    val allMusicSongList: LiveData<List<MusicSongList>>
 
     @get:Query("SELECT * FROM musicSongList")
     @get:Transaction
@@ -63,10 +62,14 @@ interface MusicDao {
     val liveDataPlaylistsWithSongs: LiveData<List<PlaylistWithSongs?>?>?
 
     @Transaction
-    @Query("SELECT * FROM musicSongList WHERE songListTitle = :key")
-    fun getLiveDataPlaylistsWithSongsByKey(key: String?): LiveData<PlaylistWithSongs>
+    @Query("SELECT * FROM musicSongList WHERE musicSongListId = :key")
+    fun getLiveDataPlaylistsWithSongsById(key: Long?): LiveData<PlaylistWithSongs>
+
     @Query("SELECT * FROM musicSongList WHERE songListTitle = :songListTitle")
-    fun getPlayListsWithSongsByKey(songListTitle:String):PlaylistWithSongs
+    fun getPlayListsWithSongsByKey(songListTitle:String): PlaylistWithSongs
+    @Query("SELECT * FROM musicSongList WHERE musicSongListId = :musicSongListId")
+    fun getPlayListsWithSongsById(musicSongListId:Long): PlaylistWithSongs
+
 
 
     @get:Query("SELECT * FROM musicSong")

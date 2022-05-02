@@ -17,8 +17,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.softmusic.MainActivity
 import com.example.softmusic.databinding.FragmentSongBinding
+import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.room.DataBaseUtils
-import com.example.softmusic.room.PlaylistSongCrossRef
+import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.permissionx.guolindev.PermissionX
 
 
@@ -37,21 +38,24 @@ class MusicSongFragment : Fragment() {
         assert(arguments != null)
         musicSongViewModel= ViewModelProvider(
             requireActivity(),
-            ViewModelFactory(requireArguments().getString("key")!!)
+            ViewModelFactory(requireArguments().getLong("key"))
         ).get<MusicSongViewModel>(
             MusicSongViewModel::class.java
         )
         fragmentSongBinding.songsList.layoutManager = GridLayoutManager(
             requireContext(), 1, GridLayoutManager.VERTICAL, false
         )
+
         musicSongViewModel.getPlaylistWithSongsData().observe(viewLifecycleOwner) {
             fragmentSongBinding.songsList.adapter = MusicSongAdapter(requireContext(), it?.songs,
-                requireArguments().getString("key")!!)
-            (requireActivity() as MainActivity).setTitle(
-                it?.playlist?.songListTitle
+                requireArguments().getLong("key")
             )
-            fragmentSongBinding.textView.text = it?.playlist?.songListTitle
+            (requireActivity() as MainActivity).setTitle(
+                it?.musicSongList?.songListTitle
+            )
+            fragmentSongBinding.textView.text = it?.musicSongList?.songListTitle
         }
+
         fragmentSongBinding.addMusicSong.setOnClickListener{
 //            Log.d("TAG", "onCreateView: add")
 //            if (ContextCompat.checkSelfPermission(requireContext(),
@@ -92,7 +96,7 @@ class MusicSongFragment : Fragment() {
         return fragmentSongBinding.root
     }
 
-    internal class ViewModelFactory(private val key: String) :
+    internal class ViewModelFactory(private val key: Long) :
         ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return MusicSongViewModel(key) as T
@@ -127,26 +131,33 @@ class MusicSongFragment : Fragment() {
                         cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)),
                         cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)),
                         cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)))
-                if (!DataBaseUtils.getAllMusicSongs().contains(song)){
-                    // 如果这首歌没有
-                    DataBaseUtils.insertMusicSong(song)
-                }else{
-                    Log.d("TAG", "getLocalMusic: 已经在总的歌曲中添加了该歌曲")
-                }
-                if (!DataBaseUtils.getPlayListsWithSongsByKey(musicSongViewModel.songListTitle).contains(song)){
-                    // 如果没有这个歌单和歌的关系
-                    DataBaseUtils.insertMusicSongRef(
-                        PlaylistSongCrossRef(
-                            musicSongViewModel.songListTitle,
-                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
-                        )
-                    )
-                    val songList = DataBaseUtils.getTheMusicSongList(musicSongViewModel.songListTitle)
-                    songList.songNumber ++
-                    DataBaseUtils.updateMusicSongList(songList)
-                }else{
-                    Log.d("TAG", "getLocalMusic: 已经在这个歌单添加歌曲（关系）")
-                }
+                val id = DataBaseUtils.insertMusicSong(song)
+                DataBaseUtils.insertMusicSongRef(PlaylistSongCrossRef(
+                    musicSongViewModel.musicSongListId,
+                    id
+                ))
+
+
+//                if (!DataBaseUtils.getAllMusicSongs().contains(song)){
+//                    // 如果这首歌没有
+//                    DataBaseUtils.insertMusicSong(song)
+//                }else{
+//                    Log.d("TAG", "getLocalMusic: 已经在总的歌曲中添加了该歌曲")
+//                }
+//                if (!DataBaseUtils.getPlayListsWithSongsByKey(musicSongViewModel.songListTitle).contains(song)){
+//                    // 如果没有这个歌单和歌的关系
+//                    DataBaseUtils.insertMusicSongRef(
+//                        PlaylistSongCrossRef(
+//                            musicSongViewModel.songListTitle,
+//                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
+//                        )
+//                    )
+//                    val songList = DataBaseUtils.getTheMusicSongList(musicSongViewModel.songListTitle)
+//                    songList.songNumber ++
+//                    DataBaseUtils.updateMusicSongList(songList)
+//                }else{
+//                    Log.d("TAG", "getLocalMusic: 已经在这个歌单添加歌曲（关系）")
+//                }
             }
         } else {
             Log.d("TAG", "getLocalMusic: null" )
