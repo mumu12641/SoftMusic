@@ -39,6 +39,8 @@ interface MusicDao {
 
     @Query("SELECT * FROM musicSongList WHERE songListTitle =:key")
     fun getMusicSongListByKey(key:String): MusicSongList
+    @Query("SELECT * FROM musicSongList WHERE musicSongListId =:key")
+    fun getMusicSongListById(key:Long): MusicSongList
 
     @Insert
     fun insertPlaylistSongCrossRef(vararg playlistSongCrossRefs: PlaylistSongCrossRef?)

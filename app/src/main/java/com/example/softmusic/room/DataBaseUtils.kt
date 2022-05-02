@@ -77,6 +77,15 @@ class DataBaseUtils {
             t.join()
             return result
         }
+        fun getMusicSongListById(key:Long): MusicSongList {
+            lateinit var result: MusicSongList
+            val t = Thread {
+                result = musicDao.getMusicSongListById(key)
+            }
+            t.start()
+            t.join()
+            return result
+        }
 
         fun updateMusicSongList(vararg musicSongLists: MusicSongList) {
             Thread { musicDao.updateMusicSongList(*musicSongLists) }.start()

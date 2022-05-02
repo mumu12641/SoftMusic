@@ -26,7 +26,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
     private var mSession: MediaSessionCompat? = null
     private var mPlaybackState: PlaybackStateCompat? = null
     private var mExoPlayer: ExoPlayer? = null
-    private var mMediaPlayer: MediaPlayer? = null
+    private lateinit var mMediaPlayer: MediaPlayer
 
     private var songTitle:String ?= null
     private var songListTitle:String ?= null
@@ -77,10 +77,10 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             mExoPlayer!!.release()
             mExoPlayer = null
         }
-        if (mMediaPlayer != null) {
-            mMediaPlayer!!.release()
-            mMediaPlayer = null
-        }
+//        if (mMediaPlayer != null) {
+//            mMediaPlayer!!.release()
+//        }
+        mMediaPlayer.release()
         if (mSession != null) {
             mSession!!.release()
             mSession = null
@@ -145,8 +145,8 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 //                mSession!!.isActive = true
 //                mSession!!.setMetadata(metadata)
         }
-        mMediaPlayer?.setDataSource(musicSong.mediaFileUri)
-        mMediaPlayer?.prepareAsync()
+        mMediaPlayer.setDataSource(musicSong.mediaFileUri)
+        mMediaPlayer.prepareAsync()
 //        mExoPlayer?.prepare()
         val metadata = MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "" + R.raw.jay)
@@ -168,85 +168,12 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 Log.d(TAG, "onPlay")
                 if (mPlaybackState!!.state == PlaybackStateCompat.STATE_PAUSED || mPlaybackState!!.state == PlaybackStateCompat.STATE_NONE) {
 //                mExoPlayer?.play()
-                    mMediaPlayer!!.start()
+                    mMediaPlayer.start()
                     mPlaybackState = PlaybackStateCompat.Builder()
-                        .setState(PlaybackStateCompat.STATE_PLAYING, 0, 1.0f)
+                        .setState(PlaybackStateCompat.STATE_PLAYING,
+                            mMediaPlayer.currentPosition.toLong() / 1000, 1.0f)
                         .build()
                     mSession!!.setPlaybackState(mPlaybackState)
-
-                    val controller = mSession!!.controller
-                    val metaData = controller.metadata
-                    val des = metaData.description
-
-                    val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-                    @SuppressLint("WrongConstant") val builder: NotificationCompat.Builder
-                    val channelId: String =
-                        java.lang.String.valueOf(Random().nextInt()) //自己生成的用于通知栏的channelId，高版本必备
-
-                    val mChannel: NotificationChannel?
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        mChannel = NotificationChannel(
-                            channelId,
-                            "name",
-                            NotificationManager.IMPORTANCE_HIGH
-                        )
-                        mChannel.enableVibration(true)
-                        mChannel.vibrationPattern =
-                            longArrayOf(100, 200, 300, 400, 500, 400, 300, 200, 400)
-                        manager.createNotificationChannel(mChannel)
-                        builder = NotificationCompat.Builder(applicationContext, channelId).apply {
-
-                            setContentTitle(des.title)
-                            setContentText(des.subtitle)
-                            setSubText(des.description)
-                            setLargeIcon(des.iconBitmap)
-
-                            // Enable launching the player by clicking the notification
-                            setContentIntent(controller.sessionActivity)
-                            // Stop the service when the notification is swiped away
-                            setDeleteIntent(
-                                MediaButtonReceiver.buildMediaButtonPendingIntent(
-                                    applicationContext,
-                                    PlaybackStateCompat.ACTION_STOP
-                                )
-                            )
-
-
-                            setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-                            setSmallIcon(R.drawable.ic_launcher_foreground)
-
-                            addAction(
-                                NotificationCompat.Action(
-                                    R.drawable.outline_pause_24,
-                                    "暂停",
-                                    MediaButtonReceiver.buildMediaButtonPendingIntent(
-                                        applicationContext,
-                                        PlaybackStateCompat.ACTION_PAUSE
-                                    )
-                                )
-                            )
-
-                            // Take advantage of MediaStyle features
-                            setStyle(androidx.media.app.NotificationCompat.MediaStyle()
-                                .setMediaSession(mSession!!.sessionToken)
-                                .setShowActionsInCompactView(0)
-
-                                // Add a cancel button
-                                .setShowCancelButton(true)
-                                .setCancelButtonIntent(
-                                    MediaButtonReceiver.buildMediaButtonPendingIntent(
-                                        applicationContext,
-                                        PlaybackStateCompat.ACTION_STOP
-                                    )
-                                )
-                            )
-                        }
-                    } else {
-                        builder = NotificationCompat.Builder(applicationContext)
-                    }
-//                    manager.notify(1,notification)
-                    startForeground(1, builder.build())
-
                 }
             }
 
@@ -255,9 +182,10 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 Log.d(TAG, "onPause")
                 if (mPlaybackState!!.state == PlaybackStateCompat.STATE_PLAYING) {
 //                mExoPlayer?.pause()
-                    mMediaPlayer!!.pause()
+                    mMediaPlayer.pause()
                     mPlaybackState = PlaybackStateCompat.Builder()
-                        .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
+                        .setState(PlaybackStateCompat.STATE_PAUSED, mMediaPlayer.currentPosition.toLong() / 1000,
+                            1.0f)
                         .build()
                     mSession!!.setPlaybackState(mPlaybackState)
                 }
@@ -267,7 +195,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 super.onSeekTo(pos)
                 Log.d(TAG, "onSeekTo$pos")
 //                            mExoPlayer?.seekTo(pos);
-                mMediaPlayer!!.seekTo(pos.toInt())
+                mMediaPlayer.seekTo(pos.toInt())
             }
 
             override fun onSkipToNext() {
@@ -303,6 +231,9 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         }
 
 
+    fun getNowPos():Int{
+        return mMediaPlayer.currentPosition
+    }
 
     companion object {
         private const val MY_MEDIA_ROOT_ID = "media_root_id"
@@ -316,18 +247,17 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             .build()
         mSession?.setMetadata(metadata)
 
-        mMediaPlayer?.stop()
-        mMediaPlayer?.reset()
+        mMediaPlayer.stop()
+        mMediaPlayer.reset()
 
-        mMediaPlayer?.setDataSource(song.mediaFileUri)
-        mMediaPlayer?.prepare()
-        mMediaPlayer?.setOnCompletionListener {
-            Log.d(TAG, "changeMusicSong: done" + song.songTitle)
-        }
+        mMediaPlayer.setDataSource(song.mediaFileUri)
+        mMediaPlayer.prepare()
         mPlaybackState = PlaybackStateCompat.Builder()
-            .setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
+            .setState(PlaybackStateCompat.STATE_SKIPPING_TO_NEXT, 0, 1.0f)
             .build()
         mSession!!.setPlaybackState(mPlaybackState)
+        mMediaPlayer.start()
+//        Log.d(TAG, "changeMusicSong: done")
     }
 }
 

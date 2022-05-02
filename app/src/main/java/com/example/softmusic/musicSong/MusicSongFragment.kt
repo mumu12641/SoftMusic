@@ -39,9 +39,7 @@ class MusicSongFragment : Fragment() {
         musicSongViewModel= ViewModelProvider(
             requireActivity(),
             ViewModelFactory(requireArguments().getLong("key"))
-        ).get<MusicSongViewModel>(
-            MusicSongViewModel::class.java
-        )
+        )[MusicSongViewModel::class.java]
         fragmentSongBinding.songsList.layoutManager = GridLayoutManager(
             requireContext(), 1, GridLayoutManager.VERTICAL, false
         )
@@ -57,31 +55,6 @@ class MusicSongFragment : Fragment() {
         }
 
         fragmentSongBinding.addMusicSong.setOnClickListener{
-//            Log.d("TAG", "onCreateView: add")
-//            if (ContextCompat.checkSelfPermission(requireContext(),
-//                    Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-//                ActivityCompat.requestPermissions(requireActivity(),
-//                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 1)
-//            }
-//            if (ContextCompat.checkSelfPermission(requireContext(),
-//                    Manifest.permission.ACCESS_MEDIA_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//                ActivityCompat.requestPermissions(requireActivity(),
-//                    arrayOf(Manifest.permission.ACCESS_MEDIA_LOCATION), 1)
-//            }
-//            if (ContextCompat.checkSelfPermission(requireContext(),
-//                    Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-//                ActivityCompat.requestPermissions(requireActivity(),
-//                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
-//            }
-//            PermissionX.init(this)
-//                .permissions(Manifest.permission.CALL_PHONE)
-//                .request { allGranted, grantedList, deniedList ->
-//                    if (allGranted) {
-//                        call()
-//                    } else {
-//                        Toast.makeText(this, "您拒绝了拨打电话权限", Toast.LENGTH_SHORT).show()
-//                    }
-//                }
             PermissionX.init(this)
                 .permissions(Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.ACCESS_MEDIA_LOCATION,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -136,6 +109,9 @@ class MusicSongFragment : Fragment() {
                     musicSongViewModel.musicSongListId,
                     id
                 ))
+                val songList = DataBaseUtils.getMusicSongListById(musicSongViewModel.musicSongListId)
+                songList.songNumber ++
+                DataBaseUtils.updateMusicSongList(songList)
 
 
 //                if (!DataBaseUtils.getAllMusicSongs().contains(song)){
@@ -152,9 +128,7 @@ class MusicSongFragment : Fragment() {
 //                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
 //                        )
 //                    )
-//                    val songList = DataBaseUtils.getTheMusicSongList(musicSongViewModel.songListTitle)
-//                    songList.songNumber ++
-//                    DataBaseUtils.updateMusicSongList(songList)
+
 //                }else{
 //                    Log.d("TAG", "getLocalMusic: 已经在这个歌单添加歌曲（关系）")
 //                }
