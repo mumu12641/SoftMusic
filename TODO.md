@@ -114,18 +114,26 @@ fragment and navigation bottom bar		done
 
 分包		done
 
-**应该在activity中bind到这个service，然后在viewmodel可以存现在播放的歌曲信息	回调 brower等等**
+**应该在activity中bind到这个service，然后在viewmodel可以存现在播放的歌曲信息	回调 brower等等	**		done
 
 
 
-首先 service 中应该是上次播放的记录信息 ，通过这个信息loadChildren给activity以及viewmodel 如果我们直接点击play的fragment，应该从Viewmodel中最起码获得歌曲的title 现在的pos，然后在我们的fragment中间
+首先 service 中应该是上次播放的记录信息 ，通过这个信息loadChildren给activity以及viewmodel 如果我们直接点击play的fragment，应该从Viewmodel中最起码获得歌曲的title 现在的pos，然后在我们的fragment中间			done
 
 
 
+如何在最开始就本地音乐插入进去 成为默认的音乐库		done
+
+service中的判空			done
 
 
-如何在最开始就本地音乐插入进去 成为默认的音乐库
 
-service中的判空
+## 5/3/22
+
+基本的音乐播放以及数据库已经差不多完成
+
+接下来UI美化
+
+通知栏前台服务
 
 DataBaseUtil中的join改成future或者协程

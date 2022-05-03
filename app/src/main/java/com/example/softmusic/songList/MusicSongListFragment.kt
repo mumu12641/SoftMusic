@@ -37,6 +37,12 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
         fragmentSongListBinding.songListList.adapter = adapter
         viewModel.musicSongListLiveData
             .observe(viewLifecycleOwner) { musicSongLists: List<MusicSongList> ->
+                if (musicSongLists.isEmpty()){
+                    DataBaseUtils.insertMusicSongList(
+                        MusicSongList(
+            "我喜欢", "5/3/22", 0, "me", "i like", "like")
+                    )
+                }
                 adapter.setMusicSongListList(musicSongLists)
                 (requireActivity()).title = MusicSongListViewModel.title
             }
@@ -53,19 +59,14 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
         builder.setCancelable(false)
         dialog = builder.create()
         view1.findViewById<View>(R.id.dialog_confirm_sure).setOnClickListener {
-//            val des: String =
-//                Objects.requireNonNull<Editable>((view1.findViewById<View>(R.id.edit_description) as TextInputEditText).text)
-//                    .toString()
             val des = view1.findViewById<TextInputEditText>(R.id.edit_description).text.toString()
             val title: String =
                 view1.findViewById<TextInputEditText>(R.id.edit_name).text.toString()
-
             val calendar = Calendar.getInstance()
             val date = calendar[Calendar.YEAR].toString() +
                     "/" + (calendar[Calendar.MONTH] + 1) +
                     "/" + calendar[Calendar.DAY_OF_MONTH]
             if (des != "" && title != "") {
-//                viewModel.insertMusicSongList(MusicSongList(title, date, 0, "me", des, "none"))
                 DataBaseUtils.insertMusicSongList(MusicSongList(
                     title, date, 0, "me", des, "none"))
                 dialog.cancel()

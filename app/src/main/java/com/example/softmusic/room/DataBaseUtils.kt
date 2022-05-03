@@ -60,9 +60,6 @@ class DataBaseUtils {
             Thread { musicDao.deletePlaylistSongCrossRef(*playlistSongCrossRefs) }.start()
         }
         fun insertMusicSongList(vararg musicSongLists: MusicSongList) {
-            if (musicSongLists[0].songListTitle == "本地音乐"){
-                return
-            }
             Thread { musicDao.insertMusicSongList(*musicSongLists) }.start()
         }
 

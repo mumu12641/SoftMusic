@@ -31,7 +31,12 @@ class MusicSongListAdapter(
             songListBuilder.text = musicSongListList[position].builder
             val array =
                 intArrayOf(R.drawable.card, R.drawable.card2, R.drawable.card3, R.drawable.card3)
-            imageSongList.setBackgroundResource(array[position])
+            if (musicSongListList[position].imageFileUri == "like"){
+                // 我喜欢  特定的封面
+                imageSongList.setBackgroundResource(array[0])
+            }else {
+                imageSongList.setBackgroundResource(array[1])
+            }
             songListItem.setOnClickListener { view: View ->
                 val controller: NavController = findNavController(view)
                 // TODO 传递Bundle（Room中的索引）

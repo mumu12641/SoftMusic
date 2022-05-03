@@ -1,13 +1,10 @@
 package com.example.softmusic
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ComponentName
-import android.database.Cursor
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
-import android.provider.MediaStore
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
@@ -21,17 +18,14 @@ import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import com.example.softmusic.databinding.ActivityMainBinding
-import com.example.softmusic.entity.MusicSong
-import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.playMusic.MediaPlaybackService
-import com.example.softmusic.room.DataBaseUtils
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.permissionx.guolindev.PermissionX
+import com.tencent.mmkv.MMKV
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var mBrowser: MediaBrowserCompat
-    lateinit var mController: MediaControllerCompat
+    var mController: MediaControllerCompat? = null
     lateinit var mainViewModel: MainViewModel
 
     var thread:UpdateProcessThread? = null
@@ -50,6 +44,8 @@ class MainActivity : AppCompatActivity() {
         setupWithNavController(navigationView, navController)
 
         mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
+
+
         mainViewModel.nowId.observe(this){
             // 直接重新连接？？
             // TODO 还可以优化
@@ -59,7 +55,9 @@ class MainActivity : AppCompatActivity() {
                 putLong("musicSongListId",it[1])
             }
             MediaControllerCompat.getMediaController(this)?.unregisterCallback(mMediaControllerCallback)
-            mBrowser.disconnect()
+            if (mainViewModel.haveMusicFlag){
+                mBrowser.disconnect()
+            }
             mBrowser = MediaBrowserCompat(
                 this,
                 ComponentName(this, MediaPlaybackService::class.java),  //绑定服务
@@ -68,43 +66,55 @@ class MainActivity : AppCompatActivity() {
             )
             mBrowser.connect()
             Toast.makeText(this,"成功替换播放列表",Toast.LENGTH_LONG).show()
+            mainViewModel.haveMusicFlag = true
         }
 
         // TODO Test Bundle
         val bundle = Bundle()
-        bundle.apply {
-            putLong("musicSongListId",1)
-            putLong("musicSongId",1)
+        val kv = MMKV.defaultMMKV()
+        if (!kv.containsKey("musicSongListId") && !kv.containsKey("musicSongId")){
+            mainViewModel.haveMusicFlag = false
+        } else {
+            mainViewModel.haveMusicFlag = true
+            bundle.apply {
+                putLong("musicSongListId", kv.decodeLong("musicSongListId"))
+                putLong("musicSongId", kv.decodeLong("musicSongId"))
+            }
+            mBrowser = MediaBrowserCompat(
+                this,
+                ComponentName(this, MediaPlaybackService::class.java),  //绑定服务
+                mBrowserConnectionCallback,  // 设置回调
+                bundle
+            )
         }
-
-        mBrowser = MediaBrowserCompat(
-            this,
-            ComponentName(this, MediaPlaybackService::class.java),  //绑定服务
-            mBrowserConnectionCallback,  // 设置回调
-            bundle
-        )
 
     }
 
     override fun onStart() {
         super.onStart()
         Log.d(TAG, "onStart")
-        if (!mBrowser.isConnected){
-            mBrowser.connect()
+        if (mainViewModel.haveMusicFlag) {
+            if (!mBrowser.isConnected) {
+                mBrowser.connect()
+            }
         }
     }
 
     override fun onStop() {
         super.onStop()
         Log.d(TAG, "onStop")
-
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "onDestroy")
-        MediaControllerCompat.getMediaController(this)?.unregisterCallback(mMediaControllerCallback)
-        mBrowser.disconnect()
+        if (mainViewModel.haveMusicFlag) {
+            if (mBrowser.isConnected) {
+                MediaControllerCompat.getMediaController(this)
+                    ?.unregisterCallback(mMediaControllerCallback)
+                mBrowser.disconnect()
+            }
+        }
     }
 
     private val mBrowserConnectionCallback:MediaBrowserCompat.ConnectionCallback =
@@ -117,7 +127,7 @@ class MainActivity : AppCompatActivity() {
                     mBrowser.unsubscribe(mediaId)
                     mBrowser.subscribe(mediaId,mBrowserSubscriptionCallback)
                     mController = MediaControllerCompat(this@MainActivity,mBrowser.sessionToken)
-                    mController.registerCallback(mMediaControllerCallback)
+                    mController!!.registerCallback(mMediaControllerCallback)
                 }
             }
         }
@@ -128,14 +138,10 @@ class MainActivity : AppCompatActivity() {
                 children: MutableList<MediaBrowserCompat.MediaItem>
             ) {
                 super.onChildrenLoaded(parentId, children)
-                val list = ArrayList<String>()
-                for (item in children){
-                    Log.d(TAG, "onChildrenLoaded: " + item.description.title)
-                    list.add(item.description.title.toString())
-                }
-                mainViewModel.loadChildren(list)
-                mainViewModel.duration.value = mController.metadata
-                    .getLong(MediaMetadataCompat.METADATA_KEY_DURATION).toInt()
+                Log.d(TAG, "onChildrenLoaded: " + mainViewModel.duration.value)
+                mainViewModel.duration.value = mController?.metadata
+                    ?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
+                Log.d(TAG, "onChildrenLoaded: " + mainViewModel.duration.value)
                 thread = UpdateProcessThread()
             }
         }
@@ -145,35 +151,44 @@ class MainActivity : AppCompatActivity() {
             override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
                 super.onPlaybackStateChanged(state)
                 when(state?.state){
+                    PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> {
+                        Log.d(TAG, "onPlaybackStateChanged: state next song")
+                        mainViewModel.nowProcess.value = 0
+                        mainViewModel.lastProcess.value = -1
+//                        thread = null
+//                        thread = UpdateProcessThread()
+                        mainViewModel.changeFlag.value = true
+                    }
                     PlaybackStateCompat.STATE_NONE -> {
                         Log.d(TAG, "onPlaybackStateChanged: state NONE")
                         mainViewModel.nowProcess.value = 0
                         mainViewModel.lastProcess.value = -1
-                        thread = null
-                        thread = UpdateProcessThread()
-                        mainViewModel.changeFlag.value = true
 
+                        mainViewModel.initFlag.value = true
                     }
                 }
-                mainViewModel.duration.value = mController.metadata
-                    .getLong(MediaMetadataCompat.METADATA_KEY_DURATION).toInt()
+                mainViewModel.duration.value = mController?.metadata
+                    ?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
+                mainViewModel.nowTitle.value = mController?.metadata
+                    ?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
             }
         }
 
     inner class UpdateProcessThread:Thread(){
         override fun run() {
             super.run()
-            Log.d(TAG, "run: " + (mainViewModel.duration.value?.div(1000)))
             while (mainViewModel.nowProcess.value!! < (mainViewModel.duration.value!!.div(1000))){
                 if (mainViewModel.nowProcess.value == mainViewModel.lastProcess.value){
                     continue
                 }
-                Log.d(TAG, "run: " + mainViewModel.nowProcess.value)
                 mainViewModel.nowProcess.postValue(mainViewModel.nowProcess.value!!.plus(1))
                 SystemClock.sleep(1000)
+                if (mainViewModel.nowProcess.value!! == (mainViewModel.duration.value!!.div(1000))){
+                    Log.d(TAG, "run: 播放完毕 下一首")
+                    mController?.transportControls?.skipToNext()
+                    Log.d(TAG, "run: ok")
+                }
             }
-            Log.d(TAG, "run: 播放完毕")
-            mController.transportControls.skipToNext()
         }
     }
 

@@ -2,19 +2,14 @@ package com.example.softmusic.musicSong
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.navigation.NavController
-import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
-import com.example.softmusic.MainActivity
-import com.example.softmusic.R
 import com.example.softmusic.databinding.CardSongBinding
 import com.example.softmusic.entity.MusicSong
-import com.example.softmusic.room.DataBaseUtils
 import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.listener.ChangePlayMusicListener
+import com.example.softmusic.room.DataBaseUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class MusicSongAdapter(private val context: Context,

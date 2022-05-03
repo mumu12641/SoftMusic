@@ -50,11 +50,9 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "onDestroy")
-
         val kv = MMKV.defaultMMKV()
         kv.encode("musicSongId", list?.get(nowNum)?.musicSongId!!)
         kv.encode("musicSongListId",musicSongListId)
-
         mMediaPlayer.release()
         if (mSession != null) {
             mSession!!.release()
@@ -86,13 +84,10 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         Log.d(TAG, "onLoadChildren")
         result.detach()
         val mediaItems = ArrayList<MediaBrowserCompat.MediaItem>()
-        val kv = MMKV.defaultMMKV()
-        if (kv.decodeString("songTitle") == null){
-            Log.d(TAG, "onLoadChildren: mmkv null" )
-        }
         val musicSong = DataBaseUtils.getMusicSongById(musicSongId)
         Log.d(TAG, "onLoadChildren: $musicSongId")
         list = DataBaseUtils.getPlayListsWithSongsById(musicSongListId)
+        nowNum = list!!.indexOf(musicSong)
         playNum = list!!.size
         for (i in list!!){
             val metadata = MediaMetadataCompat.Builder()
@@ -116,6 +111,13 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             .build()
         mSession!!.isActive = true
         mSession!!.setMetadata(metadata)
+
+        mPlaybackState = PlaybackStateCompat.Builder()
+            .setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
+            .build()
+        mSession!!.setPlaybackState(mPlaybackState)
+        mMediaPlayer.start()
+
         result.sendResult(mediaItems)
     }
 
@@ -124,7 +126,9 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             override fun onPlay() {
                 super.onPlay()
                 Log.d(TAG, "onPlay")
-                if (mPlaybackState!!.state == PlaybackStateCompat.STATE_PAUSED || mPlaybackState!!.state == PlaybackStateCompat.STATE_NONE) {
+                if (mPlaybackState!!.state == PlaybackStateCompat.STATE_PAUSED || mPlaybackState!!.state == PlaybackStateCompat.STATE_NONE
+                    || mPlaybackState!!.state == PlaybackStateCompat.STATE_SKIPPING_TO_NEXT
+                ) {
 //                mExoPlayer?.play()
                     mMediaPlayer.start()
                     mPlaybackState = PlaybackStateCompat.Builder()
@@ -187,14 +191,13 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.duration.toLong())
             .build()
         mSession?.setMetadata(metadata)
-
         mMediaPlayer.stop()
         mMediaPlayer.reset()
-
         mMediaPlayer.setDataSource(song.mediaFileUri)
         mMediaPlayer.prepare()
+
         mPlaybackState = PlaybackStateCompat.Builder()
-            .setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
+            .setState(PlaybackStateCompat.STATE_SKIPPING_TO_NEXT, 0, 1.0f)
             .build()
         mSession!!.setPlaybackState(mPlaybackState)
         mMediaPlayer.start()

@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.softmusic.MainActivity
@@ -22,8 +23,8 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
     private lateinit var musicPlayViewModel: MusicPlayViewModel
     private lateinit var mainViewModel : MainViewModel
-    private lateinit var mController: MediaControllerCompat
-    private val TAG = "MediaPlayer"
+    private var mController: MediaControllerCompat? = null
+    private val TAG = "MusicPlayFragment"
     private lateinit var _binding: FragmentMusicPlayBinding
     private val binding get() = _binding
 
@@ -37,17 +38,23 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentMusicPlayBinding.inflate(inflater, container, false)
-        binding.seekBar.setOnSeekBarChangeListener(this)
-        binding.playsong.setOnClickListener(this)
-        binding.nextsong.setOnClickListener(this)
-        binding.lastsong.setOnClickListener(this)
-
-        mController = (requireActivity() as MainActivity).mController
-        mainViewModel = (requireActivity() as MainActivity).mainViewModel
-
+        Log.d(TAG, "onCreateView")
         val dateFormat = SimpleDateFormat("mm:ss", Locale.CHINA)
         dateFormat.timeZone = TimeZone.getTimeZone("GMT+00:00")
+        mController = (requireActivity() as MainActivity).mController
+        mainViewModel = (requireActivity() as MainActivity).mainViewModel
+        _binding = FragmentMusicPlayBinding.inflate(inflater, container, false)
+        binding.apply {
+            seekBar.setOnSeekBarChangeListener(this@MusicPlayFragment)
+            playsong.setOnClickListener(this@MusicPlayFragment)
+            nextsong.setOnClickListener(this@MusicPlayFragment)
+            lastsong.setOnClickListener(this@MusicPlayFragment)
+        }
+        if (mController?.playbackState?.state == PlaybackStateCompat.STATE_PLAYING){
+            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
+        }else{
+            binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
+        }
 
         mainViewModel.duration.observe(viewLifecycleOwner){
             binding.seekBar.max = it
@@ -56,16 +63,27 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
         mainViewModel.nowProcess.observe(viewLifecycleOwner){
             binding.seekBar.progress = (it *1000)
-            Log.d(TAG, "onCreateView: $it")
             binding.nowTime.text = dateFormat.format(Date((it * 1000).toLong()))
+        }
+
+        mainViewModel.nowTitle.observe(viewLifecycleOwner){
+            binding.songTitle.text = it
         }
 
         mainViewModel.changeFlag.observe(viewLifecycleOwner){
             if (it == true){
-                mainViewModel.changeFlag.value = false
                 binding.playsong.performClick()
             }
         }
+
+
+
+        mainViewModel.initFlag.observe(viewLifecycleOwner){
+            if (it == true){
+                binding.playsong.performClick()
+            }
+        }
+
 
         return binding.root
     }
@@ -75,47 +93,64 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
     override fun onStartTrackingTouch(p0: SeekBar?) {}
 
     override fun onStopTrackingTouch(seekBar: SeekBar) {
-        val pos: Int = seekBar.progress
-        mainViewModel.nowProcess.value = pos / 1000
-        mainViewModel.lastProcess.value = -1
-        mController.transportControls.seekTo(pos.toLong())
-        mController.transportControls.play()
-        binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
+        if (mainViewModel.haveMusicFlag) {
+            val pos: Int = seekBar.progress
+            mainViewModel.nowProcess.value = pos / 1000
+            mainViewModel.lastProcess.value = -1
+            mController?.transportControls?.seekTo(pos.toLong())
+            mController?.transportControls?.play()
+            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
+        }
     }
 
     @SuppressLint("SwitchIntDef", "NonConstantResourceId")
     override fun onClick(view: View) {
-        when(view.id){
-            R.id.playsong->{
-                when (mController.playbackState.state) {
-                    PlaybackStateCompat.STATE_PLAYING -> {
-                        mController.transportControls.pause()
-                        binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
-                        mainViewModel.lastProcess.value = mainViewModel.nowProcess.value
+        if (mainViewModel.haveMusicFlag) {
+            when (view.id) {
+                R.id.playsong -> {
+                    when (mController?.playbackState?.state) {
+                        PlaybackStateCompat.STATE_PLAYING -> {
+                            mController!!.transportControls.pause()
+                            binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
+                            mainViewModel.lastProcess.value = mainViewModel.nowProcess.value
+                        }
+                        PlaybackStateCompat.STATE_PAUSED -> {
+                            mController!!.transportControls.play()
+                            mainViewModel.lastProcess.value = -1
+                            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
+                        }
+                        PlaybackStateCompat.STATE_NONE -> {
+                            Log.d(TAG, "onClick: STATE_NONE")
+                            mController!!.transportControls.play()
+                            if (mainViewModel.initFlag.value == true){
+                                mainViewModel.initFlag.value = false
+                                (requireActivity() as MainActivity).thread?.start()
+                            }
+                            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
+                        }
+                        PlaybackStateCompat.STATE_SKIPPING_TO_NEXT ->{
+                            mController!!.transportControls.play()
+                            if (mainViewModel.changeFlag.value == true){
+                                mainViewModel.changeFlag.value = false
+                            }else {
+                                (requireActivity() as MainActivity).thread?.start()
+                            }
+                            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
+                        }
                     }
-                    PlaybackStateCompat.STATE_PAUSED -> {
-                        mController.transportControls.play()
-                        mainViewModel.lastProcess.value = -1
-                        binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
-                    }
-                    PlaybackStateCompat.STATE_NONE -> {
-                        Log.d(TAG, "onClick: STATE_NONE")
-                        mController.transportControls.play()
-                        (requireActivity() as MainActivity).thread?.start()
-                        binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
-                    }
+
                 }
-
+                R.id.nextsong -> {
+                    mController?.transportControls?.skipToNext()
+                    binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
+                }
+                R.id.lastsong -> {
+                    mController?.transportControls?.skipToPrevious()
+                    binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
+                }
             }
-            R.id.nextsong->{
-                mController.transportControls.skipToNext()
-                binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
-
-            }
-            R.id.lastsong->{
-                mController.transportControls.skipToPrevious()
-                binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
-            }
+        } else {
+          Toast.makeText(requireContext(),"你还没有播放列表哦，去添加歌曲吧！",Toast.LENGTH_LONG).show()
         }
     }
 
