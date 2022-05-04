@@ -45,7 +45,6 @@ class MainActivity : AppCompatActivity() {
 
         mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
-
         mainViewModel.nowId.observe(this){
             // 直接重新连接？？
             // TODO 还可以优化
@@ -152,18 +151,22 @@ class MainActivity : AppCompatActivity() {
                 super.onPlaybackStateChanged(state)
                 when(state?.state){
                     PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> {
-                        Log.d(TAG, "onPlaybackStateChanged: state next song")
                         mainViewModel.nowProcess.value = 0
                         mainViewModel.lastProcess.value = -1
-//                        thread = null
-//                        thread = UpdateProcessThread()
+                        if (mainViewModel.autoChangeFlag){
+                            thread = null
+                            mainViewModel.autoChangeFlag = false
+                            mainViewModel.nowProcess.value = -1
+                            mainViewModel.lastProcess.value = -2
+                            thread = UpdateProcessThread()
+                            thread?.start()
+                        }
                         mainViewModel.changeFlag.value = true
+
                     }
                     PlaybackStateCompat.STATE_NONE -> {
-                        Log.d(TAG, "onPlaybackStateChanged: state NONE")
                         mainViewModel.nowProcess.value = 0
                         mainViewModel.lastProcess.value = -1
-
                         mainViewModel.initFlag.value = true
                     }
                 }
@@ -184,9 +187,8 @@ class MainActivity : AppCompatActivity() {
                 mainViewModel.nowProcess.postValue(mainViewModel.nowProcess.value!!.plus(1))
                 SystemClock.sleep(1000)
                 if (mainViewModel.nowProcess.value!! == (mainViewModel.duration.value!!.div(1000))){
-                    Log.d(TAG, "run: 播放完毕 下一首")
                     mController?.transportControls?.skipToNext()
-                    Log.d(TAG, "run: ok")
+                    mainViewModel.autoChangeFlag = true
                 }
             }
         }

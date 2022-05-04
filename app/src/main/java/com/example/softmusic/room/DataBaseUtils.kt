@@ -5,22 +5,19 @@ import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.entity.MusicSongList
 import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.entity.PlaylistWithSongs
-import kotlin.properties.Delegates
+import java.util.concurrent.Executors
+import java.util.concurrent.FutureTask
 
 class DataBaseUtils {
     companion object{
         private val dataBase : MusicDataBase = MusicDataBase.getInstance()
         private val musicDao : MusicDao = dataBase.musicDao
-//        ExecutorService exec = Executors.newCachedThreadPool();
-        // musicSong
         fun insertMusicSong(song: MusicSong):Long {
-            var result by Delegates.notNull<Long>()
-            val t = Thread {
-                result = musicDao.insertMusicSong(song)
+            val future = FutureTask {
+                musicDao.insertMusicSong(song)
             }
-            t.start()
-            t.join()
-            return result
+            Executors.newCachedThreadPool().execute(future)
+            return future.get()
         }
         fun updateMusicSong(vararg musicSongs: MusicSong?) {
             Thread { musicDao.updateMusicSong(*musicSongs) }.start()
@@ -38,13 +35,11 @@ class DataBaseUtils {
             return result
         }
         fun getMusicSongById(key:Long): MusicSong {
-            lateinit var result: MusicSong
-            val t = Thread {
-                result = musicDao.getMusicSongById(key)
+            val future = FutureTask {
+                musicDao.getMusicSongById(key)
             }
-            t.start()
-            t.join()
-            return result
+            Executors.newCachedThreadPool().execute(future)
+            return future.get()
         }
 
 
@@ -68,59 +63,40 @@ class DataBaseUtils {
         }
 
         fun getMusicSongListByKey(key:String): MusicSongList {
-            lateinit var result: MusicSongList
-            val t = Thread {
-                result = musicDao.getMusicSongListByKey(key)
+            val future = FutureTask {
+                musicDao.getMusicSongListByKey(key)
             }
-            t.start()
-            t.join()
-            return result
+            Executors.newCachedThreadPool().execute(future)
+            return future.get()
         }
         fun getMusicSongListById(key:Long): MusicSongList {
-            lateinit var result: MusicSongList
-            val t = Thread {
-                result = musicDao.getMusicSongListById(key)
+            val future = FutureTask {
+                musicDao.getMusicSongListById(key)
             }
-            t.start()
-            t.join()
-            return result
+            Executors.newCachedThreadPool().execute(future)
+            return future.get()
         }
 
         fun updateMusicSongList(vararg musicSongLists: MusicSongList) {
             Thread { musicDao.updateMusicSongList(*musicSongLists) }.start()
         }
         fun getLiveDataPlaylistsWithSongsById(key:Long):LiveData<PlaylistWithSongs>{
-            // TODO with Future
-            lateinit var result:LiveData<PlaylistWithSongs>
-            val t = Thread {
-                result = musicDao.getLiveDataPlaylistsWithSongsById(key)
+            val future = FutureTask {
+                musicDao.getLiveDataPlaylistsWithSongsById(key)
             }
-            t.start()
-            t.join()
-            return result
+            Executors.newCachedThreadPool().execute(future)
+            return future.get()
         }
 
         fun getAllMusicSongList():LiveData<List<MusicSongList>>{
             return musicDao.allMusicSongList
         }
-
-        fun getPlayListsWithSongsByKey(songListTitle:String):List<MusicSong>{
-            lateinit var result: PlaylistWithSongs
-            val t = Thread {
-                result = musicDao.getPlayListsWithSongsByKey(songListTitle)
-            }
-            t.start()
-            t.join()
-            return result.songs
-        }
         fun getPlayListsWithSongsById(musicSongListId:Long):List<MusicSong>{
-            lateinit var result: PlaylistWithSongs
-            val t = Thread {
-                result = musicDao.getPlayListsWithSongsById(musicSongListId)
+            val future = FutureTask {
+                musicDao.getPlayListsWithSongsById(musicSongListId)
             }
-            t.start()
-            t.join()
-            return result.songs
+            Executors.newCachedThreadPool().execute(future)
+            return future.get().songs
         }
     }
 }

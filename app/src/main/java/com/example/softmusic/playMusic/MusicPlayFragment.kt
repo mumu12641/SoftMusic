@@ -76,8 +76,6 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             }
         }
 
-
-
         mainViewModel.initFlag.observe(viewLifecycleOwner){
             if (it == true){
                 binding.playsong.performClick()
@@ -132,8 +130,6 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                             mController!!.transportControls.play()
                             if (mainViewModel.changeFlag.value == true){
                                 mainViewModel.changeFlag.value = false
-                            }else {
-                                (requireActivity() as MainActivity).thread?.start()
                             }
                             binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
                         }

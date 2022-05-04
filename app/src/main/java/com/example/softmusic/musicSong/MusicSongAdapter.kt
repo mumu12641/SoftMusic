@@ -40,9 +40,11 @@ class MusicSongAdapter(private val context: Context,
                     DataBaseUtils.deleteMusicSong(musicSongList?.get(position))
                     DataBaseUtils.deleteMusicSongRef(
                         PlaylistSongCrossRef(musicSongListId,
-                            musicSongList?.get(position)?.musicSongId!!
+                            musicSongList?.get(position)?.musicSongId!!)
                     )
-                    )
+                    val songList = DataBaseUtils.getMusicSongListById(musicSongListId)
+                    songList.songNumber --
+                    DataBaseUtils.updateMusicSongList(songList)
                 }
                 .show()
             return@setOnLongClickListener true

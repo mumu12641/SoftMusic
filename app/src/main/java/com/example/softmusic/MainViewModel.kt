@@ -13,6 +13,8 @@ class MainViewModel:ViewModel(){
 
     var changeFlag:MutableLiveData<Boolean> = MutableLiveData(false)
 
+    var autoChangeFlag = false
+
     var initFlag:MutableLiveData<Boolean> = MutableLiveData(false)
 
     var nowId:MutableLiveData<List<Long>> = MutableLiveData()
