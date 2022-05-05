@@ -1,10 +1,15 @@
 package com.example.softmusic.musicSong
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.database.Cursor
+import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,6 +32,8 @@ class MusicSongFragment : Fragment() {
     private lateinit var _fragmentSongBinding: FragmentSongBinding
     private val fragmentSongBinding get() = _fragmentSongBinding
     private lateinit var musicSongViewModel: MusicSongViewModel
+    private val TAG = "MusicSongFragment"
+    @SuppressLint("WrongThread")
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,17 +50,16 @@ class MusicSongFragment : Fragment() {
         fragmentSongBinding.songsList.layoutManager = GridLayoutManager(
             requireContext(), 1, GridLayoutManager.VERTICAL, false
         )
-
-        musicSongViewModel.getPlaylistWithSongsData().observe(viewLifecycleOwner) {
-            fragmentSongBinding.songsList.adapter = MusicSongAdapter(requireContext(), it?.songs,
-                requireArguments().getLong("key"),
-                object : ChangePlayMusicListener {
-                    override fun changePlayMusic(musicSongId: Long, musicSongListId: Long) {
-                        val list = listOf(musicSongId,musicSongListId)
-                        (requireActivity() as MainActivity).mainViewModel.nowId.value = list
-                    }
+        val adapter = MusicSongAdapter(requireContext(), listOf(),musicSongViewModel.musicSongListId,
+            object : ChangePlayMusicListener {
+                override fun changePlayMusic(musicSongId: Long, musicSongListId: Long) {
+                    val list = listOf(musicSongId,musicSongListId)
+                    (requireActivity() as MainActivity).mainViewModel.nowId.value = list
                 }
-            )
+            })
+        fragmentSongBinding.songsList.adapter = adapter
+        musicSongViewModel.getPlaylistWithSongsData().observe(viewLifecycleOwner) {
+            adapter.setMusicSongs(it.songs)
             (requireActivity() as MainActivity).setTitle(
                 it?.musicSongList?.songListTitle
             )
@@ -97,10 +103,12 @@ class MusicSongFragment : Fragment() {
                 val song = MusicSong(
                     cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)),
                     cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)),
-                    "none",
+                    getAlbumImageUri(cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))).toString(),
                         cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)),
                         cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)),
                         cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)))
+                Log.d(TAG, "getLocalMusic: "+ cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)))
+                Log.d(TAG, "getLocalMusic: " + getAlbumImageUri(cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))))
                 val id = DataBaseUtils.insertMusicSong(song)
                 DataBaseUtils.insertMusicSongRef(PlaylistSongCrossRef(
                     musicSongViewModel.musicSongListId,
@@ -112,6 +120,10 @@ class MusicSongFragment : Fragment() {
             }
         }
         cursor?.close()
+    }
 
+    fun getAlbumImageUri(id: Long): Uri {
+        val sArtworkUri = Uri.parse("content://media/external/audio/albumart")
+        return Uri.withAppendedPath(sArtworkUri, id.toString())
     }
 }

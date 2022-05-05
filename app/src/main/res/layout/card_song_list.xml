@@ -45,14 +45,13 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?android:attr/textColorSecondary"
                         android:textSize="15sp"/>
                     <TextView
                         android:id="@+id/songListBuilder"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?android:attr/textColorSecondary"
                         android:textSize="15sp"
                         />
                 </LinearLayout>

@@ -25,15 +25,6 @@ class DataBaseUtils {
         fun deleteMusicSong(vararg musicSongs: MusicSong?) {
             Thread { musicDao.deleteMusicSong(*musicSongs) }.start()
         }
-        fun getAllMusicSongs():List<MusicSong>{
-            lateinit var result:List<MusicSong>
-            val t = Thread {
-                result = musicDao.getAllMusicSongs()
-            }
-            t.start()
-            t.join()
-            return result
-        }
         fun getMusicSongById(key:Long): MusicSong {
             val future = FutureTask {
                 musicDao.getMusicSongById(key)
@@ -41,7 +32,13 @@ class DataBaseUtils {
             Executors.newCachedThreadPool().execute(future)
             return future.get()
         }
-
+        fun getImageUri(key:Long):String{
+            val future = FutureTask {
+                musicDao.getImageUri(key)
+            }
+            Executors.newCachedThreadPool().execute(future)
+            return future.get()
+        }
 
         fun insertMusicSongRef(vararg playlistSongCrossRefs: PlaylistSongCrossRef?) {
             Thread { musicDao.insertPlaylistSongCrossRef(*playlistSongCrossRefs) }.start()
@@ -81,11 +78,12 @@ class DataBaseUtils {
             Thread { musicDao.updateMusicSongList(*musicSongLists) }.start()
         }
         fun getLiveDataPlaylistsWithSongsById(key:Long):LiveData<PlaylistWithSongs>{
-            val future = FutureTask {
-                musicDao.getLiveDataPlaylistsWithSongsById(key)
-            }
-            Executors.newCachedThreadPool().execute(future)
-            return future.get()
+//            val future = FutureTask {
+//                musicDao.getLiveDataPlaylistsWithSongsById(key)
+//            }
+//            Executors.newCachedThreadPool().execute(future)
+//            return future.get()
+            return musicDao.getLiveDataPlaylistsWithSongsById(key)
         }
 
         fun getAllMusicSongList():LiveData<List<MusicSongList>>{

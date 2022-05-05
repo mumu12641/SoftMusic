@@ -1,5 +1,6 @@
 package com.example.softmusic
 
+import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
@@ -22,6 +23,8 @@ class MainViewModel:ViewModel(){
     var nowTitle:MutableLiveData<String> = MutableLiveData()
 
     var haveMusicFlag = false
+
+    var nowImageUri:MutableLiveData<String> = MutableLiveData()
 
 
 }

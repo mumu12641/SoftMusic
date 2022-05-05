@@ -42,7 +42,6 @@ class MusicSongListAdapter(
                 // TODO 传递Bundle（Room中的索引）
                 val bundle = Bundle()
                 bundle.putLong("key", musicSongListList[position].musicSongListId)
-                Log.d(TAG, "onBindViewHolder: " + musicSongListList[position].songListTitle)
                 controller.navigate(R.id.action_musicSongListFragment2_to_musicSongFragment2, bundle)
             }
         }

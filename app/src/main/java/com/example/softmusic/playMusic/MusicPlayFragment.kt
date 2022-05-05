@@ -1,6 +1,9 @@
 package com.example.softmusic.playMusic
 
 import android.annotation.SuppressLint
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -8,8 +11,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.softmusic.MainActivity
@@ -33,6 +39,7 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         musicPlayViewModel = ViewModelProvider(requireActivity())[MusicPlayViewModel::class.java]
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -49,11 +56,25 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             playsong.setOnClickListener(this@MusicPlayFragment)
             nextsong.setOnClickListener(this@MusicPlayFragment)
             lastsong.setOnClickListener(this@MusicPlayFragment)
+            favoriteFlag.setOnClickListener(this@MusicPlayFragment)
+            repeatMode.setOnClickListener(this@MusicPlayFragment)
         }
         if (mController?.playbackState?.state == PlaybackStateCompat.STATE_PLAYING){
             binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
         }else{
             binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
+        }
+
+        mainViewModel.nowImageUri.observe(viewLifecycleOwner){
+            Log.d(TAG, "onCreateView: $it")
+            try {
+                binding.imageView2.setImageBitmap(
+                    ImageDecoder.decodeBitmap
+                        (ImageDecoder.createSource(requireContext().contentResolver, Uri.parse(it))))
+            } catch (e:Exception){
+                Log.d(TAG, "onCreateView: $e")
+              binding.imageView2.setImageResource(R.drawable.music_note_150)
+            }
         }
 
         mainViewModel.duration.observe(viewLifecycleOwner){
@@ -147,6 +168,14 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             }
         } else {
           Toast.makeText(requireContext(),"你还没有播放列表哦，去添加歌曲吧！",Toast.LENGTH_LONG).show()
+        }
+        when(view.id){
+            R.id.favorite_flag->{
+
+            }
+            R.id.repeat_mode->{
+
+            }
         }
     }
 

@@ -130,10 +130,8 @@ service中的判空			done
 
 ## 5/3/22
 
-基本的音乐播放以及数据库已经差不多完成
-
 接下来UI美化
 
 通知栏前台服务
 
-DataBaseUtil中的join改成future或者协程
+DataBaseUtil中的join改成future或者协程		done

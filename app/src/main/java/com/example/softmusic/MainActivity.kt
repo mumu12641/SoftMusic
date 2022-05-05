@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
@@ -19,6 +20,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import com.example.softmusic.databinding.ActivityMainBinding
 import com.example.softmusic.playMusic.MediaPlaybackService
+import com.example.softmusic.room.DataBaseUtils
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.tencent.mmkv.MMKV
 
@@ -174,6 +176,11 @@ class MainActivity : AppCompatActivity() {
                     ?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
                 mainViewModel.nowTitle.value = mController?.metadata
                     ?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
+                Log.d(TAG, "onPlaybackStateChanged: " + mController?.metadata
+                    ?.getString(METADATA_KEY_MEDIA_ID)!!.toLong())
+                mainViewModel.nowImageUri.value = DataBaseUtils.getImageUri(
+                    mController?.metadata
+                        ?.getString(METADATA_KEY_MEDIA_ID)!!.toLong())
             }
         }
 

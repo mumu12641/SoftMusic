@@ -13,7 +13,7 @@ import com.example.softmusic.room.DataBaseUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class MusicSongAdapter(private val context: Context,
-                       private val musicSongList: List<MusicSong>?,
+                       private var musicSongList: List<MusicSong>?,
                        private val musicSongListId:Long,
                        private val listener:ChangePlayMusicListener) :
     RecyclerView.Adapter<MusicSongAdapter.ViewHolder>() {
@@ -62,4 +62,10 @@ class MusicSongAdapter(private val context: Context,
     class ViewHolder(var cardSongListBinding: CardSongBinding) : RecyclerView.ViewHolder(
         cardSongListBinding.root
     )
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun setMusicSongs(list:List<MusicSong>){
+        this.musicSongList = list
+        notifyDataSetChanged()
+    }
 }

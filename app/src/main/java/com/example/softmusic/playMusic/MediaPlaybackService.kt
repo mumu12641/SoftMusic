@@ -9,7 +9,6 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.media.MediaBrowserServiceCompat
-import com.example.softmusic.R
 import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.room.DataBaseUtils
 import com.tencent.mmkv.MMKV
@@ -91,7 +90,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         playNum = list!!.size
         for (i in list!!){
             val metadata = MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "" + R.raw.jay)
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "" + i.musicSongId.toString())
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, i.songTitle)
                 .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, i.duration.toLong())
                 .build()
@@ -105,7 +104,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         mMediaPlayer.setDataSource(musicSong.mediaFileUri)
         mMediaPlayer.prepareAsync()
         val metadata = MediaMetadataCompat.Builder()
-            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "" + R.raw.jay)
+            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, musicSong.musicSongId.toString())
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, musicSong.songTitle)
             .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, musicSong.duration.toLong())
             .build()
@@ -186,7 +185,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
     private fun changeMusicSong(song: MusicSong){
         val metadata = MediaMetadataCompat.Builder()
-            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "" + R.raw.jay)
+            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "" + song.musicSongId.toString())
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.songTitle )
             .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.duration.toLong())
             .build()

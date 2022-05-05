@@ -30,9 +30,10 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
         )[MusicSongListViewModel::class.java]
         fragmentSongListBinding.songListList.layoutManager =
             GridLayoutManager(requireActivity(), 1, GridLayoutManager.VERTICAL, false)
+
         val adapter = MusicSongListAdapter(
             requireContext(),
-            viewModel.getMusicSongListData().value!!
+            listOf()
         )
         fragmentSongListBinding.songListList.adapter = adapter
         viewModel.musicSongListLiveData

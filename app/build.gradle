@@ -53,6 +53,7 @@ dependencies {
 
     implementation 'com.guolindev.permissionx:permissionx:1.6.3'
     implementation 'com.tencent:mmkv:1.2.13'
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
 
     implementation 'com.google.android.exoplayer:exoplayer-core:2.17.1'
     implementation 'com.google.android.exoplayer:exoplayer-dash:2.17.1'
