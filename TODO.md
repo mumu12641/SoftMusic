@@ -135,3 +135,14 @@ service中的判空			done
 通知栏前台服务
 
 DataBaseUtil中的join改成future或者协程		done
+
+
+
+## 5/6/22
+
+我喜欢
+
+播放列表更新
+
+播放顺序更新
+

@@ -22,6 +22,8 @@ import com.example.softmusic.MainActivity
 import com.example.softmusic.MainViewModel
 import com.example.softmusic.R
 import com.example.softmusic.databinding.FragmentMusicPlayBinding
+import com.example.softmusic.entity.PlaylistSongCrossRef
+import com.example.softmusic.room.DataBaseUtils
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -33,6 +35,9 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
     private val TAG = "MusicPlayFragment"
     private lateinit var _binding: FragmentMusicPlayBinding
     private val binding get() = _binding
+    private var repeatMode = 0
+
+    private lateinit var animation :Animation
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,6 +82,9 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             }
         }
 
+        animation = AnimationUtils.loadAnimation(requireContext(),R.anim.record_image_rotate)
+        animation.repeatCount = -1
+
         mainViewModel.duration.observe(viewLifecycleOwner){
             binding.seekBar.max = it
             binding.durationTime.text = dateFormat.format(Date(it.toLong()))
@@ -103,6 +111,11 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             }
         }
 
+        mainViewModel.likeFlag.observe(viewLifecycleOwner){
+            if (it == true){
+                binding.favoriteFlag.setBackgroundResource(R.drawable.favorite_24px_yes)
+            }
+        }
 
         return binding.root
     }
@@ -165,17 +178,38 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                     mController?.transportControls?.skipToPrevious()
                     binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
                 }
+                R.id.favorite_flag->{
+                    if (!mainViewModel.allPlayListSongsCrossRef.value!!.contains(PlaylistSongCrossRef(
+                                    mainViewModel.nowId.value!![1],mainViewModel.nowId.value!![0]))){
+                        binding.favoriteFlag.setBackgroundResource(R.drawable.favorite_24px_yes)
+                        DataBaseUtils.insertMusicSongRef(PlaylistSongCrossRef(mainViewModel.nowId.value!![1], mainViewModel.nowId.value!![0]))
+                    }
+                }
+                R.id.repeat_mode->{
+                    val bundle = Bundle()
+                    when (repeatMode){
+                        0 -> {
+                            repeatMode = 1
+                            binding.repeatMode.setBackgroundResource(R.drawable.shuffle_24px)
+                            Toast.makeText(requireContext(),"随机播放",Toast.LENGTH_LONG).show()
+                        }
+                        1 -> {
+                            repeatMode = 2
+                            binding.repeatMode.setBackgroundResource(R.drawable.repeat_one_24px)
+                            Toast.makeText(requireContext(),"单曲循环",Toast.LENGTH_LONG).show()
+                        }
+                        2 -> {
+                            repeatMode = 0
+                            binding.repeatMode.setBackgroundResource(R.drawable.repeat_24px)
+                            Toast.makeText(requireContext(),"列表循环",Toast.LENGTH_LONG).show()
+                        }
+                    }
+                    bundle.putInt("order",repeatMode)
+                    mController?.transportControls?.sendCustomAction("0",bundle)
+                }
             }
         } else {
           Toast.makeText(requireContext(),"你还没有播放列表哦，去添加歌曲吧！",Toast.LENGTH_LONG).show()
-        }
-        when(view.id){
-            R.id.favorite_flag->{
-
-            }
-            R.id.repeat_mode->{
-
-            }
         }
     }
 

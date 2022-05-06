@@ -51,6 +51,11 @@ class DataBaseUtils {
         fun updateMusicSongRef(vararg playlistSongCrossRefs: PlaylistSongCrossRef?) {
             Thread { musicDao.deletePlaylistSongCrossRef(*playlistSongCrossRefs) }.start()
         }
+
+        fun getAllPlaylistSongCrossRef():LiveData<List<PlaylistSongCrossRef>>{
+            return musicDao.allPlayListSongCrossRef
+        }
+
         fun insertMusicSongList(vararg musicSongLists: MusicSongList) {
             Thread { musicDao.insertMusicSongList(*musicSongLists) }.start()
         }

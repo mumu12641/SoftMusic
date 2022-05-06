@@ -23,8 +23,10 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
     private var musicSongId:Long = 0
     private var musicSongListId:Long = 0
 
+    private var mode = 0
+
     private var playNum = 0
-    var nowNum = 0
+    private var nowNum = 0
     private var list:List<MusicSong>? = null
 
     private val TAG = "MediaPlaybackService"
@@ -83,11 +85,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         Log.d(TAG, "onLoadChildren")
         result.detach()
         val mediaItems = ArrayList<MediaBrowserCompat.MediaItem>()
-        val musicSong = DataBaseUtils.getMusicSongById(musicSongId)
-        Log.d(TAG, "onLoadChildren: $musicSongId")
-        list = DataBaseUtils.getPlayListsWithSongsById(musicSongListId)
-        nowNum = list!!.indexOf(musicSong)
-        playNum = list!!.size
+        loadMusic()
         for (i in list!!){
             val metadata = MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "" + i.musicSongId.toString())
@@ -101,21 +99,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 )
             )
         }
-        mMediaPlayer.setDataSource(musicSong.mediaFileUri)
-        mMediaPlayer.prepareAsync()
-        val metadata = MediaMetadataCompat.Builder()
-            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, musicSong.musicSongId.toString())
-            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, musicSong.songTitle)
-            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, musicSong.duration.toLong())
-            .build()
-        mSession!!.isActive = true
-        mSession!!.setMetadata(metadata)
-
-        mPlaybackState = PlaybackStateCompat.Builder()
-            .setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
-            .build()
-        mSession!!.setPlaybackState(mPlaybackState)
-        mMediaPlayer.start()
 
         result.sendResult(mediaItems)
     }
@@ -160,7 +143,11 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
             override fun onSkipToNext() {
                 super.onSkipToNext()
-                nowNum += 1
+                if (mode == 0) {
+                    nowNum += 1
+                }else if (mode == 1){
+                    nowNum = (0 until list?.size!!).random()
+                }
                 Log.d(TAG, "onSkipToNext: $nowNum")
                 if (nowNum == list?.size!!){
                     nowNum = 0
@@ -170,11 +157,31 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
             override fun onSkipToPrevious() {
                 super.onSkipToPrevious()
-                nowNum -= 1
+                if (mode == 0){
+                    nowNum -= 1
+                }else if (mode == 1){
+                    nowNum = (0 until list?.size!!).random()
+                }
                 if (nowNum < 0){
                     nowNum = list?.size?.minus(1)!!
                 }
                 changeMusicSong(song = list?.get(nowNum)!!)
+            }
+
+            override fun onCustomAction(action: String?, extras: Bundle?) {
+                super.onCustomAction(action, extras)
+                if (action == "0"){
+                    // 切换播放顺序
+                    mode = extras?.getInt("order")!!
+                } else if (action == "1"){
+                    // TODO 更换曲目
+                    musicSongId = extras?.getLong("musicSongId")!!
+                    musicSongListId = extras.getLong("musicSongListId")
+                    Log.d(TAG, "onCustomAction: 1")
+                    mMediaPlayer.stop()
+                    mMediaPlayer.reset()
+                    loadMusic()
+                }
             }
         }
 
@@ -200,6 +207,27 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             .build()
         mSession!!.setPlaybackState(mPlaybackState)
         mMediaPlayer.start()
+    }
+
+    private fun loadMusic(){
+        val musicSong = DataBaseUtils.getMusicSongById(musicSongId)
+        list = DataBaseUtils.getPlayListsWithSongsById(musicSongListId)
+        nowNum = list!!.indexOf(musicSong)
+        playNum = list!!.size
+        mMediaPlayer.setDataSource(musicSong.mediaFileUri)
+        mMediaPlayer.prepareAsync()
+        val metadata = MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, musicSong.musicSongId.toString())
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, musicSong.songTitle)
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, musicSong.duration.toLong())
+                .build()
+        mSession!!.isActive = true
+        mSession!!.setMetadata(metadata)
+        mPlaybackState = PlaybackStateCompat.Builder()
+                .setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
+                .build()
+        mSession!!.setPlaybackState(mPlaybackState)
+//        mMediaPlayer.start()
     }
 }
 
