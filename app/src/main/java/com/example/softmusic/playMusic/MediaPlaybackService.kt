@@ -23,13 +23,14 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
     private var musicSongId:Long = 0
     private var musicSongListId:Long = 0
 
-    private var mode = 0
+    private var mode = DEFAULT
 
     private var playNum = 0
     private var nowNum = 0
     private var list:List<MusicSong>? = null
 
     private val TAG = "MediaPlaybackService"
+
 
     override fun onCreate() {
         super.onCreate()
@@ -143,10 +144,15 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
             override fun onSkipToNext() {
                 super.onSkipToNext()
-                if (mode == 0) {
-                    nowNum += 1
-                }else if (mode == 1){
-                    nowNum = (0 until list?.size!!).random()
+                when(mode){
+                    DEFAULT -> {
+                        nowNum += 1
+                    }
+                    SHUFFLE -> {
+                        nowNum = (0 until list?.size!!).random()
+                    }
+                    REPEAT_ONE -> {
+                    }
                 }
                 Log.d(TAG, "onSkipToNext: $nowNum")
                 if (nowNum == list?.size!!){
@@ -157,10 +163,15 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
             override fun onSkipToPrevious() {
                 super.onSkipToPrevious()
-                if (mode == 0){
-                    nowNum -= 1
-                }else if (mode == 1){
-                    nowNum = (0 until list?.size!!).random()
+                when(mode){
+                    DEFAULT -> {
+                        nowNum -= 1
+                    }
+                    SHUFFLE -> {
+                        nowNum = (0 until list?.size!!).random()
+                    }
+                    REPEAT_ONE -> {
+                    }
                 }
                 if (nowNum < 0){
                     nowNum = list?.size?.minus(1)!!
@@ -188,6 +199,11 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
     companion object {
         private const val MY_MEDIA_ROOT_ID = "media_root_id"
+
+        const val SHUFFLE = 1
+        const val DEFAULT = 0
+        const val REPEAT_ONE = 2
+
     }
 
     private fun changeMusicSong(song: MusicSong){

@@ -47,13 +47,15 @@ class MainActivity : AppCompatActivity() {
 
         mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
-        mainViewModel.nowId.observe(this){
+        mainViewModel.nowId.observe(this){ it ->
+            mainViewModel.nowMusicRecordImageList.value =
+                DataBaseUtils.getPlayListsWithSongsById(it[1]).map{it.songAlbum}
             val bundle = Bundle()
             bundle.apply {
                 putLong("musicSongId",it[0])
                 putLong("musicSongListId",it[1])
             }
-            if (mainViewModel.haveMusicFlag) {
+            if (!mainViewModel.haveMusicFlag) {
                 MediaControllerCompat.getMediaController(this)?.unregisterCallback(mMediaControllerCallback)
                 if (mainViewModel.haveMusicFlag) {
                     mBrowser.disconnect()
@@ -80,7 +82,6 @@ class MainActivity : AppCompatActivity() {
 
         }
 
-        // TODO Test Bundle
         val bundle = Bundle()
         val kv = MMKV.defaultMMKV()
         if (!kv.containsKey("musicSongListId") && !kv.containsKey("musicSongId")){

@@ -140,9 +140,14 @@ DataBaseUtil中的join改成future或者协程		done
 
 ## 5/6/22
 
-我喜欢
+我喜欢	done
 
-播放列表更新
+播放列表更新 done
 
-播放顺序更新
+播放顺序更新 done
 
+
+
+代码优化
+
+PagerSnapHelper

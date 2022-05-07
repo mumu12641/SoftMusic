@@ -26,6 +26,7 @@
         <entry key="app/src/main/res/layout/fragment_music_play.xml" value="0.346875" />
         <entry key="app/src/main/res/layout/fragment_song.xml" value="0.3362676056338028" />
         <entry key="app/src/main/res/layout/fragment_song_list.xml" value="0.41625" />
+        <entry key="app/src/main/res/layout/music_record.xml" value="0.39855072463768115" />
         <entry key="app/src/main/res/menu/bottom_navigation_menu.xml" value="0.5453125" />
         <entry key="app/src/main/res/xml/network_security_config.xml" value="0.42934782608695654" />
       </map>

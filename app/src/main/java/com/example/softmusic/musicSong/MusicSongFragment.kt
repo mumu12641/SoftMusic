@@ -3,8 +3,6 @@ package com.example.softmusic.musicSong
 import android.Manifest
 import android.annotation.SuppressLint
 import android.database.Cursor
-import android.graphics.BitmapFactory
-import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle

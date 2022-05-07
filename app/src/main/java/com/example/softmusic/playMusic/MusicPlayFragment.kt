@@ -1,8 +1,6 @@
 package com.example.softmusic.playMusic
 
 import android.annotation.SuppressLint
-import android.graphics.ImageDecoder
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.session.MediaControllerCompat
@@ -11,13 +9,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.PagerSnapHelper
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE
 import com.example.softmusic.MainActivity
 import com.example.softmusic.MainViewModel
 import com.example.softmusic.R
@@ -35,9 +35,10 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
     private val TAG = "MusicPlayFragment"
     private lateinit var _binding: FragmentMusicPlayBinding
     private val binding get() = _binding
-    private var repeatMode = 0
+    private var repeatMode = MediaPlaybackService.DEFAULT
 
-    private lateinit var animation :Animation
+    private var currentPosition = 0
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +57,13 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         mController = (requireActivity() as MainActivity).mController
         mainViewModel = (requireActivity() as MainActivity).mainViewModel
         _binding = FragmentMusicPlayBinding.inflate(inflater, container, false)
+
+        val layoutManager = LinearLayoutManager(requireContext())
+        val adapter = MusicRecordAdapter(listOf(),requireContext())
+        val pagerSnapHelper = PagerSnapHelper()
+        pagerSnapHelper.attachToRecyclerView(binding.snapRecyclerview)
+
+        layoutManager.orientation = LinearLayoutManager.HORIZONTAL
         binding.apply {
             seekBar.setOnSeekBarChangeListener(this@MusicPlayFragment)
             playsong.setOnClickListener(this@MusicPlayFragment)
@@ -63,59 +71,75 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             lastsong.setOnClickListener(this@MusicPlayFragment)
             favoriteFlag.setOnClickListener(this@MusicPlayFragment)
             repeatMode.setOnClickListener(this@MusicPlayFragment)
+            snapRecyclerview.layoutManager = layoutManager
+            snapRecyclerview.adapter = adapter
+            snapRecyclerview.addOnScrollListener(object : RecyclerView.OnScrollListener(){
+                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                    super.onScrollStateChanged(recyclerView, newState)
+                    when(newState){
+                        SCROLL_STATE_IDLE -> {
+                            if (layoutManager.findFirstCompletelyVisibleItemPosition() == currentPosition + 1){
+                                binding.nextsong.performClick()
+                            }else if (layoutManager.findFirstCompletelyVisibleItemPosition() == currentPosition - 1){
+                                binding.lastsong.performClick()
+                            }
+                            currentPosition = layoutManager.findFirstCompletelyVisibleItemPosition()
+                        }
+                    }
+                }
+            })
         }
         if (mController?.playbackState?.state == PlaybackStateCompat.STATE_PLAYING){
             binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
         }else{
             binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
         }
+        mainViewModel.apply {
+            nowImageUri.observe(viewLifecycleOwner){
+                Log.d(TAG, "onCreateView: $it")
+//                Glide.with(requireContext()).load(it).placeholder(R.drawable.music_note_150).into(binding.imageView2)
+                currentPosition = mainViewModel.nowMusicRecordImageList.value!!.indexOf(it)
+                Log.d(TAG, "onCreateView: $currentPosition")
+                binding.snapRecyclerview.scrollToPosition(currentPosition)
+            }
+            duration.observe(viewLifecycleOwner){
+                binding.seekBar.max = it
+                binding.durationTime.text = dateFormat.format(Date(it.toLong()))
+            }
 
-        mainViewModel.nowImageUri.observe(viewLifecycleOwner){
-            Log.d(TAG, "onCreateView: $it")
-            try {
-                binding.imageView2.setImageBitmap(
-                    ImageDecoder.decodeBitmap
-                        (ImageDecoder.createSource(requireContext().contentResolver, Uri.parse(it))))
-            } catch (e:Exception){
-                Log.d(TAG, "onCreateView: $e")
-              binding.imageView2.setImageResource(R.drawable.music_note_150)
+            nowProcess.observe(viewLifecycleOwner){
+                binding.seekBar.progress = (it *1000)
+                binding.nowTime.text = dateFormat.format(Date((it * 1000).toLong()))
+            }
+
+            nowTitle.observe(viewLifecycleOwner){
+                binding.songTitle.text = it
+            }
+
+            changeFlag.observe(viewLifecycleOwner){
+                if (it == true){
+                    binding.playsong.performClick()
+                }
+            }
+
+            initFlag.observe(viewLifecycleOwner){
+                if (it == true){
+                    binding.playsong.performClick()
+                }
+            }
+
+            likeFlag.observe(viewLifecycleOwner){
+                if (it == true){
+                    binding.favoriteFlag.setBackgroundResource(R.drawable.favorite_24px_yes)
+                }
+            }
+
+            nowMusicRecordImageList.observe(viewLifecycleOwner){
+                adapter.setRecordList(it)
             }
         }
 
-        animation = AnimationUtils.loadAnimation(requireContext(),R.anim.record_image_rotate)
-        animation.repeatCount = -1
 
-        mainViewModel.duration.observe(viewLifecycleOwner){
-            binding.seekBar.max = it
-            binding.durationTime.text = dateFormat.format(Date(it.toLong()))
-        }
-
-        mainViewModel.nowProcess.observe(viewLifecycleOwner){
-            binding.seekBar.progress = (it *1000)
-            binding.nowTime.text = dateFormat.format(Date((it * 1000).toLong()))
-        }
-
-        mainViewModel.nowTitle.observe(viewLifecycleOwner){
-            binding.songTitle.text = it
-        }
-
-        mainViewModel.changeFlag.observe(viewLifecycleOwner){
-            if (it == true){
-                binding.playsong.performClick()
-            }
-        }
-
-        mainViewModel.initFlag.observe(viewLifecycleOwner){
-            if (it == true){
-                binding.playsong.performClick()
-            }
-        }
-
-        mainViewModel.likeFlag.observe(viewLifecycleOwner){
-            if (it == true){
-                binding.favoriteFlag.setBackgroundResource(R.drawable.favorite_24px_yes)
-            }
-        }
 
         return binding.root
     }
@@ -187,19 +211,20 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                 }
                 R.id.repeat_mode->{
                     val bundle = Bundle()
+
                     when (repeatMode){
-                        0 -> {
-                            repeatMode = 1
+                        MediaPlaybackService.DEFAULT -> {
+                            repeatMode = MediaPlaybackService.SHUFFLE
                             binding.repeatMode.setBackgroundResource(R.drawable.shuffle_24px)
                             Toast.makeText(requireContext(),"随机播放",Toast.LENGTH_LONG).show()
                         }
-                        1 -> {
-                            repeatMode = 2
+                        MediaPlaybackService.SHUFFLE -> {
+                            repeatMode = MediaPlaybackService.REPEAT_ONE
                             binding.repeatMode.setBackgroundResource(R.drawable.repeat_one_24px)
                             Toast.makeText(requireContext(),"单曲循环",Toast.LENGTH_LONG).show()
                         }
-                        2 -> {
-                            repeatMode = 0
+                        MediaPlaybackService.REPEAT_ONE -> {
+                            repeatMode = MediaPlaybackService.DEFAULT
                             binding.repeatMode.setBackgroundResource(R.drawable.repeat_24px)
                             Toast.makeText(requireContext(),"列表循环",Toast.LENGTH_LONG).show()
                         }
