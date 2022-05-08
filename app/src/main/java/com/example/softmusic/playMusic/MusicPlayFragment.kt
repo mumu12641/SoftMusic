@@ -96,10 +96,8 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         }
         mainViewModel.apply {
             nowImageUri.observe(viewLifecycleOwner){
-                Log.d(TAG, "onCreateView: $it")
 //                Glide.with(requireContext()).load(it).placeholder(R.drawable.music_note_150).into(binding.imageView2)
                 currentPosition = mainViewModel.nowMusicRecordImageList.value!!.indexOf(it)
-                Log.d(TAG, "onCreateView: $currentPosition")
                 binding.snapRecyclerview.scrollToPosition(currentPosition)
             }
             duration.observe(viewLifecycleOwner){
@@ -137,6 +135,8 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             nowMusicRecordImageList.observe(viewLifecycleOwner){
                 adapter.setRecordList(it)
             }
+
+
         }
 
 

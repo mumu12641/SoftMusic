@@ -1,5 +1,7 @@
 package com.example.softmusic
 
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.softmusic.room.DataBaseUtils
@@ -8,27 +10,44 @@ class MainViewModel:ViewModel(){
 
     val allPlayListSongsCrossRef = DataBaseUtils.getAllPlaylistSongCrossRef()
 
-    var nowProcess:MutableLiveData<Int> = MutableLiveData(0)
+    val nowProcess:MutableLiveData<Int> = MutableLiveData(0)
 
-    var duration : MutableLiveData<Int> = MutableLiveData()
+    val duration : MutableLiveData<Int> = MutableLiveData()
 
-    var lastProcess : MutableLiveData<Int> = MutableLiveData(-1)
+    val lastProcess : MutableLiveData<Int> = MutableLiveData(-1)
 
-    var changeFlag:MutableLiveData<Boolean> = MutableLiveData(false)
+    val changeFlag:MutableLiveData<Boolean> = MutableLiveData(false)
 
     var autoChangeFlag = false
 
-    var initFlag:MutableLiveData<Boolean> = MutableLiveData(false)
+    val initFlag:MutableLiveData<Boolean> = MutableLiveData(false)
 
-    var nowId:MutableLiveData<List<Long>> = MutableLiveData()
+    val nowId:MutableLiveData<List<Long>> = MutableLiveData()
 
-    var nowTitle:MutableLiveData<String> = MutableLiveData()
+    val nowTitle:MutableLiveData<String> = MutableLiveData()
 
-    var nowMusicRecordImageList = MutableLiveData<List<String>>()
+    val nowMusicRecordImageList = MutableLiveData<List<String>>()
 
     var haveMusicFlag = false
 
-    var nowImageUri:MutableLiveData<String> = MutableLiveData()
+    val nowImageUri:MutableLiveData<String> = MutableLiveData()
 
-    var likeFlag:MutableLiveData<Boolean> = MutableLiveData(false)
+    val likeFlag:MutableLiveData<Boolean> = MutableLiveData(false)
+
+    // now playState
+    val playbackState = MutableLiveData<PlaybackStateCompat>().apply {
+        postValue(EMPTY_PLAYBACK_STATE)
+    }
+
+
+    @Suppress("PropertyName")
+    val EMPTY_PLAYBACK_STATE: PlaybackStateCompat = PlaybackStateCompat.Builder()
+        .setState(PlaybackStateCompat.STATE_NONE, 0, 0f)
+        .build()
+
+    @Suppress("PropertyName")
+    val NOTHING_PLAYING: MediaMetadataCompat = MediaMetadataCompat.Builder()
+        .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "")
+        .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 0)
+        .build()
 }

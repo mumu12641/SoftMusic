@@ -87,6 +87,9 @@ class MainActivity : AppCompatActivity() {
         if (!kv.containsKey("musicSongListId") && !kv.containsKey("musicSongId")){
             mainViewModel.haveMusicFlag = false
         } else {
+            Log.d(TAG, "onCreate: mmkv true")
+            mainViewModel.nowMusicRecordImageList.value =
+                DataBaseUtils.getPlayListsWithSongsById(kv.decodeLong("musicSongListId")).map{it.songAlbum}
             mainViewModel.haveMusicFlag = true
             bundle.apply {
                 putLong("musicSongListId", kv.decodeLong("musicSongListId"))
@@ -98,6 +101,9 @@ class MainActivity : AppCompatActivity() {
                 mBrowserConnectionCallback,  // 设置回调
                 bundle
             )
+            if (kv.decodeLong("musicSongListId") == 1L){
+                mainViewModel.likeFlag.value = true
+            }
         }
     }
 
@@ -154,6 +160,9 @@ class MainActivity : AppCompatActivity() {
             @SuppressLint("SwitchIntDef")
             override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
                 super.onPlaybackStateChanged(state)
+
+                mainViewModel.playbackState.postValue(state)
+
                 when(state?.state){
                     PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> {
                         mainViewModel.nowProcess.value = 0
