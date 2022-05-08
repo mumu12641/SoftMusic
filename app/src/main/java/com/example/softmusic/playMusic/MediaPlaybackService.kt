@@ -8,6 +8,7 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -21,29 +22,24 @@ import com.example.softmusic.R
 import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.room.DataBaseUtils
 import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
 import com.tencent.mmkv.MMKV
 import java.util.*
 
 
 class MediaPlaybackService : MediaBrowserServiceCompat() {
+
     private var mSession: MediaSessionCompat? = null
     private var mPlaybackState: PlaybackStateCompat? = null
-    private lateinit var mMediaPlayer: MediaPlayer
-
     private lateinit var mExoPlayer:ExoPlayer
-
-
     private var musicSongId:Long = 0
     private var musicSongListId:Long = 0
-
     private var mode = DEFAULT
-
     private var playNum = 0
     private var nowNum = 0
     private var list:List<MusicSong>? = null
-
     private val TAG = "MediaPlaybackService"
-
 
     override fun onCreate() {
         super.onCreate()
@@ -65,7 +61,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         mSession!!.isActive = true
         sessionToken = mSession!!.sessionToken
 
-        mMediaPlayer = MediaPlayer()
         mExoPlayer = ExoPlayer.Builder(this).build()
     }
 
@@ -75,18 +70,11 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         val kv = MMKV.defaultMMKV()
         kv.encode("musicSongId", list?.get(nowNum)?.musicSongId!!)
         kv.encode("musicSongListId",musicSongListId)
-        mMediaPlayer.release()
         mExoPlayer.release()
         if (mSession != null) {
             mSession!!.release()
             mSession = null
         }
-    }
-
-    @SuppressLint("RestrictedApi")
-    override fun onUnsubscribe(id: String?) {
-        super.onUnsubscribe(id)
-        Log.d(TAG, "onUnsubscribe: ")
     }
 
     override fun onGetRoot(
@@ -134,11 +122,10 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                     || mPlaybackState!!.state == PlaybackStateCompat.STATE_SKIPPING_TO_NEXT
                 ) {
                     createNotification()
-//                mExoPlayer?.play()
-                    mMediaPlayer.start()
+                    mExoPlayer.play()
                     mPlaybackState = PlaybackStateCompat.Builder()
                         .setState(PlaybackStateCompat.STATE_PLAYING,
-                            mMediaPlayer.currentPosition.toLong() / 1000, 1.0f)
+                            mExoPlayer.currentPosition / 1000, 1.0f,SystemClock.elapsedRealtime())
                         .build()
                     mSession!!.setPlaybackState(mPlaybackState)
                 }
@@ -148,11 +135,10 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 super.onPause()
                 Log.d(TAG, "onPause")
                 if (mPlaybackState!!.state == PlaybackStateCompat.STATE_PLAYING) {
-//                mExoPlayer?.pause()
-                    mMediaPlayer.pause()
+                    mExoPlayer.pause()
                     mPlaybackState = PlaybackStateCompat.Builder()
-                        .setState(PlaybackStateCompat.STATE_PAUSED, mMediaPlayer.currentPosition.toLong() / 1000,
-                            1.0f)
+                        .setState(PlaybackStateCompat.STATE_PAUSED, mExoPlayer.currentPosition.toLong() / 1000,
+                            1.0f,SystemClock.elapsedRealtime())
                         .build()
                     mSession!!.setPlaybackState(mPlaybackState)
                 }
@@ -161,44 +147,21 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             override fun onSeekTo(pos: Long) {
                 super.onSeekTo(pos)
                 Log.d(TAG, "onSeekTo$pos")
-                mMediaPlayer.seekTo(pos.toInt())
+                mExoPlayer.seekTo(pos)
             }
 
             override fun onSkipToNext() {
                 super.onSkipToNext()
-                when(mode){
-                    DEFAULT -> {
-                        nowNum += 1
-                    }
-                    SHUFFLE -> {
-                        nowNum = (0 until list?.size!!).random()
-                    }
-                    REPEAT_ONE -> {
-                    }
-                }
-                Log.d(TAG, "onSkipToNext: $nowNum")
-                if (nowNum == list?.size!!){
-                    nowNum = 0
-                }
-                changeMusicSong(song = list?.get(nowNum)!!)
+                Log.d(TAG, "onSkipToNext")
+                mExoPlayer.seekToNextMediaItem()
+                changeMusicSong(list?.get(mExoPlayer.currentMediaItemIndex)!!)
             }
 
             override fun onSkipToPrevious() {
                 super.onSkipToPrevious()
-                when(mode){
-                    DEFAULT -> {
-                        nowNum -= 1
-                    }
-                    SHUFFLE -> {
-                        nowNum = (0 until list?.size!!).random()
-                    }
-                    REPEAT_ONE -> {
-                    }
-                }
-                if (nowNum < 0){
-                    nowNum = list?.size?.minus(1)!!
-                }
-                changeMusicSong(song = list?.get(nowNum)!!)
+                Log.d(TAG, "onSkipToPrevious")
+                mExoPlayer.seekToPreviousMediaItem()
+                changeMusicSong(list?.get(mExoPlayer.currentMediaItemIndex)!!)
             }
 
             override fun onCustomAction(action: String?, extras: Bundle?) {
@@ -206,13 +169,23 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 if (action == "0"){
                     // 切换播放顺序
                     mode = extras?.getInt("order")!!
+                    when(mode){
+                        DEFAULT -> {
+                            mExoPlayer.repeatMode = Player.REPEAT_MODE_ALL
+                        }
+                        SHUFFLE -> {
+//                            mExoPlayer.repeatMode = Player.SHUFF
+//                            mExoPlayer.shuffleModeEnabled = true
+                        }
+                        REPEAT_ONE -> {
+                            mExoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+                        }
+                    }
                 } else if (action == "1"){
                     // TODO 更换曲目
                     musicSongId = extras?.getLong("musicSongId")!!
                     musicSongListId = extras.getLong("musicSongListId")
                     Log.d(TAG, "onCustomAction: 1")
-                    mMediaPlayer.stop()
-                    mMediaPlayer.reset()
                     loadMusic()
                 }
             }
@@ -221,7 +194,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
     companion object {
         private const val MY_MEDIA_ROOT_ID = "media_root_id"
-
         const val SHUFFLE = 1
         const val DEFAULT = 0
         const val REPEAT_ONE = 2
@@ -235,16 +207,10 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.duration.toLong())
             .build()
         mSession?.setMetadata(metadata)
-        mMediaPlayer.stop()
-        mMediaPlayer.reset()
-        mMediaPlayer.setDataSource(song.mediaFileUri)
-        mMediaPlayer.prepare()
-
         mPlaybackState = PlaybackStateCompat.Builder()
             .setState(PlaybackStateCompat.STATE_SKIPPING_TO_NEXT, 0, 1.0f)
             .build()
         mSession!!.setPlaybackState(mPlaybackState)
-        mMediaPlayer.start()
     }
 
     private fun loadMusic(){
@@ -253,10 +219,12 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         nowNum = list!!.indexOf(musicSong)
         playNum = list!!.size
 
-
-
-        mMediaPlayer.setDataSource(musicSong.mediaFileUri)
-        mMediaPlayer.prepareAsync()
+        for (i in list!!){
+            mExoPlayer.addMediaItem(MediaItem.fromUri(i.mediaFileUri))
+            Log.d(TAG, "loadMusic: " + i.mediaFileUri)
+        }
+        mExoPlayer.seekTo(nowNum,0)
+        mExoPlayer.prepare()
         val metadata = MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, musicSong.musicSongId.toString())
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, musicSong.songTitle)
@@ -268,7 +236,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 .setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
                 .build()
         mSession!!.setPlaybackState(mPlaybackState)
-//        mMediaPlayer.start()
     }
 
     private fun createNotification(){

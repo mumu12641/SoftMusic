@@ -183,6 +183,10 @@ class MainActivity : AppCompatActivity() {
                         mainViewModel.lastProcess.value = -1
                         mainViewModel.initFlag.value = true
                     }
+                    PlaybackStateCompat.STATE_PLAYING -> {
+                        Log.d(TAG, "onPlaybackStateChanged: playing"
+                                + ((SystemClock.elapsedRealtime() - state.lastPositionUpdateTime) + state.position))
+                    }
                 }
                 mainViewModel.duration.value = mController?.metadata
                     ?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
