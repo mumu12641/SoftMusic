@@ -4,8 +4,13 @@ import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
-import android.media.MediaPlayer
+import android.content.Intent
+import android.content.IntentFilter
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
@@ -14,6 +19,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.session.MediaButtonReceiver
@@ -41,6 +47,12 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
     private var list:List<MusicSong>? = null
     private val TAG = "MediaPlaybackService"
 
+    private lateinit var bitmap:Bitmap
+
+    private lateinit var mReceiver:MediaActionReceiver
+
+
+
     override fun onCreate() {
         super.onCreate()
         mPlaybackState = PlaybackStateCompat.Builder().setActions(
@@ -62,6 +74,15 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         sessionToken = mSession!!.sessionToken
 
         mExoPlayer = ExoPlayer.Builder(this).build()
+
+
+        mReceiver = MediaActionReceiver()
+        val filter = IntentFilter().apply {
+            addAction(ACTION_PREVIOUS)
+            addAction(ACTION_PAUSE)
+            addAction(ACTION_NEXT)
+        }
+        registerReceiver(mReceiver, filter)
     }
 
     override fun onDestroy() {
@@ -75,6 +96,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             mSession!!.release()
             mSession = null
         }
+        unregisterReceiver(mReceiver)
     }
 
     override fun onGetRoot(
@@ -113,21 +135,42 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         result.sendResult(mediaItems)
     }
 
+    inner class MediaActionReceiver :BroadcastReceiver() {
+        private val TAG = "MediaActionReceiver"
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val action: String? = intent?.action
+//        onReceive: android.intent.action.MEDIA_BUTTON
+            Log.d(TAG, "onReceive: $action")
+            when (action){
+                ACTION_PAUSE -> {
+                    mSession?.controller?.transportControls?.pause()
+                }
+                ACTION_NEXT ->{
+                    mSession?.controller?.transportControls?.skipToNext()
+                }
+                ACTION_PREVIOUS -> {
+                    mSession?.controller?.transportControls?.skipToPrevious()
+                }
+            }
+        }
+    }
+
     private val mSessionCallback: MediaSessionCompat.Callback =
         object : MediaSessionCompat.Callback() {
+            @RequiresApi(Build.VERSION_CODES.M)
             override fun onPlay() {
                 super.onPlay()
                 Log.d(TAG, "onPlay")
                 if (mPlaybackState!!.state == PlaybackStateCompat.STATE_PAUSED || mPlaybackState!!.state == PlaybackStateCompat.STATE_NONE
                     || mPlaybackState!!.state == PlaybackStateCompat.STATE_SKIPPING_TO_NEXT
                 ) {
-                    createNotification()
                     mExoPlayer.play()
                     mPlaybackState = PlaybackStateCompat.Builder()
                         .setState(PlaybackStateCompat.STATE_PLAYING,
                             mExoPlayer.currentPosition / 1000, 1.0f,SystemClock.elapsedRealtime())
                         .build()
                     mSession!!.setPlaybackState(mPlaybackState)
+                    createNotification()
                 }
             }
 
@@ -197,6 +240,9 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         const val SHUFFLE = 1
         const val DEFAULT = 0
         const val REPEAT_ONE = 2
+        const val ACTION_PAUSE = "PAUSE"
+        const val ACTION_NEXT = "NEXT"
+        const val ACTION_PREVIOUS = "PREVIOUS"
 
     }
 
@@ -238,88 +284,100 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         mSession!!.setPlaybackState(mPlaybackState)
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun createNotification(){
         val controller = mSession?.controller
         val mediaMetadata = controller?.metadata
         val description = mediaMetadata?.description!!
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
         @SuppressLint("WrongConstant") val notification: Notification.Builder
         val channelId: String =
             java.lang.String.valueOf(Random().nextInt())
         var mChannel: NotificationChannel? = null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mChannel = NotificationChannel(channelId, "name", NotificationManager.IMPORTANCE_HIGH)
+            mChannel = NotificationChannel(channelId, "name", NotificationManager.IMPORTANCE_DEFAULT)
             mChannel.enableVibration(true)
             mChannel.vibrationPattern = longArrayOf(100, 200, 300, 400, 500, 400, 300, 200, 400)
             manager.createNotificationChannel(mChannel)
-            val buidler = NotificationCompat.Builder(context, channelId).apply {
-                setContentTitle(description.title)
-                setContentText(description.subtitle)
-                setSubText(description.description)
-                setLargeIcon(description.iconBitmap)
 
-                setContentIntent(controller.sessionActivity)
+        }
+        val buidler = NotificationCompat.Builder(context, channelId).apply {
+            setContentTitle(description.title)
+            setContentText(description.subtitle)
+            setSubText(description.description)
+            setLargeIcon(description.iconBitmap)
 
-                // Stop the service when the notification is swiped away
-                setDeleteIntent(
+            setContentIntent(controller.sessionActivity)
+
+            // Stop the service when the notification is swiped away
+            setDeleteIntent(
                     MediaButtonReceiver.buildMediaButtonPendingIntent(
-                        context,
-                        PlaybackStateCompat.ACTION_STOP
-                    )
-                )
-
-                setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-
-                setSmallIcon(R.drawable.outline_music_note_black_24dp)
-                addAction(
-                    NotificationCompat.Action(
-                        R.drawable.outline_skip_previous_24,
-                        "previous",
-                        MediaButtonReceiver.buildMediaButtonPendingIntent(
-                            context,
-                            PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
-                        )
-                    )
-                )
-                addAction(
-                    NotificationCompat.Action(
-                        R.drawable.outline_pause_24,
-                        "pause",
-                        MediaButtonReceiver.buildMediaButtonPendingIntent(
-                            context,
-                            PlaybackStateCompat.ACTION_PAUSE
-                        )
-                    )
-                )
-                addAction(
-                    NotificationCompat.Action(
-                        R.drawable.outline_skip_next_24,
-                        "next",
-                        MediaButtonReceiver.buildMediaButtonPendingIntent(
-                            context,
-                            PlaybackStateCompat.ACTION_SKIP_TO_NEXT
-//                            KeyEvent.KEYCODE_MEDIA_PAUSE.toLong()
-                        )
-                    )
-                )
-
-                setStyle(
-                    androidx.media.app.NotificationCompat.MediaStyle()
-                    .setMediaSession(mSession?.sessionToken)
-                    .setShowActionsInCompactView(0)
-                    // Add a cancel button
-                    .setShowCancelButton(true)
-                    .setCancelButtonIntent(
-                        MediaButtonReceiver.buildMediaButtonPendingIntent(
                             context,
                             PlaybackStateCompat.ACTION_STOP
-                        )
                     )
-                )
-            }
-//            startForeground(1,buidler.build())
-            (( getSystemService(Context.NOTIFICATION_SERVICE)) as NotificationManager).notify(1, buidler.build());
+            )
+
+            setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+
+            setSmallIcon(R.drawable.outline_music_note_black_24dp)
+            addAction(
+                    NotificationCompat.Action(
+                            R.drawable.outline_skip_previous_24,
+                            "previous",
+//                            MediaButtonReceiver.buildMediaButtonPendingIntent(
+//                                    context,
+//                                    PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+//                            )
+                    PendingIntent.getBroadcast(context,0, Intent(ACTION_PREVIOUS),PendingIntent.FLAG_IMMUTABLE)
+                    )
+            )
+//             new NotificationCompat.Action(
+//                        R.drawable.iv_previous,
+//                        application.getString(R.string.label_notification_previous),
+//                        getPendingIntent(application,BaseMusicService.DYQL_CUSTOM_ACTION_PREVIOUS));
+            addAction(
+                    NotificationCompat.Action(
+                            R.drawable.outline_pause_24,
+                            "pause",
+//                            MediaButtonReceiver.buildMediaButtonPendingIntent(
+//                                    context,
+//                                    PlaybackStateCompat.ACTION_PAUSE
+//                            )
+                            PendingIntent.getBroadcast(context,
+                                    0, Intent(ACTION_PAUSE), PendingIntent.FLAG_IMMUTABLE)
+            )
+            )
+            addAction(
+                    NotificationCompat.Action(
+                            R.drawable.outline_skip_next_24,
+                            "next",
+//                            MediaButtonReceiver.buildMediaButtonPendingIntent(
+//                                    context,
+//                                    PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+//                            KeyEvent.KEYCODE_MEDIA_PAUSE.toLong()
+//                            )
+                            PendingIntent.getBroadcast(context,
+                                    0, Intent(ACTION_NEXT), PendingIntent.FLAG_IMMUTABLE)
+                    )
+            )
+
+            setStyle(
+                    androidx.media.app.NotificationCompat.MediaStyle()
+                            .setMediaSession(mSession?.sessionToken)
+                            .setShowActionsInCompactView(0,1,2)
+                            // Add a cancel button
+                            .setShowCancelButton(true)
+                            .setCancelButtonIntent(
+                                    MediaButtonReceiver.buildMediaButtonPendingIntent(
+                                            context,
+                                            PlaybackStateCompat.ACTION_STOP
+                                    )
+                            )
+            )
         }
+            startForeground(1,buidler.build())
+//        manager.notify(1, buidler.build())
     }
 }
 

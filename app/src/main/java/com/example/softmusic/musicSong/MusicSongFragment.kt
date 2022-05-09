@@ -98,24 +98,27 @@ class MusicSongFragment : Fragment() {
 
         if (cursor != null) {
             while (cursor.moveToNext()) {
-                val song = MusicSong(
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)),
-                    getAlbumImageUri(cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))).toString(),
-                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)),
-                        cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)),
-                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)))
-                Log.d(TAG, "getLocalMusic: "+ cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)))
-                Log.d(TAG, "getLocalMusic: " + getAlbumImageUri(cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))))
-                val id = DataBaseUtils.insertMusicSong(song)
-                DataBaseUtils.insertMusicSongRef(PlaylistSongCrossRef(
-                    musicSongViewModel.musicSongListId,
-                    id
-                ))
-                val songList = DataBaseUtils.getMusicSongListById(musicSongViewModel.musicSongListId)
-                songList.songNumber ++
-                DataBaseUtils.updateMusicSongList(songList)
+                if (cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)) > 100) {
+                    val song = MusicSong(
+                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)),
+                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)),
+                            getAlbumImageUri(cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))).toString(),
+                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)),
+                            cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)),
+                            cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)))
+                    Log.d(TAG, "getLocalMusic: " + cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)))
+                    Log.d(TAG, "getLocalMusic: " + getAlbumImageUri(cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))))
+                    val id = DataBaseUtils.insertMusicSong(song)
+                    DataBaseUtils.insertMusicSongRef(PlaylistSongCrossRef(
+                            musicSongViewModel.musicSongListId,
+                            id
+                    ))
+                    val songList = DataBaseUtils.getMusicSongListById(musicSongViewModel.musicSongListId)
+                    songList.songNumber++
+                    DataBaseUtils.updateMusicSongList(songList)
+                }
             }
+
         }
         cursor?.close()
     }

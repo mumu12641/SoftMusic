@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
 
 
@@ -20,12 +21,14 @@
         android:supportsRtl="true"
         android:requestLegacyExternalStorage="true"
         android:theme="@style/Theme.SoftMusic">
-        <receiver android:name="androidx.media.session.MediaButtonReceiver"
+
+        <receiver android:name="com.example.softmusic.playMusic.MediaActionReceiver"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
+                <action android:name="android.intent.action.MEDIA_BUTTON"/>
             </intent-filter>
         </receiver>
+
         <service
             android:name=".playMusic.MediaPlaybackService"
             android:exported="false">

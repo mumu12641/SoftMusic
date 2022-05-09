@@ -187,6 +187,9 @@ class MainActivity : AppCompatActivity() {
                         Log.d(TAG, "onPlaybackStateChanged: playing"
                                 + ((SystemClock.elapsedRealtime() - state.lastPositionUpdateTime) + state.position))
                     }
+                    PlaybackStateCompat.STATE_PAUSED -> {
+                        mainViewModel.lastProcess.value = mainViewModel.nowProcess.value
+                    }
                 }
                 mainViewModel.duration.value = mController?.metadata
                     ?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
