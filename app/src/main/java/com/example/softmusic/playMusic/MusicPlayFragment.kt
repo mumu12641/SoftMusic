@@ -136,6 +136,16 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                 adapter.setRecordList(it)
             }
 
+            playbackState.observe(viewLifecycleOwner){
+                when(it.state){
+                    PlaybackStateCompat.STATE_PLAYING -> {
+                        binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
+                    }
+                    else -> {
+                        binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
+                    }
+                }
+            }
 
         }
 
@@ -155,7 +165,7 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             mainViewModel.lastProcess.value = -1
             mController?.transportControls?.seekTo(pos.toLong())
             mController?.transportControls?.play()
-            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
+//            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
         }
     }
 
@@ -167,13 +177,11 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                     when (mController?.playbackState?.state) {
                         PlaybackStateCompat.STATE_PLAYING -> {
                             mController!!.transportControls.pause()
-                            binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
-                            mainViewModel.lastProcess.value = mainViewModel.nowProcess.value
+//                            binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
                         }
                         PlaybackStateCompat.STATE_PAUSED -> {
                             mController!!.transportControls.play()
-                            mainViewModel.lastProcess.value = -1
-                            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
+//                            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
                         }
                         PlaybackStateCompat.STATE_NONE -> {
                             Log.d(TAG, "onClick: STATE_NONE")
@@ -182,25 +190,25 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                                 mainViewModel.initFlag.value = false
                                 (requireActivity() as MainActivity).thread?.start()
                             }
-                            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
+//                            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
                         }
                         PlaybackStateCompat.STATE_SKIPPING_TO_NEXT ->{
                             mController!!.transportControls.play()
                             if (mainViewModel.changeFlag.value == true){
                                 mainViewModel.changeFlag.value = false
                             }
-                            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
+//                            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
                         }
                     }
 
                 }
                 R.id.nextsong -> {
                     mController?.transportControls?.skipToNext()
-                    binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
+//                    binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
                 }
                 R.id.lastsong -> {
                     mController?.transportControls?.skipToPrevious()
-                    binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
+//                    binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
                 }
                 R.id.favorite_flag->{
                     if (!mainViewModel.allPlayListSongsCrossRef.value!!.contains(PlaylistSongCrossRef(

@@ -35,9 +35,7 @@ class MainViewModel:ViewModel(){
     val likeFlag:MutableLiveData<Boolean> = MutableLiveData(false)
 
     // now playState
-    val playbackState = MutableLiveData<PlaybackStateCompat>().apply {
-        postValue(EMPTY_PLAYBACK_STATE)
-    }
+    val playbackState by lazy { MutableLiveData(EMPTY_PLAYBACK_STATE) }
 
 
     @Suppress("PropertyName")

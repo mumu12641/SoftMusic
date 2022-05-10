@@ -161,7 +161,7 @@ class MainActivity : AppCompatActivity() {
             override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
                 super.onPlaybackStateChanged(state)
 
-                mainViewModel.playbackState.postValue(state)
+                mainViewModel.playbackState.value = state
 
                 when(state?.state){
                     PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> {
@@ -175,8 +175,8 @@ class MainActivity : AppCompatActivity() {
                             thread = UpdateProcessThread()
                             thread?.start()
                         }
-                        mainViewModel.changeFlag.value = true
-
+//                        mainViewModel.changeFlag.value = true
+                        mController?.transportControls?.play()
                     }
                     PlaybackStateCompat.STATE_NONE -> {
                         mainViewModel.nowProcess.value = 0
@@ -186,18 +186,23 @@ class MainActivity : AppCompatActivity() {
                     PlaybackStateCompat.STATE_PLAYING -> {
                         Log.d(TAG, "onPlaybackStateChanged: playing"
                                 + ((SystemClock.elapsedRealtime() - state.lastPositionUpdateTime) + state.position))
+                        mainViewModel.lastProcess.value = -1
                     }
                     PlaybackStateCompat.STATE_PAUSED -> {
                         mainViewModel.lastProcess.value = mainViewModel.nowProcess.value
                     }
                 }
-                mainViewModel.duration.value = mController?.metadata
-                    ?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
-                mainViewModel.nowTitle.value = mController?.metadata
-                    ?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
+
+            }
+
+            override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+                super.onMetadataChanged(metadata)
+                mainViewModel.duration.value = metadata
+                        ?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
+                mainViewModel.nowTitle.value = metadata
+                        ?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
                 mainViewModel.nowImageUri.value = DataBaseUtils.getImageUri(
-                    mController?.metadata
-                        ?.getString(METADATA_KEY_MEDIA_ID)!!.toLong())
+                        metadata?.getString(METADATA_KEY_MEDIA_ID)!!.toLong())
             }
         }
 
