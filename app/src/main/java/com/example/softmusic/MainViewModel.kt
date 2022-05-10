@@ -1,6 +1,5 @@
 package com.example.softmusic
 
-import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -15,8 +14,6 @@ class MainViewModel:ViewModel(){
     val duration : MutableLiveData<Int> = MutableLiveData()
 
     val lastProcess : MutableLiveData<Int> = MutableLiveData(-1)
-
-    val changeFlag:MutableLiveData<Boolean> = MutableLiveData(false)
 
     var autoChangeFlag = false
 
@@ -43,9 +40,4 @@ class MainViewModel:ViewModel(){
         .setState(PlaybackStateCompat.STATE_NONE, 0, 0f)
         .build()
 
-    @Suppress("PropertyName")
-    val NOTHING_PLAYING: MediaMetadataCompat = MediaMetadataCompat.Builder()
-        .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "")
-        .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 0)
-        .build()
 }

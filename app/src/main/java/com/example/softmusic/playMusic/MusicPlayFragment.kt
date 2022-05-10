@@ -27,6 +27,7 @@ import com.example.softmusic.room.DataBaseUtils
 import java.text.SimpleDateFormat
 import java.util.*
 
+
 class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnClickListener {
 
     private lateinit var musicPlayViewModel: MusicPlayViewModel
@@ -40,11 +41,17 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
     private var currentPosition = 0
 
 
+    private val adapter:MusicRecordAdapter by lazy {
+        MusicRecordAdapter(listOf(),requireContext())
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         musicPlayViewModel = ViewModelProvider(requireActivity())[MusicPlayViewModel::class.java]
     }
 
+    @SuppressLint("Recycle")
     @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,12 +61,14 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         Log.d(TAG, "onCreateView")
         val dateFormat = SimpleDateFormat("mm:ss", Locale.CHINA)
         dateFormat.timeZone = TimeZone.getTimeZone("GMT+00:00")
-        mController = (requireActivity() as MainActivity).mController
+
         mainViewModel = (requireActivity() as MainActivity).mainViewModel
+        if (mainViewModel.haveMusicFlag) {
+            mController = (requireActivity() as MainActivity).mController
+        }
         _binding = FragmentMusicPlayBinding.inflate(inflater, container, false)
 
         val layoutManager = LinearLayoutManager(requireContext())
-        val adapter = MusicRecordAdapter(listOf(),requireContext())
         val pagerSnapHelper = PagerSnapHelper()
         pagerSnapHelper.attachToRecyclerView(binding.snapRecyclerview)
 
@@ -89,14 +98,11 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                 }
             })
         }
-        if (mController?.playbackState?.state == PlaybackStateCompat.STATE_PLAYING){
-            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
-        }else{
-            binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
-        }
+
+
+
         mainViewModel.apply {
             nowImageUri.observe(viewLifecycleOwner){
-//                Glide.with(requireContext()).load(it).placeholder(R.drawable.music_note_150).into(binding.imageView2)
                 currentPosition = mainViewModel.nowMusicRecordImageList.value!!.indexOf(it)
                 binding.snapRecyclerview.scrollToPosition(currentPosition)
             }
@@ -112,12 +118,6 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
             nowTitle.observe(viewLifecycleOwner){
                 binding.songTitle.text = it
-            }
-
-            changeFlag.observe(viewLifecycleOwner){
-                if (it == true){
-                    binding.playsong.performClick()
-                }
             }
 
             initFlag.observe(viewLifecycleOwner){
@@ -148,9 +148,6 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             }
 
         }
-
-
-
         return binding.root
     }
 
@@ -165,7 +162,6 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             mainViewModel.lastProcess.value = -1
             mController?.transportControls?.seekTo(pos.toLong())
             mController?.transportControls?.play()
-//            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
         }
     }
 
@@ -177,11 +173,9 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                     when (mController?.playbackState?.state) {
                         PlaybackStateCompat.STATE_PLAYING -> {
                             mController!!.transportControls.pause()
-//                            binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
                         }
                         PlaybackStateCompat.STATE_PAUSED -> {
                             mController!!.transportControls.play()
-//                            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
                         }
                         PlaybackStateCompat.STATE_NONE -> {
                             Log.d(TAG, "onClick: STATE_NONE")
@@ -190,25 +184,18 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                                 mainViewModel.initFlag.value = false
                                 (requireActivity() as MainActivity).thread?.start()
                             }
-//                            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
                         }
                         PlaybackStateCompat.STATE_SKIPPING_TO_NEXT ->{
                             mController!!.transportControls.play()
-                            if (mainViewModel.changeFlag.value == true){
-                                mainViewModel.changeFlag.value = false
-                            }
-//                            binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
                         }
                     }
 
                 }
                 R.id.nextsong -> {
                     mController?.transportControls?.skipToNext()
-//                    binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
                 }
                 R.id.lastsong -> {
                     mController?.transportControls?.skipToPrevious()
-//                    binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
                 }
                 R.id.favorite_flag->{
                     if (!mainViewModel.allPlayListSongsCrossRef.value!!.contains(PlaylistSongCrossRef(
@@ -238,7 +225,7 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                         }
                     }
                     bundle.putInt("order",repeatMode)
-                    mController?.transportControls?.sendCustomAction("0",bundle)
+                    mController?.transportControls?.sendCustomAction(MediaPlaybackService.CHANGE_MODE,bundle)
                 }
             }
         } else {

@@ -27,7 +27,7 @@ import com.tencent.mmkv.MMKV
 class MainActivity : AppCompatActivity() {
 
     lateinit var mBrowser: MediaBrowserCompat
-    var mController: MediaControllerCompat? = null
+    lateinit var mController: MediaControllerCompat
     lateinit var mainViewModel: MainViewModel
 
     var thread:UpdateProcessThread? = null
@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
                 )
                 mBrowser.connect()
             } else {
-                mController?.transportControls?.sendCustomAction("1",bundle)
+                mController.transportControls?.sendCustomAction(MediaPlaybackService.CHANGE_LIST,bundle)
                 thread?.interrupt()
                 thread = UpdateProcessThread()
             }
@@ -137,7 +137,8 @@ class MainActivity : AppCompatActivity() {
                     mBrowser.unsubscribe(mediaId)
                     mBrowser.subscribe(mediaId,mBrowserSubscriptionCallback)
                     mController = MediaControllerCompat(this@MainActivity,mBrowser.sessionToken)
-                    mController!!.registerCallback(mMediaControllerCallback)
+                    Log.d(TAG, "onConnected: " + mController.sessionActivity)
+                    mController.registerCallback(mMediaControllerCallback)
                 }
             }
         }
@@ -148,7 +149,7 @@ class MainActivity : AppCompatActivity() {
                 children: MutableList<MediaBrowserCompat.MediaItem>
             ) {
                 super.onChildrenLoaded(parentId, children)
-                mainViewModel.duration.value = mController?.metadata
+                mainViewModel.duration.value = mController.metadata
                     ?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
                 Log.d(TAG, "onChildrenLoaded: " + mainViewModel.duration.value)
                 thread?.interrupt()
@@ -175,8 +176,7 @@ class MainActivity : AppCompatActivity() {
                             thread = UpdateProcessThread()
                             thread?.start()
                         }
-//                        mainViewModel.changeFlag.value = true
-                        mController?.transportControls?.play()
+                        mController.transportControls?.play()
                     }
                     PlaybackStateCompat.STATE_NONE -> {
                         mainViewModel.nowProcess.value = 0
@@ -216,7 +216,7 @@ class MainActivity : AppCompatActivity() {
                 mainViewModel.nowProcess.postValue(mainViewModel.nowProcess.value!!.plus(1))
                 SystemClock.sleep(1000)
                 if (mainViewModel.nowProcess.value!! == (mainViewModel.duration.value!!.div(1000))){
-                    mController?.transportControls?.skipToNext()
+                    mController.transportControls?.skipToNext()
                     mainViewModel.autoChangeFlag = true
                 }
             }

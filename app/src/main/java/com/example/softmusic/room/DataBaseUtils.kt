@@ -83,11 +83,6 @@ class DataBaseUtils {
             Thread { musicDao.updateMusicSongList(*musicSongLists) }.start()
         }
         fun getLiveDataPlaylistsWithSongsById(key:Long):LiveData<PlaylistWithSongs>{
-//            val future = FutureTask {
-//                musicDao.getLiveDataPlaylistsWithSongsById(key)
-//            }
-//            Executors.newCachedThreadPool().execute(future)
-//            return future.get()
             return musicDao.getLiveDataPlaylistsWithSongsById(key)
         }
 
