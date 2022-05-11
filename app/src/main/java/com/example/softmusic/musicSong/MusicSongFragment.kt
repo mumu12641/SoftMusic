@@ -12,7 +12,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.softmusic.MainActivity
@@ -38,13 +37,13 @@ class MusicSongFragment : Fragment() {
         _fragmentSongBinding =
             FragmentSongBinding.inflate(inflater, container, false)
         assert(arguments != null)
-        musicSongViewModel = ViewModelProvider(
-            requireActivity(), ViewModelFactory(requireArguments().getLong("key")))[MusicSongViewModel::class.java]
+        musicSongViewModel = ViewModelProvider(requireActivity())[MusicSongViewModel::class.java]
 
         fragmentSongBinding.songsList.layoutManager = GridLayoutManager(
             requireContext(), 1, GridLayoutManager.VERTICAL, false
         )
-        val adapter = MusicSongAdapter(requireContext(), listOf(), musicSongViewModel.musicSongListId,
+        val adapter = MusicSongAdapter(requireContext(), listOf(),
+                musicSongViewModel.setSongListId(requireArguments().getLong("key")),
                 object : ChangePlayMusicListener {
                     override fun changePlayMusic(musicSongId: Long, musicSongListId: Long) {
                         val list = listOf(musicSongId, musicSongListId)
@@ -52,7 +51,7 @@ class MusicSongFragment : Fragment() {
                     }
                 })
         fragmentSongBinding.songsList.adapter = adapter
-        musicSongViewModel.getPlaylistWithSongsData().observe(viewLifecycleOwner) {
+        musicSongViewModel.getPlaylistWithSongs(musicSongViewModel.musicSongListId).observe(viewLifecycleOwner) {
             adapter.setMusicSongs(it.songs)
             fragmentSongBinding.textView.text = it?.musicSongList?.songListTitle
         }
@@ -73,14 +72,6 @@ class MusicSongFragment : Fragment() {
                 }
         }
         return fragmentSongBinding.root
-    }
-
-    internal class ViewModelFactory(private val key: Long) :
-        ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return MusicSongViewModel(key) as T
-        }
-
     }
 
     private fun getLocalMusic() {

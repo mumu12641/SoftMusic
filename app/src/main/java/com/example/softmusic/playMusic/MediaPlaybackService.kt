@@ -207,6 +207,9 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 super.onSkipToNext()
                 if (mode == REPEAT_ONE) {
                     mExoPlayer.seekTo(mExoPlayer.currentMediaItemIndex, 0L)
+                }else if (mExoPlayer.currentMediaItemIndex == list?.size?.minus(1)
+                        && mode == DEFAULT) {
+                    mExoPlayer.seekTo(0,0L)
                 } else {
                     mExoPlayer.seekToNextMediaItem()
                 }
@@ -217,6 +220,8 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 super.onSkipToPrevious()
                 if (mode == REPEAT_ONE) {
                     mExoPlayer.seekTo(mExoPlayer.currentMediaItemIndex, 0L)
+                } else if (mExoPlayer.currentMediaItemIndex == 0 && mode == DEFAULT){
+                    mExoPlayer.seekTo(list?.size?.minus(1)!! ,0L)
                 } else {
                     mExoPlayer.seekToPreviousMediaItem()
                 }

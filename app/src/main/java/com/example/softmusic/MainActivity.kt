@@ -140,7 +140,6 @@ class MainActivity : AppCompatActivity() {
         object : MediaBrowserCompat.ConnectionCallback() {
             override fun onConnected() {
                 super.onConnected()
-                Log.d(TAG, "onConnected:")
                 if (mBrowser.isConnected) {
                     val mediaId: String = mBrowser.root
                     mBrowser.unsubscribe(mediaId)
@@ -192,7 +191,6 @@ class MainActivity : AppCompatActivity() {
                     }
                     PlaybackStateCompat.STATE_PLAYING -> {
                         mainViewModel.lastProgress.value = -1
-//                        111003
                         mainViewModel.currentProgress.value = (state.position / 1000).toInt()
                     }
                     PlaybackStateCompat.STATE_PAUSED -> {

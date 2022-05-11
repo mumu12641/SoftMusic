@@ -3,6 +3,7 @@ package com.example.softmusic.songList
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -38,6 +39,7 @@ class MusicSongListAdapter(
             songListItem.setOnClickListener { view: View ->
                 val controller: NavController = findNavController(view)
                 val bundle = Bundle()
+                Log.d("TAG", "onBindViewHolder: " +musicSongListList[position].musicSongListId )
                 bundle.putLong("key", musicSongListList[position].musicSongListId)
                 controller.navigate(R.id.action_to_song_fragment, bundle)
             }

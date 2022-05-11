@@ -142,11 +142,11 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
             playbackState.observe(viewLifecycleOwner) {
                 when (it.state) {
-                    PlaybackStateCompat.STATE_PLAYING -> {
-                        binding.playsong.setBackgroundResource(R.drawable.outline_pause_64)
+                    PlaybackStateCompat.STATE_PAUSED -> {
+                        binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_64)
                     }
                     else -> {
-                        binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_64)
+                        binding.playsong.setBackgroundResource(R.drawable.outline_pause_64)
                     }
                 }
             }
