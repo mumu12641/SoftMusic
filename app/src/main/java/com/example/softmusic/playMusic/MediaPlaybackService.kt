@@ -172,7 +172,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                     mExoPlayer.play()
                     mPlaybackState = PlaybackStateCompat.Builder()
                         .setState(PlaybackStateCompat.STATE_PLAYING,
-                            mExoPlayer.currentPosition / 1000, 1.0f,SystemClock.elapsedRealtime())
+                            mExoPlayer.currentPosition, 1.0f,SystemClock.elapsedRealtime())
                         .build()
                     mSession.setPlaybackState(mPlaybackState)
                     createNotification(PlaybackStateCompat.STATE_PLAYING,
@@ -188,7 +188,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 if (mPlaybackState.state == PlaybackStateCompat.STATE_PLAYING) {
                     mExoPlayer.pause()
                     mPlaybackState = PlaybackStateCompat.Builder()
-                        .setState(PlaybackStateCompat.STATE_PAUSED, mExoPlayer.currentPosition / 1000,
+                        .setState(PlaybackStateCompat.STATE_PAUSED, mExoPlayer.currentPosition,
                             1.0f,SystemClock.elapsedRealtime())
                         .build()
                     mSession.setPlaybackState(mPlaybackState)
@@ -197,6 +197,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 }
             }
 
+            @RequiresApi(Build.VERSION_CODES.M)
             override fun onSeekTo(pos: Long) {
                 super.onSeekTo(pos)
                 Log.d(TAG, "onSeekTo$pos")
@@ -206,6 +207,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                         1.0f)
                     .build()
                 mSession.setPlaybackState(mPlaybackState)
+                createNotification(PlaybackStateCompat.STATE_PLAYING, list?.get(mExoPlayer.currentMediaItemIndex)!!)
             }
 
             override fun onSkipToNext() {
@@ -390,6 +392,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                             .setShowActionsInCompactView(0,1,2)
             )
         }
+
         Thread{
             try {
                 val bitmap: Bitmap = Glide
@@ -408,6 +411,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                     .get()
                 buidler.setLargeIcon(bitmap)
             }
+            buidler.setProgress(0,0,false)
             startForeground(1,buidler.build())
         }.start()
     }
