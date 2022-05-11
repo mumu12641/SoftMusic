@@ -5,31 +5,33 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.softmusic.room.DataBaseUtils
 
-class MainViewModel:ViewModel(){
+class MainViewModel : ViewModel() {
 
     val allPlayListSongsCrossRef = DataBaseUtils.getAllPlaylistSongCrossRef()
 
-    val nowProcess:MutableLiveData<Int> = MutableLiveData(0)
+    val nowProcess: MutableLiveData<Int> = MutableLiveData(0)
 
-    val duration : MutableLiveData<Int> = MutableLiveData()
+    val duration: MutableLiveData<Int> = MutableLiveData()
 
-    val lastProcess : MutableLiveData<Int> = MutableLiveData(-1)
+    val lastProcess: MutableLiveData<Int> = MutableLiveData(-1)
 
     var autoChangeFlag = false
 
-    val initFlag:MutableLiveData<Boolean> = MutableLiveData(false)
+    val initFlag: MutableLiveData<Boolean> = MutableLiveData(false)
 
-    val nowId:MutableLiveData<List<Long>> = MutableLiveData()
+    val nowId: MutableLiveData<List<Long>> = MutableLiveData()
 
-    val nowTitle:MutableLiveData<String> = MutableLiveData()
+    val nowTitle: MutableLiveData<String> = MutableLiveData()
+
+    val currentArtist: MutableLiveData<String> = MutableLiveData()
 
     val nowMusicRecordImageList = MutableLiveData<List<String>>()
 
     var haveMusicFlag = false
 
-    val nowImageUri:MutableLiveData<String> = MutableLiveData()
+    val nowImageUri: MutableLiveData<String> = MutableLiveData()
 
-    val likeFlag:MutableLiveData<Boolean> = MutableLiveData(false)
+    val likeFlag: MutableLiveData<Boolean> = MutableLiveData(false)
 
     // now playState
     val playbackState by lazy { MutableLiveData(EMPTY_PLAYBACK_STATE) }
