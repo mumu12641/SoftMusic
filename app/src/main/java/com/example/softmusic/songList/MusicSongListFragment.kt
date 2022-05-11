@@ -25,9 +25,7 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
     ): View {
         val fragmentSongListBinding: FragmentSongListBinding =
             FragmentSongListBinding.inflate(inflater, container, false)
-        viewModel = ViewModelProvider(
-            requireActivity()
-        )[MusicSongListViewModel::class.java]
+        viewModel = ViewModelProvider(requireActivity())[MusicSongListViewModel::class.java]
         fragmentSongListBinding.songListList.layoutManager =
             GridLayoutManager(requireActivity(), 1, GridLayoutManager.VERTICAL, false)
 
@@ -39,10 +37,8 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
         viewModel.musicSongListLiveData
             .observe(viewLifecycleOwner) { musicSongLists: List<MusicSongList> ->
                 if (musicSongLists.isEmpty()) {
-                    DataBaseUtils.insertMusicSongList(
-                        MusicSongList(
-                            0, "我喜欢", "5/3/22", 0, "me", "i like", "like"
-                        )
+                    DataBaseUtils.insertMusicSongList(MusicSongList(
+                        0, "我喜欢", "5/3/22", 0, "me", "i like", "like")
                     )
                 }
                 adapter.setMusicSongListList(musicSongLists)
@@ -82,8 +78,5 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
         dialog.show()
     }
 
-    override fun onResume() {
-        super.onResume()
-        (requireActivity() as MainActivity).setTitle(MusicSongListViewModel.title)
-    }
+
 }

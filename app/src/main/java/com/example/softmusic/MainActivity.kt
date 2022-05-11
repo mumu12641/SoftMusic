@@ -29,11 +29,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var mBrowser: MediaBrowserCompat
     lateinit var mController: MediaControllerCompat
     lateinit var mainViewModel: MainViewModel
-
     var thread: UpdateProcessThread? = null
-
     private val TAG = "MainActivity"
-
     private lateinit var activityMainBinding: ActivityMainBinding
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -41,14 +38,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
-        val navController: NavController =
-            findNavController(R.id.nav_host_fragment_activity_main)
+        val navController: NavController = findNavController(R.id.nav_host_fragment_activity_main)
         val navigationView: BottomNavigationView = activityMainBinding.navView
         setupWithNavController(navigationView, navController)
 
+        navController.addOnDestinationChangedListener { _, _, _ ->
+            activityMainBinding.appBar.title = navController.currentDestination?.label
+        }
+
         mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
-        mainViewModel.nowId.observe(this) { it ->
+        mainViewModel.currentId.observe(this) { it ->
             mainViewModel.nowMusicRecordImageList.value =
                 DataBaseUtils.getPlayListsWithSongsById(it[1]).map { it.songAlbum }
             val bundle = Bundle()
@@ -57,15 +57,13 @@ class MainActivity : AppCompatActivity() {
                 putLong("musicSongListId", it[1])
             }
             if (!mainViewModel.haveMusicFlag) {
-                MediaControllerCompat.getMediaController(this)
-                    ?.unregisterCallback(mMediaControllerCallback)
+                MediaControllerCompat.getMediaController(this)?.unregisterCallback(mMediaControllerCallback)
                 if (mainViewModel.haveMusicFlag) {
                     mBrowser.disconnect()
                 }
-                mBrowser = MediaBrowserCompat(
-                    this,
-                    ComponentName(this, MediaPlaybackService::class.java),  //绑定服务
-                    mBrowserConnectionCallback,  // 设置回调
+                mBrowser = MediaBrowserCompat(this, ComponentName(this,
+                    MediaPlaybackService::class.java),
+                    mBrowserConnectionCallback,
                     bundle
                 )
                 mBrowser.connect()
@@ -78,7 +76,6 @@ class MainActivity : AppCompatActivity() {
                 thread = UpdateProcessThread()
             }
             Toast.makeText(this, "成功替换播放列表", Toast.LENGTH_LONG).show()
-            Log.d(TAG, "onCreate: change list")
             mainViewModel.haveMusicFlag = true
 
             if (it[1] == 1L) {
@@ -92,7 +89,6 @@ class MainActivity : AppCompatActivity() {
         if (!kv.containsKey("musicSongListId") && !kv.containsKey("musicSongId")) {
             mainViewModel.haveMusicFlag = false
         } else {
-            Log.d(TAG, "onCreate: mmkv true")
             mainViewModel.nowMusicRecordImageList.value =
                 DataBaseUtils.getPlayListsWithSongsById(kv.decodeLong("musicSongListId"))
                     .map { it.songAlbum }
@@ -133,6 +129,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStop() {
+        super.onStop()
+        Log.d(TAG, "onStop: ")
+        // TODO mmkv
+    }
+
+
     private val mBrowserConnectionCallback: MediaBrowserCompat.ConnectionCallback =
         object : MediaBrowserCompat.ConnectionCallback() {
             override fun onConnected() {
@@ -143,7 +146,6 @@ class MainActivity : AppCompatActivity() {
                     mBrowser.unsubscribe(mediaId)
                     mBrowser.subscribe(mediaId, mBrowserSubscriptionCallback)
                     mController = MediaControllerCompat(this@MainActivity, mBrowser.sessionToken)
-                    Log.d(TAG, "onConnected: " + mController.sessionActivity)
                     mController.registerCallback(mMediaControllerCallback)
                 }
             }
@@ -157,7 +159,6 @@ class MainActivity : AppCompatActivity() {
                 super.onChildrenLoaded(parentId, children)
                 mainViewModel.duration.value = mController.metadata
                     ?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
-                Log.d(TAG, "onChildrenLoaded: " + mainViewModel.duration.value)
                 thread?.interrupt()
                 thread = UpdateProcessThread()
             }
@@ -172,32 +173,30 @@ class MainActivity : AppCompatActivity() {
 
                 when (state?.state) {
                     PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> {
-                        mainViewModel.nowProcess.value = 0
-                        mainViewModel.lastProcess.value = -1
+                        mainViewModel.currentProgress.value = 0
+                        mainViewModel.lastProgress.value = -1
                         if (mainViewModel.autoChangeFlag) {
                             thread?.interrupt()
                             mainViewModel.autoChangeFlag = false
-                            mainViewModel.nowProcess.value = -1
-                            mainViewModel.lastProcess.value = -2
+                            mainViewModel.currentProgress.value = -1
+                            mainViewModel.lastProgress.value = -2
                             thread = UpdateProcessThread()
                             thread?.start()
                         }
                         mController.transportControls?.play()
                     }
                     PlaybackStateCompat.STATE_NONE -> {
-                        mainViewModel.nowProcess.value = 0
-                        mainViewModel.lastProcess.value = -1
+                        mainViewModel.currentProgress.value = 0
+                        mainViewModel.lastProgress.value = -1
                         mainViewModel.initFlag.value = true
                     }
                     PlaybackStateCompat.STATE_PLAYING -> {
-                        Log.d(
-                            TAG, "onPlaybackStateChanged: playing"
-                                    + ((SystemClock.elapsedRealtime() - state.lastPositionUpdateTime) + state.position)
-                        )
-                        mainViewModel.lastProcess.value = -1
+                        mainViewModel.lastProgress.value = -1
+//                        111003
+                        mainViewModel.currentProgress.value = (state.position / 1000).toInt()
                     }
                     PlaybackStateCompat.STATE_PAUSED -> {
-                        mainViewModel.lastProcess.value = mainViewModel.nowProcess.value
+                        mainViewModel.lastProgress.value = mainViewModel.currentProgress.value
                     }
                 }
 
@@ -208,9 +207,9 @@ class MainActivity : AppCompatActivity() {
                 with(mainViewModel) {
                     duration.value = metadata
                         ?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
-                    nowTitle.value = metadata
+                    currentTitle.value = metadata
                         ?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
-                    nowImageUri.value = DataBaseUtils.getImageUri(
+                    currentImageUri.value = DataBaseUtils.getImageUri(
                         metadata?.getString(METADATA_KEY_MEDIA_ID)!!.toLong()
                     )
                     currentArtist.value =
@@ -222,24 +221,17 @@ class MainActivity : AppCompatActivity() {
     inner class UpdateProcessThread : Thread() {
         override fun run() {
             super.run()
-            while (!interrupted() && mainViewModel.nowProcess.value!! < (mainViewModel.duration.value!!.div(
-                    1000
-                ))
-            ) {
-                if (mainViewModel.nowProcess.value == mainViewModel.lastProcess.value) {
+            while (!interrupted() && mainViewModel.currentProgress.value!! < (mainViewModel.duration.value!!.div(1000))) {
+                if (mainViewModel.currentProgress.value == mainViewModel.lastProgress.value) {
                     continue
                 }
-                mainViewModel.nowProcess.postValue(mainViewModel.nowProcess.value!!.plus(1))
+                mainViewModel.currentProgress.postValue(mainViewModel.currentProgress.value!!.plus(1))
                 SystemClock.sleep(1000)
-                if (mainViewModel.nowProcess.value!! == (mainViewModel.duration.value!!.div(1000))) {
+                if (mainViewModel.currentProgress.value!! == (mainViewModel.duration.value!!.div(1000))) {
                     mController.transportControls?.skipToNext()
                     mainViewModel.autoChangeFlag = true
                 }
             }
         }
-    }
-
-    fun setTitle(title: String?) {
-        activityMainBinding.appBar.title = title
     }
 }

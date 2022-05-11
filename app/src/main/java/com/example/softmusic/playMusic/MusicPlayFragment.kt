@@ -102,7 +102,7 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
 
         mainViewModel.run {
-            nowImageUri.observe(viewLifecycleOwner) {
+            currentImageUri.observe(viewLifecycleOwner) {
                 currentPosition = mainViewModel.nowMusicRecordImageList.value!!.indexOf(it)
                 binding.snapRecyclerview.scrollToPosition(currentPosition)
             }
@@ -111,12 +111,12 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                 binding.durationTime.text = dateFormat.format(Date(it.toLong()))
             }
 
-            nowProcess.observe(viewLifecycleOwner) {
+            currentProgress.observe(viewLifecycleOwner) {
                 binding.seekBar.progress = (it * 1000)
                 binding.nowTime.text = dateFormat.format(Date((it * 1000).toLong()))
             }
 
-            nowTitle.observe(viewLifecycleOwner) {
+            currentTitle.observe(viewLifecycleOwner) {
                 binding.songTitle.text = it
             }
 
@@ -143,10 +143,10 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             playbackState.observe(viewLifecycleOwner) {
                 when (it.state) {
                     PlaybackStateCompat.STATE_PLAYING -> {
-                        binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
+                        binding.playsong.setBackgroundResource(R.drawable.outline_pause_64)
                     }
                     else -> {
-                        binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_24)
+                        binding.playsong.setBackgroundResource(R.drawable.outline_play_arrow_64)
                     }
                 }
             }
@@ -162,8 +162,8 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
     override fun onStopTrackingTouch(seekBar: SeekBar) {
         if (mainViewModel.haveMusicFlag) {
             val pos: Int = seekBar.progress
-            mainViewModel.nowProcess.value = pos / 1000
-            mainViewModel.lastProcess.value = -1
+            mainViewModel.currentProgress.value = pos / 1000
+            mainViewModel.lastProgress.value = -1
             mController?.transportControls?.seekTo(pos.toLong())
             mController?.transportControls?.play()
         }
@@ -182,7 +182,6 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                             mController!!.transportControls.play()
                         }
                         PlaybackStateCompat.STATE_NONE -> {
-                            Log.d(TAG, "onClick: STATE_NONE")
                             mController!!.transportControls.play()
                             if (mainViewModel.initFlag.value == true) {
                                 mainViewModel.initFlag.value = false
@@ -204,15 +203,15 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                 R.id.favorite_flag -> {
                     if (!mainViewModel.allPlayListSongsCrossRef.value!!.contains(
                             PlaylistSongCrossRef(
-                                mainViewModel.nowId.value!![1], mainViewModel.nowId.value!![0]
+                                mainViewModel.currentId.value!![1], mainViewModel.currentId.value!![0]
                             )
                         )
                     ) {
                         binding.favoriteFlag.setBackgroundResource(R.drawable.favorite_24px_yes)
                         DataBaseUtils.insertMusicSongRef(
                             PlaylistSongCrossRef(
-                                mainViewModel.nowId.value!![1],
-                                mainViewModel.nowId.value!![0]
+                                mainViewModel.currentId.value!![1],
+                                mainViewModel.currentId.value!![0]
                             )
                         )
                     }
@@ -247,11 +246,6 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         } else {
             Toast.makeText(requireContext(), "你还没有播放列表哦，去添加歌曲吧！", Toast.LENGTH_LONG).show()
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        (requireActivity() as MainActivity).setTitle("Play")
     }
 }
 

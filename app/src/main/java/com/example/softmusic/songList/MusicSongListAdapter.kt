@@ -18,7 +18,7 @@ class MusicSongListAdapter(
     private var musicSongListList: List<MusicSongList>
 ) : RecyclerView.Adapter<MusicSongListAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val cardSongListBinding: CardSongListBinding = CardSongListBinding.inflate(LayoutInflater.from(context))
+        val cardSongListBinding: CardSongListBinding = CardSongListBinding.inflate(LayoutInflater.from(context),parent,false)
         return ViewHolder(cardSongListBinding)
     }
 
@@ -31,17 +31,15 @@ class MusicSongListAdapter(
             val array =
                 intArrayOf(R.drawable.card, R.drawable.card2, R.drawable.card3, R.drawable.card3)
             if (musicSongListList[position].imageFileUri == "like"){
-                // 我喜欢  特定的封面
                 imageSongList.setBackgroundResource(array[0])
             }else {
                 imageSongList.setBackgroundResource(array[1])
             }
             songListItem.setOnClickListener { view: View ->
                 val controller: NavController = findNavController(view)
-                // TODO 传递Bundle（Room中的索引）
                 val bundle = Bundle()
                 bundle.putLong("key", musicSongListList[position].musicSongListId)
-                controller.navigate(R.id.action_musicSongListFragment2_to_musicSongFragment2, bundle)
+                controller.navigate(R.id.action_to_song_fragment, bundle)
             }
         }
 
@@ -61,7 +59,4 @@ class MusicSongListAdapter(
         notifyDataSetChanged()
     }
 
-    companion object {
-        private const val TAG = "MusicSongListAdapter"
-    }
 }

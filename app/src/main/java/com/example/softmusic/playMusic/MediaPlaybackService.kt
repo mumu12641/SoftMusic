@@ -1,5 +1,6 @@
 package com.example.softmusic.playMusic
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -10,7 +11,6 @@ import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
-import android.os.SystemClock
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -47,7 +47,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
     private var nowNum = 0
     private var list: List<MusicSong>? = null
     private val TAG = "MediaPlaybackService"
-
     private lateinit var mReceiver: MediaActionReceiver
     private lateinit var manager: NotificationManager
     private lateinit var channelId: String
@@ -68,7 +67,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         mSession.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
         mSession.isActive = true
         sessionToken = mSession.sessionToken
-
         mExoPlayer = ExoPlayer.Builder(this).build()
 
         mReceiver = MediaActionReceiver()
@@ -93,10 +91,18 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         }
     }
 
+
+    @SuppressLint("RestrictedApi")
+    override fun onUnsubscribe(id: String?) {
+        super.onUnsubscribe(id)
+        Log.d(TAG, "onUnsubscribe: ")
+    }
+
+
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "onDestroy")
         val kv = MMKV.defaultMMKV()
+        Log.d(TAG, "onDestroy")
         kv.encode("musicSongId", list?.get(nowNum)?.musicSongId!!)
         kv.encode("musicSongListId", musicSongListId)
         mExoPlayer.release()
@@ -108,7 +114,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         clientPackageName: String,
         clientUid: Int, rootHints: Bundle?
     ): BrowserRoot {
-        Log.d(TAG, "onGetRoot")
         val kv = MMKV.defaultMMKV()
         musicSongId = rootHints?.getLong("musicSongId") ?: kv.decodeLong("musicSongId")
         musicSongListId = rootHints?.getLong("musicSongListId") ?: kv.decodeLong("musicSongListId")
@@ -119,7 +124,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         parentId: String,
         result: Result<MutableList<MediaBrowserCompat.MediaItem>>
     ) {
-        Log.d(TAG, "onLoadChildren")
         result.detach()
         val mediaItems = ArrayList<MediaBrowserCompat.MediaItem>()
         loadMusic()
@@ -136,11 +140,8 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
     }
 
     inner class MediaActionReceiver : BroadcastReceiver() {
-        private val TAG = "MediaActionReceiver"
         override fun onReceive(context: Context?, intent: Intent?) {
-            val action: String? = intent?.action
-            Log.d(TAG, "onReceive: $action")
-            when (action) {
+            when (intent?.action) {
                 ACTION_PAUSE -> {
                     mSession.controller?.transportControls?.pause()
                 }
@@ -162,18 +163,11 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             @RequiresApi(Build.VERSION_CODES.M)
             override fun onPlay() {
                 super.onPlay()
-                Log.d(TAG, "onPlay")
                 if (mPlaybackState.state == PlaybackStateCompat.STATE_PAUSED || mPlaybackState.state == PlaybackStateCompat.STATE_NONE
                     || mPlaybackState.state == PlaybackStateCompat.STATE_SKIPPING_TO_NEXT || mPlaybackState.state == PlaybackStateCompat.STATE_PLAYING
                 ) {
                     mExoPlayer.play()
-                    mPlaybackState = PlaybackStateCompat.Builder()
-                        .setState(
-                            PlaybackStateCompat.STATE_PLAYING,
-                            mExoPlayer.currentPosition, 1.0f, SystemClock.elapsedRealtime()
-                        )
-                        .build()
-                    mSession.setPlaybackState(mPlaybackState)
+                    updatePlayBackState(PlaybackStateCompat.STATE_PLAYING)
                     createNotification(
                         PlaybackStateCompat.STATE_PLAYING,
                         list?.get(mExoPlayer.currentMediaItemIndex)!!
@@ -184,16 +178,9 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             @RequiresApi(Build.VERSION_CODES.M)
             override fun onPause() {
                 super.onPause()
-                Log.d(TAG, "onPause")
                 if (mPlaybackState.state == PlaybackStateCompat.STATE_PLAYING) {
                     mExoPlayer.pause()
-                    mPlaybackState = PlaybackStateCompat.Builder()
-                        .setState(
-                            PlaybackStateCompat.STATE_PAUSED, mExoPlayer.currentPosition,
-                            1.0f, SystemClock.elapsedRealtime()
-                        )
-                        .build()
-                    mSession.setPlaybackState(mPlaybackState)
+                    updatePlayBackState(PlaybackStateCompat.STATE_PAUSED)
                     createNotification(
                         PlaybackStateCompat.STATE_PAUSED,
                         list?.get(mExoPlayer.currentMediaItemIndex)!!
@@ -204,13 +191,10 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             @RequiresApi(Build.VERSION_CODES.M)
             override fun onSeekTo(pos: Long) {
                 super.onSeekTo(pos)
-                Log.d(TAG, "onSeekTo$pos")
                 mExoPlayer.seekTo(pos)
                 mPlaybackState = PlaybackStateCompat.Builder()
-                    .setState(
-                        PlaybackStateCompat.STATE_PLAYING, mExoPlayer.currentPosition,
-                        1.0f
-                    )
+                    .setState(PlaybackStateCompat.STATE_PLAYING, mExoPlayer.currentPosition, 1.0f)
+                    .setActions(PlaybackStateCompat.ACTION_SEEK_TO)
                     .build()
                 mSession.setPlaybackState(mPlaybackState)
                 createNotification(
@@ -221,7 +205,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
             override fun onSkipToNext() {
                 super.onSkipToNext()
-                Log.d(TAG, "onSkipToNext")
                 if (mode == REPEAT_ONE) {
                     mExoPlayer.seekTo(mExoPlayer.currentMediaItemIndex, 0L)
                 } else {
@@ -232,7 +215,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
             override fun onSkipToPrevious() {
                 super.onSkipToPrevious()
-                Log.d(TAG, "onSkipToPrevious")
                 if (mode == REPEAT_ONE) {
                     mExoPlayer.seekTo(mExoPlayer.currentMediaItemIndex, 0L)
                 } else {
@@ -244,16 +226,13 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             override fun onCustomAction(action: String?, extras: Bundle?) {
                 super.onCustomAction(action, extras)
                 if (action == CHANGE_MODE) {
-                    // 切换播放顺序
                     mode = extras?.getInt("order")!!
-                    Log.d(TAG, "onCustomAction: $mode")
                     when (mode) {
                         DEFAULT -> {
                             mExoPlayer.shuffleModeEnabled = false
                             mExoPlayer.repeatMode = Player.REPEAT_MODE_ALL
                         }
                         SHUFFLE -> {
-//                            mExoPlayer.repeatMode = Player.SHUFF
                             mExoPlayer.shuffleModeEnabled = true
                         }
                         REPEAT_ONE -> {
@@ -264,7 +243,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 } else if (action == CHANGE_LIST) {
                     musicSongId = extras?.getLong("musicSongId")!!
                     musicSongListId = extras.getLong("musicSongListId")
-                    Log.d(TAG, "onCustomAction: 1")
                     loadMusic()
                 }
             }
@@ -289,10 +267,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
     private fun changeMusicSong(song: MusicSong) {
         val metadata = createMetadataFromMusic(song)
         mSession.setMetadata(metadata)
-        mPlaybackState = PlaybackStateCompat.Builder()
-            .setState(PlaybackStateCompat.STATE_SKIPPING_TO_NEXT, mExoPlayer.currentPosition, 1.0f)
-            .build()
-        mSession.setPlaybackState(mPlaybackState)
+        updatePlayBackState(PlaybackStateCompat.STATE_SKIPPING_TO_NEXT)
     }
 
     private fun loadMusic() {
@@ -303,17 +278,13 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
         for (i in list!!) {
             mExoPlayer.addMediaItem(MediaItem.fromUri(i.mediaFileUri))
-            Log.d(TAG, "loadMusic: " + i.mediaFileUri)
         }
         mExoPlayer.seekTo(nowNum, 0)
         mExoPlayer.prepare()
         val metadata = createMetadataFromMusic(musicSong)
         mSession.isActive = true
         mSession.setMetadata(metadata)
-        mPlaybackState = PlaybackStateCompat.Builder()
-            .setState(PlaybackStateCompat.STATE_NONE, mExoPlayer.currentPosition, 1.0f)
-            .build()
-        mSession.setPlaybackState(mPlaybackState)
+        updatePlayBackState(PlaybackStateCompat.STATE_NONE)
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -321,7 +292,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         val controller = mSession.controller
         val mediaMetadata = controller?.metadata
         val description = mediaMetadata?.description!!
-//        Log.d(TAG, "createNotification: " + controller.sessionActivity)
         val clickPendingIntent = PendingIntent.getActivity(
             context, 0,
             Intent(context, MainActivity::class.java),
@@ -331,18 +301,14 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             setContentTitle(description.title)
             setContentText(description.subtitle)
             setSubText(description.description)
-
             setContentIntent(clickPendingIntent)
-
             setDeleteIntent(
                 MediaButtonReceiver.buildMediaButtonPendingIntent(
                     context,
                     PlaybackStateCompat.ACTION_STOP
                 )
             )
-
             setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-
             setSmallIcon(R.drawable.outline_music_note_black_24dp)
             addAction(
                 NotificationCompat.Action(
@@ -379,7 +345,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                     )
                 )
             }
-
             addAction(
                 NotificationCompat.Action(
                     R.drawable.outline_skip_next_24,
@@ -396,7 +361,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                     .setShowActionsInCompactView(0, 1, 2)
             )
         }
-
         Thread {
             try {
                 val bitmap: Bitmap = Glide
@@ -420,7 +384,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         }.start()
     }
 
-    fun createMetadataFromMusic(music: MusicSong): MediaMetadataCompat {
+    private fun createMetadataFromMusic(music: MusicSong): MediaMetadataCompat {
         return with(music) {
             MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, musicSongId.toString())
@@ -429,6 +393,22 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration.toLong())
                 .build()
         }
+    }
+
+    private fun updatePlayBackState(state: Int){
+        mPlaybackState = PlaybackStateCompat.Builder()
+            .setState(state, mExoPlayer.currentPosition, 1.0f)
+            .setActions(
+            PlaybackStateCompat.ACTION_PAUSE or
+                    PlaybackStateCompat.ACTION_PLAY_PAUSE or
+                    PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
+                    PlaybackStateCompat.ACTION_STOP or
+                    PlaybackStateCompat.ACTION_SEEK_TO or
+                    PlaybackStateCompat.ACTION_PLAY or
+                    PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+            )
+            .build()
+        mSession.setPlaybackState(mPlaybackState)
     }
 }
 

@@ -6,7 +6,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,7 +28,6 @@ class MusicSongFragment : Fragment() {
     private lateinit var _fragmentSongBinding: FragmentSongBinding
     private val fragmentSongBinding get() = _fragmentSongBinding
     private lateinit var musicSongViewModel: MusicSongViewModel
-    private val TAG = "MusicSongFragment"
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreateView(
@@ -41,26 +39,21 @@ class MusicSongFragment : Fragment() {
             FragmentSongBinding.inflate(inflater, container, false)
         assert(arguments != null)
         musicSongViewModel = ViewModelProvider(
-            requireActivity(),
-            ViewModelFactory(requireArguments().getLong("key"))
-        )[MusicSongViewModel::class.java]
+            requireActivity(), ViewModelFactory(requireArguments().getLong("key")))[MusicSongViewModel::class.java]
+
         fragmentSongBinding.songsList.layoutManager = GridLayoutManager(
             requireContext(), 1, GridLayoutManager.VERTICAL, false
         )
-        val adapter =
-            MusicSongAdapter(requireContext(), listOf(), musicSongViewModel.musicSongListId,
+        val adapter = MusicSongAdapter(requireContext(), listOf(), musicSongViewModel.musicSongListId,
                 object : ChangePlayMusicListener {
                     override fun changePlayMusic(musicSongId: Long, musicSongListId: Long) {
                         val list = listOf(musicSongId, musicSongListId)
-                        (requireActivity() as MainActivity).mainViewModel.nowId.value = list
+                        (requireActivity() as MainActivity).mainViewModel.currentId.value = list
                     }
                 })
         fragmentSongBinding.songsList.adapter = adapter
         musicSongViewModel.getPlaylistWithSongsData().observe(viewLifecycleOwner) {
             adapter.setMusicSongs(it.songs)
-            (requireActivity() as MainActivity).setTitle(
-                it?.musicSongList?.songListTitle
-            )
             fragmentSongBinding.textView.text = it?.musicSongList?.songListTitle
         }
 
@@ -102,7 +95,7 @@ class MusicSongFragment : Fragment() {
 
         if (cursor != null) {
             while (cursor.moveToNext()) {
-                if (cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)) > 100) {
+                if (cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)) > 100 * 1000) {
                     val song = MusicSong(
                         0,
                         cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)),
@@ -111,18 +104,6 @@ class MusicSongFragment : Fragment() {
                         cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)),
                         cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)),
                         cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))
-                    )
-                    Log.d(
-                        TAG,
-                        "getLocalMusic: " + cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))
-                    )
-                    Log.d(
-                        TAG,
-                        "getLocalMusic: " + getAlbumImageUri(
-                            cursor.getLong(
-                                cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-                            )
-                        )
                     )
                     val id = DataBaseUtils.insertMusicSong(song)
                     DataBaseUtils.insertMusicSongRef(
@@ -142,7 +123,7 @@ class MusicSongFragment : Fragment() {
         cursor?.close()
     }
 
-    fun getAlbumImageUri(id: Long): Uri {
+    private fun getAlbumImageUri(id: Long): Uri {
         val sArtworkUri = Uri.parse("content://media/external/audio/albumart")
         return Uri.withAppendedPath(sArtworkUri, id.toString())
     }

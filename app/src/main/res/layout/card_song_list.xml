@@ -7,9 +7,8 @@
         android:id="@+id/songListItem"
         android:layout_width="match_parent"
         app:cardCornerRadius="15dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="15dp"
-        android:layout_marginEnd="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="8dp"
         android:layout_height="wrap_content"
         style="?attr/materialCardViewElevatedStyle">
         <LinearLayout
