@@ -68,8 +68,11 @@ interface MusicDao {
     @Query("SELECT * FROM musicSongList WHERE musicSongListId = :key")
     fun getLiveDataPlaylistsWithSongsById(key: Long?): LiveData<PlaylistWithSongs>
 
+    @Transaction
     @Query("SELECT * FROM musicSongList WHERE songListTitle = :songListTitle")
     fun getPlayListsWithSongsByKey(songListTitle:String): PlaylistWithSongs
+
+    @Transaction
     @Query("SELECT * FROM musicSongList WHERE musicSongListId = :musicSongListId")
     fun getPlayListsWithSongsById(musicSongListId:Long): PlaylistWithSongs
 

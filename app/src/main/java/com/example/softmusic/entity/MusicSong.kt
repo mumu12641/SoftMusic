@@ -5,12 +5,11 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class MusicSong(
+    @PrimaryKey(autoGenerate = true) val musicSongId:Long,
     var songTitle: String,
     var songSinger: String,
     var songAlbum: String,
     var mediaFileUri: String,
     var duration:Int,
     var albumId:Long
-){
-    @PrimaryKey(autoGenerate = true) var musicSongId:Long  = 0
-}
+)

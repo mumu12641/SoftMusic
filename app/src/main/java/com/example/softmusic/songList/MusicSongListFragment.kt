@@ -38,10 +38,11 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
         fragmentSongListBinding.songListList.adapter = adapter
         viewModel.musicSongListLiveData
             .observe(viewLifecycleOwner) { musicSongLists: List<MusicSongList> ->
-                if (musicSongLists.isEmpty()){
+                if (musicSongLists.isEmpty()) {
                     DataBaseUtils.insertMusicSongList(
                         MusicSongList(
-            "我喜欢", "5/3/22", 0, "me", "i like", "like")
+                            0, "我喜欢", "5/3/22", 0, "me", "i like", "like"
+                        )
                     )
                 }
                 adapter.setMusicSongListList(musicSongLists)
@@ -68,8 +69,11 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
                     "/" + (calendar[Calendar.MONTH] + 1) +
                     "/" + calendar[Calendar.DAY_OF_MONTH]
             if (des != "" && title != "") {
-                DataBaseUtils.insertMusicSongList(MusicSongList(
-                    title, date, 0, "me", des, "none"))
+                DataBaseUtils.insertMusicSongList(
+                    MusicSongList(
+                        0, title, date, 0, "me", des, "none"
+                    )
+                )
                 dialog.cancel()
             }
         }

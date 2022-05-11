@@ -31,7 +31,7 @@ import java.util.*
 class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnClickListener {
 
     private lateinit var musicPlayViewModel: MusicPlayViewModel
-    private lateinit var mainViewModel : MainViewModel
+    private lateinit var mainViewModel: MainViewModel
     private var mController: MediaControllerCompat? = null
     private val TAG = "MusicPlayFragment"
     private lateinit var _binding: FragmentMusicPlayBinding
@@ -41,8 +41,8 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
     private var currentPosition = 0
 
 
-    private val adapter:MusicRecordAdapter by lazy {
-        MusicRecordAdapter(listOf(),requireContext())
+    private val adapter: MusicRecordAdapter by lazy {
+        MusicRecordAdapter(listOf(), requireContext())
     }
 
 
@@ -82,14 +82,14 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             repeatMode.setOnClickListener(this@MusicPlayFragment)
             snapRecyclerview.layoutManager = layoutManager
             snapRecyclerview.adapter = adapter
-            snapRecyclerview.addOnScrollListener(object : RecyclerView.OnScrollListener(){
+            snapRecyclerview.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                     super.onScrollStateChanged(recyclerView, newState)
-                    when(newState){
+                    when (newState) {
                         SCROLL_STATE_IDLE -> {
-                            if (layoutManager.findFirstCompletelyVisibleItemPosition() == currentPosition + 1){
+                            if (layoutManager.findFirstCompletelyVisibleItemPosition() == currentPosition + 1) {
                                 binding.nextsong.performClick()
-                            }else if (layoutManager.findFirstCompletelyVisibleItemPosition() == currentPosition - 1){
+                            } else if (layoutManager.findFirstCompletelyVisibleItemPosition() == currentPosition - 1) {
                                 binding.lastsong.performClick()
                             }
                             currentPosition = layoutManager.findFirstCompletelyVisibleItemPosition()
@@ -101,43 +101,47 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
 
 
-        mainViewModel.apply {
-            nowImageUri.observe(viewLifecycleOwner){
+        mainViewModel.run {
+            nowImageUri.observe(viewLifecycleOwner) {
                 currentPosition = mainViewModel.nowMusicRecordImageList.value!!.indexOf(it)
                 binding.snapRecyclerview.scrollToPosition(currentPosition)
             }
-            duration.observe(viewLifecycleOwner){
+            duration.observe(viewLifecycleOwner) {
                 binding.seekBar.max = it
                 binding.durationTime.text = dateFormat.format(Date(it.toLong()))
             }
 
-            nowProcess.observe(viewLifecycleOwner){
-                binding.seekBar.progress = (it *1000)
+            nowProcess.observe(viewLifecycleOwner) {
+                binding.seekBar.progress = (it * 1000)
                 binding.nowTime.text = dateFormat.format(Date((it * 1000).toLong()))
             }
 
-            nowTitle.observe(viewLifecycleOwner){
+            nowTitle.observe(viewLifecycleOwner) {
                 binding.songTitle.text = it
             }
 
-            initFlag.observe(viewLifecycleOwner){
-                if (it == true){
+            currentArtist.observe(viewLifecycleOwner) {
+                binding.artistName.text = it
+            }
+
+            initFlag.observe(viewLifecycleOwner) {
+                if (it == true) {
                     binding.playsong.performClick()
                 }
             }
 
-            likeFlag.observe(viewLifecycleOwner){
-                if (it == true){
+            likeFlag.observe(viewLifecycleOwner) {
+                if (it == true) {
                     binding.favoriteFlag.setBackgroundResource(R.drawable.favorite_24px_yes)
                 }
             }
 
-            nowMusicRecordImageList.observe(viewLifecycleOwner){
+            nowMusicRecordImageList.observe(viewLifecycleOwner) {
                 adapter.setRecordList(it)
             }
 
-            playbackState.observe(viewLifecycleOwner){
-                when(it.state){
+            playbackState.observe(viewLifecycleOwner) {
+                when (it.state) {
                     PlaybackStateCompat.STATE_PLAYING -> {
                         binding.playsong.setBackgroundResource(R.drawable.outline_pause_24)
                     }
@@ -180,12 +184,12 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                         PlaybackStateCompat.STATE_NONE -> {
                             Log.d(TAG, "onClick: STATE_NONE")
                             mController!!.transportControls.play()
-                            if (mainViewModel.initFlag.value == true){
+                            if (mainViewModel.initFlag.value == true) {
                                 mainViewModel.initFlag.value = false
                                 (requireActivity() as MainActivity).thread?.start()
                             }
                         }
-                        PlaybackStateCompat.STATE_SKIPPING_TO_NEXT ->{
+                        PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> {
                             mController!!.transportControls.play()
                         }
                     }
@@ -197,39 +201,51 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                 R.id.lastsong -> {
                     mController?.transportControls?.skipToPrevious()
                 }
-                R.id.favorite_flag->{
-                    if (!mainViewModel.allPlayListSongsCrossRef.value!!.contains(PlaylistSongCrossRef(
-                                    mainViewModel.nowId.value!![1],mainViewModel.nowId.value!![0]))){
+                R.id.favorite_flag -> {
+                    if (!mainViewModel.allPlayListSongsCrossRef.value!!.contains(
+                            PlaylistSongCrossRef(
+                                mainViewModel.nowId.value!![1], mainViewModel.nowId.value!![0]
+                            )
+                        )
+                    ) {
                         binding.favoriteFlag.setBackgroundResource(R.drawable.favorite_24px_yes)
-                        DataBaseUtils.insertMusicSongRef(PlaylistSongCrossRef(mainViewModel.nowId.value!![1], mainViewModel.nowId.value!![0]))
+                        DataBaseUtils.insertMusicSongRef(
+                            PlaylistSongCrossRef(
+                                mainViewModel.nowId.value!![1],
+                                mainViewModel.nowId.value!![0]
+                            )
+                        )
                     }
                 }
-                R.id.repeat_mode->{
+                R.id.repeat_mode -> {
                     val bundle = Bundle()
 
-                    when (repeatMode){
+                    when (repeatMode) {
                         MediaPlaybackService.DEFAULT -> {
                             repeatMode = MediaPlaybackService.SHUFFLE
                             binding.repeatMode.setBackgroundResource(R.drawable.shuffle_24px)
-                            Toast.makeText(requireContext(),"随机播放",Toast.LENGTH_LONG).show()
+                            Toast.makeText(requireContext(), "随机播放", Toast.LENGTH_LONG).show()
                         }
                         MediaPlaybackService.SHUFFLE -> {
                             repeatMode = MediaPlaybackService.REPEAT_ONE
                             binding.repeatMode.setBackgroundResource(R.drawable.repeat_one_24px)
-                            Toast.makeText(requireContext(),"单曲循环",Toast.LENGTH_LONG).show()
+                            Toast.makeText(requireContext(), "单曲循环", Toast.LENGTH_LONG).show()
                         }
                         MediaPlaybackService.REPEAT_ONE -> {
                             repeatMode = MediaPlaybackService.DEFAULT
                             binding.repeatMode.setBackgroundResource(R.drawable.repeat_24px)
-                            Toast.makeText(requireContext(),"列表循环",Toast.LENGTH_LONG).show()
+                            Toast.makeText(requireContext(), "列表循环", Toast.LENGTH_LONG).show()
                         }
                     }
-                    bundle.putInt("order",repeatMode)
-                    mController?.transportControls?.sendCustomAction(MediaPlaybackService.CHANGE_MODE,bundle)
+                    bundle.putInt("order", repeatMode)
+                    mController?.transportControls?.sendCustomAction(
+                        MediaPlaybackService.CHANGE_MODE,
+                        bundle
+                    )
                 }
             }
         } else {
-          Toast.makeText(requireContext(),"你还没有播放列表哦，去添加歌曲吧！",Toast.LENGTH_LONG).show()
+            Toast.makeText(requireContext(), "你还没有播放列表哦，去添加歌曲吧！", Toast.LENGTH_LONG).show()
         }
     }
 
