@@ -2,9 +2,12 @@ package com.example.softmusic.musicSong
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.example.softmusic.R
 import com.example.softmusic.databinding.CardSongBinding
 import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.entity.PlaylistSongCrossRef
@@ -15,8 +18,10 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 class MusicSongAdapter(private val context: Context,
                        private var musicSongList: List<MusicSong>?,
                        private val musicSongListId:Long,
-                       private val listener:ChangePlayMusicListener) :
+                       private val listener:ChangePlayMusicListener,
+                       var selectedId:Long) :
     RecyclerView.Adapter<MusicSongAdapter.ViewHolder>() {
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val cardSongListBinding: CardSongBinding = CardSongBinding.inflate(
             LayoutInflater.from(context), parent, false
@@ -26,9 +31,13 @@ class MusicSongAdapter(private val context: Context,
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+
         holder.cardSongListBinding.songSinger.text = musicSongList?.get(position)?.songSinger
         holder.cardSongListBinding.songTitle.text = musicSongList?.get(position)?.songTitle
-        holder.cardSongListBinding.number.text = (position + 1).toString()
+        Glide.with(context)
+            .load(musicSongList?.get(position)?.songAlbum)
+            .placeholder(R.drawable.music_note_150)
+            .into(holder.cardSongListBinding.songRecord)
         holder.cardSongListBinding.songItem.setOnLongClickListener{
             MaterialAlertDialogBuilder(context)
                 .setTitle("删除歌曲")
@@ -52,6 +61,12 @@ class MusicSongAdapter(private val context: Context,
         holder.cardSongListBinding.songItem.setOnClickListener{
             listener.changePlayMusic(musicSongList?.get(position)?.musicSongId!!,musicSongListId)
         }
+//        if (musicSongList?.get(position)?.musicSongId == selectedId){
+//            holder.cardSongListBinding.apply {
+//                songSinger.setTextColor(androidx.appcompat.R.attr.colorAccent)
+//                songTitle.setTextColor(androidx.appcompat.R.attr.colorAccent)
+//            }
+//        }
 
     }
 
@@ -68,4 +83,11 @@ class MusicSongAdapter(private val context: Context,
         this.musicSongList = list
         notifyDataSetChanged()
     }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun setSelectId(id:Long){
+        selectedId = id
+        notifyDataSetChanged()
+    }
+
 }

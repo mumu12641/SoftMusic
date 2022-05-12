@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.softmusic.MainActivity
+import com.example.softmusic.MainViewModel
 import com.example.softmusic.R
 import com.example.softmusic.databinding.FragmentSongListBinding
 import com.example.softmusic.entity.MusicSongList
@@ -16,8 +17,12 @@ import com.example.softmusic.room.DataBaseUtils
 import com.google.android.material.textfield.TextInputEditText
 import java.util.*
 
+
 class MusicSongListFragment : Fragment(), View.OnClickListener {
     private lateinit var viewModel: MusicSongListViewModel
+    private val mainViewModel: MainViewModel by lazy {
+        (requireActivity() as MainActivity).mainViewModel
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -31,7 +36,8 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
 
         val adapter = MusicSongListAdapter(
             requireContext(),
-            listOf()
+            listOf(),
+            0L
         )
         fragmentSongListBinding.songListList.adapter = adapter
         viewModel.musicSongListLiveData
@@ -42,8 +48,12 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
                     )
                 }
                 adapter.setMusicSongListList(musicSongLists)
+                mainViewModel.currentId.value?.let { adapter.setSelectedId(it[1]) }
                 (requireActivity()).title = MusicSongListViewModel.title
             }
+        mainViewModel.currentId.observe(viewLifecycleOwner){
+            adapter.setSelectedId(it[1])
+        }
         fragmentSongListBinding.floatingActionButton.setOnClickListener(this)
         return fragmentSongListBinding.root
     }

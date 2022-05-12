@@ -1,6 +1,7 @@
 package com.example.softmusic.playMusic
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.session.MediaControllerCompat
@@ -80,6 +81,7 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             lastsong.setOnClickListener(this@MusicPlayFragment)
             favoriteFlag.setOnClickListener(this@MusicPlayFragment)
             repeatMode.setOnClickListener(this@MusicPlayFragment)
+            playList.setOnClickListener(this@MusicPlayFragment)
             snapRecyclerview.layoutManager = layoutManager
             snapRecyclerview.adapter = adapter
             snapRecyclerview.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -122,12 +124,6 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
             currentArtist.observe(viewLifecycleOwner) {
                 binding.artistName.text = it
-            }
-
-            initFlag.observe(viewLifecycleOwner) {
-                if (it == true) {
-                    binding.playsong.performClick()
-                }
             }
 
             likeFlag.observe(viewLifecycleOwner) {
@@ -183,10 +179,6 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                         }
                         PlaybackStateCompat.STATE_NONE -> {
                             mController!!.transportControls.play()
-                            if (mainViewModel.initFlag.value == true) {
-                                mainViewModel.initFlag.value = false
-                                (requireActivity() as MainActivity).thread?.start()
-                            }
                         }
                         PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> {
                             mController!!.transportControls.play()
@@ -241,6 +233,8 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                         MediaPlaybackService.CHANGE_MODE,
                         bundle
                     )
+                }
+                R.id.play_list -> {
                 }
             }
         } else {

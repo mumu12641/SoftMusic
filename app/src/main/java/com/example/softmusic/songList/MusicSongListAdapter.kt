@@ -16,19 +16,20 @@ import com.example.softmusic.entity.MusicSongList
 
 class MusicSongListAdapter(
     private val context: Context,
-    private var musicSongListList: List<MusicSongList>
+    private var musicSongListList: List<MusicSongList>,
+    private var selectId:Long
 ) : RecyclerView.Adapter<MusicSongListAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val cardSongListBinding: CardSongListBinding = CardSongListBinding.inflate(LayoutInflater.from(context),parent,false)
         return ViewHolder(cardSongListBinding)
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
         with(holder.cardSongListBinding)
         {
-            songNumber.text = musicSongListList[position].songNumber.toString()
+            songNumber.text = musicSongListList[position].songNumber.toString() + '首'
             songListTitle.text = musicSongListList[position].songListTitle
-            songListBuilder.text = musicSongListList[position].builder
             val array =
                 intArrayOf(R.drawable.card, R.drawable.card2, R.drawable.card3, R.drawable.card3)
             if (musicSongListList[position].imageFileUri == "like"){
@@ -36,10 +37,14 @@ class MusicSongListAdapter(
             }else {
                 imageSongList.setBackgroundResource(array[1])
             }
+            if (musicSongListList[position].musicSongListId == selectId){
+                Log.d("TAG", "onBindViewHolder: selected")
+                songListTitle.setTextColor(androidx.appcompat.R.attr.colorAccent)
+                songNumber.setTextColor(androidx.appcompat.R.attr.colorAccent)
+            }
             songListItem.setOnClickListener { view: View ->
                 val controller: NavController = findNavController(view)
                 val bundle = Bundle()
-                Log.d("TAG", "onBindViewHolder: " +musicSongListList[position].musicSongListId )
                 bundle.putLong("key", musicSongListList[position].musicSongListId)
                 controller.navigate(R.id.action_to_song_fragment, bundle)
             }
@@ -60,5 +65,12 @@ class MusicSongListAdapter(
         this.musicSongListList = musicSongListList
         notifyDataSetChanged()
     }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun setSelectedId(id:Long){
+        selectId = id
+        notifyDataSetChanged()
+    }
+
 
 }

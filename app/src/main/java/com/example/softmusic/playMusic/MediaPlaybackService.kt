@@ -205,6 +205,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
             override fun onSkipToNext() {
                 super.onSkipToNext()
+                Log.d(TAG, "onSkipToNext")
                 if (mode == REPEAT_ONE) {
                     mExoPlayer.seekTo(mExoPlayer.currentMediaItemIndex, 0L)
                 }else if (mExoPlayer.currentMediaItemIndex == list?.size?.minus(1)
@@ -406,11 +407,9 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             .setActions(
             PlaybackStateCompat.ACTION_PAUSE or
                     PlaybackStateCompat.ACTION_PLAY_PAUSE or
-                    PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
                     PlaybackStateCompat.ACTION_STOP or
                     PlaybackStateCompat.ACTION_SEEK_TO or
-                    PlaybackStateCompat.ACTION_PLAY or
-                    PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+                    PlaybackStateCompat.ACTION_PLAY
             )
             .build()
         mSession.setPlaybackState(mPlaybackState)

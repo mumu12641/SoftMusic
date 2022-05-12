@@ -39,6 +39,20 @@ class DataBaseUtils {
             Executors.newCachedThreadPool().execute(future)
             return future.get()
         }
+        fun getAllMediaUri():List<String>{
+            val future = FutureTask {
+                musicDao.getAllMediaUri()
+            }
+            Executors.newCachedThreadPool().execute(future)
+            return future.get()
+        }
+        fun getSongIdByUri(key:String):Long{
+            val future = FutureTask {
+                musicDao.getSongIdByUri(key)
+            }
+            Executors.newCachedThreadPool().execute(future)
+            return future.get()
+        }
 
         fun insertMusicSongRef(vararg playlistSongCrossRefs: PlaylistSongCrossRef?) {
             Thread { musicDao.insertPlaylistSongCrossRef(*playlistSongCrossRefs) }.start()

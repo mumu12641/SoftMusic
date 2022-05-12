@@ -28,7 +28,9 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var mBrowser: MediaBrowserCompat
     lateinit var mController: MediaControllerCompat
-    lateinit var mainViewModel: MainViewModel
+    val mainViewModel: MainViewModel by lazy {
+        ViewModelProvider(this@MainActivity)[MainViewModel::class.java]
+    }
     var thread: UpdateProcessThread? = null
     private val TAG = "MainActivity"
     private lateinit var activityMainBinding: ActivityMainBinding
@@ -46,8 +48,19 @@ class MainActivity : AppCompatActivity() {
             activityMainBinding.appBar.title = navController.currentDestination?.label
         }
 
-        mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
+        mainViewModel.initFlag.observe(this){
+            if (it == true){
+                mainViewModel.initFlag.value = false
+                mController.transportControls.play()
+                Log.d(TAG, "onCreate: " + mainViewModel.duration.value)
+                Log.d(TAG, "onCreate: " + mainViewModel.currentProgress.value)
+                thread?.interrupt()
+                thread = null
+                thread = UpdateProcessThread()
+                thread?.start()
+            }
+        }
         mainViewModel.currentId.observe(this) { it ->
             mainViewModel.nowMusicRecordImageList.value =
                 DataBaseUtils.getPlayListsWithSongsById(it[1]).map { it.songAlbum }
@@ -61,6 +74,7 @@ class MainActivity : AppCompatActivity() {
                 if (mainViewModel.haveMusicFlag) {
                     mBrowser.disconnect()
                 }
+                mainViewModel.haveMusicFlag = true
                 mBrowser = MediaBrowserCompat(this, ComponentName(this,
                     MediaPlaybackService::class.java),
                     mBrowserConnectionCallback,
@@ -75,7 +89,6 @@ class MainActivity : AppCompatActivity() {
                 thread?.interrupt()
                 thread = UpdateProcessThread()
             }
-            Toast.makeText(this, "成功替换播放列表", Toast.LENGTH_LONG).show()
             mainViewModel.haveMusicFlag = true
 
             if (it[1] == 1L) {
@@ -84,25 +97,15 @@ class MainActivity : AppCompatActivity() {
 
         }
 
-        val bundle = Bundle()
         val kv = MMKV.defaultMMKV()
         if (!kv.containsKey("musicSongListId") && !kv.containsKey("musicSongId")) {
             mainViewModel.haveMusicFlag = false
         } else {
+            mainViewModel.currentId.value = listOf(kv.decodeLong("musicSongId"),kv.decodeLong("musicSongListId"))
+            mainViewModel.currentMusicId.value = kv.decodeLong("musicSongId")
             mainViewModel.nowMusicRecordImageList.value =
                 DataBaseUtils.getPlayListsWithSongsById(kv.decodeLong("musicSongListId"))
                     .map { it.songAlbum }
-            mainViewModel.haveMusicFlag = true
-            bundle.apply {
-                putLong("musicSongListId", kv.decodeLong("musicSongListId"))
-                putLong("musicSongId", kv.decodeLong("musicSongId"))
-            }
-            mBrowser = MediaBrowserCompat(
-                this,
-                ComponentName(this, MediaPlaybackService::class.java),  //绑定服务
-                mBrowserConnectionCallback,  // 设置回调
-                bundle
-            )
             if (kv.decodeLong("musicSongListId") == 1L) {
                 mainViewModel.likeFlag.value = true
             }
@@ -158,8 +161,8 @@ class MainActivity : AppCompatActivity() {
                 super.onChildrenLoaded(parentId, children)
                 mainViewModel.duration.value = mController.metadata
                     ?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
-                thread?.interrupt()
-                thread = UpdateProcessThread()
+//                thread?.interrupt()
+//                thread = UpdateProcessThread()
             }
         }
     private val mMediaControllerCallback: MediaControllerCompat.Callback =
@@ -187,7 +190,6 @@ class MainActivity : AppCompatActivity() {
                     PlaybackStateCompat.STATE_NONE -> {
                         mainViewModel.currentProgress.value = 0
                         mainViewModel.lastProgress.value = -1
-                        mainViewModel.initFlag.value = true
                     }
                     PlaybackStateCompat.STATE_PLAYING -> {
                         mainViewModel.lastProgress.value = -1
@@ -212,6 +214,12 @@ class MainActivity : AppCompatActivity() {
                     )
                     currentArtist.value =
                         metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
+                    currentMusicId.value = metadata.getString(METADATA_KEY_MEDIA_ID).toLong()
+                }
+                if (mController.playbackState.state == PlaybackStateCompat.STATE_NONE){
+                    mainViewModel.currentProgress.value = 0
+                    mainViewModel.lastProgress.value = -1
+                    mainViewModel.initFlag.value = true
                 }
             }
         }
@@ -225,7 +233,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 mainViewModel.currentProgress.postValue(mainViewModel.currentProgress.value!!.plus(1))
                 SystemClock.sleep(1000)
-                if (mainViewModel.currentProgress.value!! == (mainViewModel.duration.value!!.div(1000))) {
+                if (mainViewModel.currentProgress.value!! >= (mainViewModel.duration.value!!.div(1000)) - 1) {
                     mController.transportControls?.skipToNext()
                     mainViewModel.autoChangeFlag = true
                 }

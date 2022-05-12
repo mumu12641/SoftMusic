@@ -146,8 +146,19 @@
             app:layout_constraintEnd_toStartOf="@+id/lastsong"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/lastsong"
+            android:visibility="gone"
             app:srcCompat="@drawable/favorite_24px" />
-
+        <ImageView
+            android:id="@+id/play_list"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="35dp"
+            app:layout_constraintBottom_toBottomOf="@+id/lastsong"
+            app:layout_constraintEnd_toStartOf="@+id/lastsong"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/lastsong"
+            app:srcCompat="@drawable/format_list_bulleted_36px" />
         <ImageView
             android:id="@+id/repeat_mode"
             android:layout_width="wrap_content"

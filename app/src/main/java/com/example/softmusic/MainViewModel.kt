@@ -21,6 +21,8 @@ class MainViewModel : ViewModel() {
 
     val currentId: MutableLiveData<List<Long>> = MutableLiveData()
 
+    val currentMusicId:MutableLiveData<Long> = MutableLiveData()
+
     val currentTitle: MutableLiveData<String> = MutableLiveData()
 
     val currentArtist: MutableLiveData<String> = MutableLiveData()

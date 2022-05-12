@@ -18,6 +18,11 @@ interface MusicDao {
     val allMusicSong: LiveData<List<MusicSong>>
     @Query("SELECT * FROM musicSong")
     fun getAllMusicSongs():List<MusicSong>
+    @Query("SELECT mediaFileUri FROM musicsong")
+    fun getAllMediaUri():List<String>
+    @Query("SELECT musicSongId FROM musicsong WHERE mediaFileUri = :key")
+    fun getSongIdByUri(key:String):Long
+
     @Query("SELECT songAlbum FROM musicsong WHERE musicSongId = :key")
     fun getImageUri(key: Long):String
 
