@@ -11,7 +11,6 @@ import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -220,7 +219,6 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "onMetadataChanged: " + currentImageUri.value)
                 }
                 if (mController.playbackState.state == PlaybackStateCompat.STATE_NONE){
-                    mainViewModel.currentProgress.value = 0
                     mainViewModel.lastProgress.value = -1
                     mainViewModel.initFlag.value = true
                 }

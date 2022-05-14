@@ -78,6 +78,7 @@ class MusicSongFragment : Fragment() {
                 .request { allGranted, _, _ ->
                     if (allGranted) {
                         getLocalMusic()
+                        Toast.makeText(requireContext(),"加载或更新本地歌曲完成",Toast.LENGTH_LONG).show()
                     } else {
                         Toast.makeText(requireContext(), "你拒绝了以上权限", Toast.LENGTH_LONG).show()
                     }
@@ -111,29 +112,42 @@ class MusicSongFragment : Fragment() {
                     )
 
                     if (musicSongViewModel.getMediaUriList().isEmpty() || !musicSongViewModel.getMediaUriList().contains(song.mediaFileUri)){
+                        // 防止重复插入歌曲
                         id = DataBaseUtils.insertMusicSong(song)
                         Log.d("TAG", "getLocalMusic: " + musicSongViewModel.getMediaUriList().toString())
                     }
 
                     if (id == 0L){
-                        DataBaseUtils.insertMusicSongRef(
-                            PlaylistSongCrossRef(
-                                musicSongViewModel.musicSongListId,
-                                DataBaseUtils.getSongIdByUri(song.mediaFileUri)
-                            )
-                        )
+                        // 已经存在歌曲 还应该判断是否存在Ref
+                            if (musicSongViewModel.allCrossRef.value?.contains(PlaylistSongCrossRef(
+                                    musicSongViewModel.musicSongListId,
+                                    DataBaseUtils.getSongIdByUri(song.mediaFileUri)
+                                )) == false){
+                                DataBaseUtils.insertMusicSongRef(
+                                    PlaylistSongCrossRef(
+                                        musicSongViewModel.musicSongListId,
+                                        DataBaseUtils.getSongIdByUri(song.mediaFileUri)
+                                    )
+                                )
+                                val songList =
+                                    DataBaseUtils.getMusicSongListById(musicSongViewModel.musicSongListId)
+                                songList.songNumber++
+                                DataBaseUtils.updateMusicSongList(songList)
+                            }
                     } else {
+                        // 如果这个歌还没插入过 一定就要插入Ref
                         DataBaseUtils.insertMusicSongRef(
                             PlaylistSongCrossRef(
                             musicSongViewModel.musicSongListId,
                             id
                         )
                         )
+                        val songList =
+                            DataBaseUtils.getMusicSongListById(musicSongViewModel.musicSongListId)
+                        songList.songNumber++
+                        DataBaseUtils.updateMusicSongList(songList)
                     }
-                    val songList =
-                        DataBaseUtils.getMusicSongListById(musicSongViewModel.musicSongListId)
-                    songList.songNumber++
-                    DataBaseUtils.updateMusicSongList(songList)
+
                 }
             }
 

@@ -310,7 +310,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 mExoPlayer.addMediaItem(MediaItem.fromUri(i.mediaFileUri))
             }
         }
-        mExoPlayer.seekTo(index, position)
+        mExoPlayer.seekTo(index, 0L)
         mExoPlayer.prepare()
         val metadata = l?.get(index)?.let { createMetadataFromMusic(it) }
         mSession.isActive = true
