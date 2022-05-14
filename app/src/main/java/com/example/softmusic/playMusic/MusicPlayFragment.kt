@@ -2,6 +2,7 @@ package com.example.softmusic.playMusic
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import androidx.compose.runtime.currentRecomposeScope
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.session.MediaControllerCompat
@@ -27,6 +28,7 @@ import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.room.DataBaseUtils
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.random.Random
 
 
 class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnClickListener {
@@ -106,6 +108,8 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         mainViewModel.run {
             currentImageUri.observe(viewLifecycleOwner) {
                 currentPosition = mainViewModel.nowMusicRecordImageList.value!!.indexOf(it)
+                Log.d(TAG, "onCreateView: $currentPosition")
+                Log.d(TAG, "onCreateView: $it")
                 binding.snapRecyclerview.scrollToPosition(currentPosition)
             }
             duration.observe(viewLifecycleOwner) {
@@ -216,16 +220,34 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                             repeatMode = MediaPlaybackService.SHUFFLE
                             binding.repeatMode.setBackgroundResource(R.drawable.shuffle_24px)
                             Toast.makeText(requireContext(), "随机播放", Toast.LENGTH_LONG).show()
+
+                            bundle.putInt("seed", 1)
+                            mainViewModel.nowMusicRecordImageList.value =
+                                mainViewModel.nowMusicRecordImageList.value?.shuffled(Random(1))
+
+                            mainViewModel.nowMusicRecordImageList.value?.let {
+                                bundle.putInt("nowIndex",
+                                    it.indexOf(mainViewModel.currentImageUri.value))
+                                currentPosition = it.indexOf(mainViewModel.currentImageUri.value)
+                                binding.snapRecyclerview.scrollToPosition(currentPosition)
+                            }
+
                         }
                         MediaPlaybackService.SHUFFLE -> {
                             repeatMode = MediaPlaybackService.REPEAT_ONE
                             binding.repeatMode.setBackgroundResource(R.drawable.repeat_one_24px)
                             Toast.makeText(requireContext(), "单曲循环", Toast.LENGTH_LONG).show()
+
                         }
                         MediaPlaybackService.REPEAT_ONE -> {
                             repeatMode = MediaPlaybackService.DEFAULT
                             binding.repeatMode.setBackgroundResource(R.drawable.repeat_24px)
                             Toast.makeText(requireContext(), "列表循环", Toast.LENGTH_LONG).show()
+
+                            mainViewModel.nowMusicRecordImageList.value = mainViewModel.rawMusicRecordImageList.value
+                            currentPosition = mainViewModel.nowMusicRecordImageList.value?.indexOf(mainViewModel.currentImageUri.value)!!
+                            bundle.putInt("nowIndex",currentPosition)
+                            binding.snapRecyclerview.scrollToPosition(currentPosition)
                         }
                     }
                     bundle.putInt("order", repeatMode)

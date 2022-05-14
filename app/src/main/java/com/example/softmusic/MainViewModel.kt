@@ -29,6 +29,8 @@ class MainViewModel : ViewModel() {
 
     val nowMusicRecordImageList = MutableLiveData<List<String>>()
 
+    val rawMusicRecordImageList = MutableLiveData<List<String>>()
+
     var haveMusicFlag = false
 
     val currentImageUri: MutableLiveData<String> = MutableLiveData()

@@ -29,6 +29,8 @@ class MusicSongAdapter(private val context: Context,
         return ViewHolder(cardSongListBinding)
     }
 
+
+
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
@@ -61,12 +63,12 @@ class MusicSongAdapter(private val context: Context,
         holder.cardSongListBinding.songItem.setOnClickListener{
             listener.changePlayMusic(musicSongList?.get(position)?.musicSongId!!,musicSongListId)
         }
-//        if (musicSongList?.get(position)?.musicSongId == selectedId){
-//            holder.cardSongListBinding.apply {
-//                songSinger.setTextColor(androidx.appcompat.R.attr.colorAccent)
-//                songTitle.setTextColor(androidx.appcompat.R.attr.colorAccent)
-//            }
-//        }
+        if (musicSongList?.get(holder.layoutPosition)?.musicSongId == selectedId){
+            holder.cardSongListBinding.apply {
+                songSinger.setTextColor(androidx.appcompat.R.attr.colorAccent)
+                songTitle.setTextColor(androidx.appcompat.R.attr.colorAccent)
+            }
+        }
 
     }
 

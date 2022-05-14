@@ -64,6 +64,7 @@ class MainActivity : AppCompatActivity() {
         mainViewModel.currentId.observe(this) { it ->
             mainViewModel.nowMusicRecordImageList.value =
                 DataBaseUtils.getPlayListsWithSongsById(it[1]).map { it.songAlbum }
+            mainViewModel.rawMusicRecordImageList.value = mainViewModel.nowMusicRecordImageList.value
             val bundle = Bundle()
             bundle.apply {
                 putLong("musicSongId", it[0])
@@ -106,6 +107,7 @@ class MainActivity : AppCompatActivity() {
             mainViewModel.nowMusicRecordImageList.value =
                 DataBaseUtils.getPlayListsWithSongsById(kv.decodeLong("musicSongListId"))
                     .map { it.songAlbum }
+            mainViewModel.rawMusicRecordImageList.value = mainViewModel.nowMusicRecordImageList.value
             if (kv.decodeLong("musicSongListId") == 1L) {
                 mainViewModel.likeFlag.value = true
             }
@@ -188,7 +190,7 @@ class MainActivity : AppCompatActivity() {
                         mController.transportControls?.play()
                     }
                     PlaybackStateCompat.STATE_NONE -> {
-                        mainViewModel.currentProgress.value = 0
+                        mainViewModel.currentProgress.value = (state.position / 1000).toInt()
                         mainViewModel.lastProgress.value = -1
                     }
                     PlaybackStateCompat.STATE_PLAYING -> {
@@ -215,6 +217,7 @@ class MainActivity : AppCompatActivity() {
                     currentArtist.value =
                         metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
                     currentMusicId.value = metadata.getString(METADATA_KEY_MEDIA_ID).toLong()
+                    Log.d(TAG, "onMetadataChanged: " + currentImageUri.value)
                 }
                 if (mController.playbackState.state == PlaybackStateCompat.STATE_NONE){
                     mainViewModel.currentProgress.value = 0

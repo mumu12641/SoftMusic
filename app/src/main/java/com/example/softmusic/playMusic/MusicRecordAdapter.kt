@@ -1,8 +1,11 @@
 package com.example.softmusic.playMusic
 
+import android.animation.Animator
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -35,5 +38,15 @@ class MusicRecordAdapter(private var imageUriList:List<String>,
     fun setRecordList(list:List<String>){
         this.imageUriList = list
         notifyDataSetChanged()
+    }
+    override fun onViewAttachedToWindow(holder: MusicRecordAdapter.ViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        addAnimation(holder)
+    }
+    private fun getAnimators(v: View) : Animator{
+        return ObjectAnimator.ofFloat(v,"alpha",0f,1f)
+    }
+    private fun addAnimation(holder:MusicRecordAdapter.ViewHolder){
+        getAnimators(holder.musicRecordBinding.recordImage).setDuration(200).start()
     }
 }

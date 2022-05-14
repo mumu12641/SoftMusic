@@ -46,6 +46,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
     private var playNum = 0
     private var nowNum = 0
     private var list: List<MusicSong>? = null
+    private var rawList:List<MusicSong>? = null
     private val TAG = "MediaPlaybackService"
     private lateinit var mReceiver: MediaActionReceiver
     private lateinit var manager: NotificationManager
@@ -235,14 +236,23 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                     mode = extras?.getInt("order")!!
                     when (mode) {
                         DEFAULT -> {
-                            mExoPlayer.shuffleModeEnabled = false
                             mExoPlayer.repeatMode = Player.REPEAT_MODE_ALL
+                            list = rawList
+                            nowNum = extras.getInt("nowIndex")
+                            mExoPlayer.clearMediaItems()
+                            reLoadMusic(nowNum,list,mExoPlayer.currentPosition)
                         }
                         SHUFFLE -> {
-                            mExoPlayer.shuffleModeEnabled = true
+                            val seed = extras.getInt("seed")
+                            val nowIndex = extras.getInt("nowIndex")
+                            val position = mExoPlayer.currentPosition
+                            nowNum = nowIndex
+                            list = list?.shuffled(kotlin.random.Random(seed))
+                            mExoPlayer.clearMediaItems()
+                            reLoadMusic(nowIndex,list,position)
                         }
+
                         REPEAT_ONE -> {
-                            mExoPlayer.shuffleModeEnabled = false
                             mExoPlayer.repeatMode = Player.REPEAT_MODE_ONE
                         }
                     }
@@ -279,6 +289,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
     private fun loadMusic() {
         val musicSong = DataBaseUtils.getMusicSongById(musicSongId)
         list = DataBaseUtils.getPlayListsWithSongsById(musicSongListId)
+        rawList = list
         nowNum = list!!.indexOf(musicSong)
         playNum = list!!.size
 
@@ -288,6 +299,20 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         mExoPlayer.seekTo(nowNum, 0)
         mExoPlayer.prepare()
         val metadata = createMetadataFromMusic(musicSong)
+        mSession.isActive = true
+        mSession.setMetadata(metadata)
+        updatePlayBackState(PlaybackStateCompat.STATE_NONE)
+    }
+
+    private fun reLoadMusic(index:Int,l:List<MusicSong>?,position:Long){
+        if (l != null) {
+            for (i in l) {
+                mExoPlayer.addMediaItem(MediaItem.fromUri(i.mediaFileUri))
+            }
+        }
+        mExoPlayer.seekTo(index, position)
+        mExoPlayer.prepare()
+        val metadata = l?.get(index)?.let { createMetadataFromMusic(it) }
         mSession.isActive = true
         mSession.setMetadata(metadata)
         updatePlayBackState(PlaybackStateCompat.STATE_NONE)
