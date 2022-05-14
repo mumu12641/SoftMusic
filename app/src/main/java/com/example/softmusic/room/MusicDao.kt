@@ -57,8 +57,10 @@ interface MusicDao {
     @Delete
     fun deletePlaylistSongCrossRef(vararg playlistSongCrossRefs: PlaylistSongCrossRef?)
 
-    @get:Query("SELECT * FROM playlistsongcrossref")
+    @get:Query("SELECT * FROM playlistSongCrossRef")
     val allPlayListSongCrossRef:LiveData<List<PlaylistSongCrossRef>>
+    @Query("SELECT * FROM playlistSongCrossRef")
+    fun getAllRef():List<PlaylistSongCrossRef>
 
 
     @get:Query("SELECT * FROM musicSongList")

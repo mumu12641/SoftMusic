@@ -69,6 +69,13 @@ class DataBaseUtils {
         fun getAllPlaylistSongCrossRef():LiveData<List<PlaylistSongCrossRef>>{
             return musicDao.allPlayListSongCrossRef
         }
+        fun getAllRef():List<PlaylistSongCrossRef>{
+            val future = FutureTask {
+                musicDao.getAllRef()
+            }
+            Executors.newCachedThreadPool().execute(future)
+            return future.get()
+        }
 
         fun insertMusicSongList(vararg musicSongLists: MusicSongList) {
             Thread { musicDao.insertMusicSongList(*musicSongLists) }.start()

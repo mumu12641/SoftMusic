@@ -47,7 +47,7 @@ class MusicSongAdapter(private val context: Context,
                     dialog.cancel()
                 }
                 .setPositiveButton("确认") { _, _ ->
-                    DataBaseUtils.deleteMusicSong(musicSongList?.get(position))
+//                    DataBaseUtils.deleteMusicSong(musicSongList?.get(position))
                     DataBaseUtils.deleteMusicSongRef(
                         PlaylistSongCrossRef(musicSongListId,
                             musicSongList?.get(position)?.musicSongId!!)

@@ -2,15 +2,18 @@ package com.example.softmusic.musicSong
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
+import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.entity.PlaylistWithSongs
 import com.example.softmusic.room.DataBaseUtils
 import kotlin.properties.Delegates
 
 class MusicSongViewModel : ViewModel() {
     private lateinit var playlistWithSongsData: LiveData<PlaylistWithSongs>
+
     var allMediaUri:List<String> = DataBaseUtils.getAllMediaUri()
+
     var musicSongListId by Delegates.notNull<Long>()
-    var allCrossRef = DataBaseUtils.getAllPlaylistSongCrossRef()
+
     fun getPlaylistWithSongs(key:Long) : LiveData<PlaylistWithSongs>{
         playlistWithSongsData = DataBaseUtils.getLiveDataPlaylistsWithSongsById(key)
         return playlistWithSongsData

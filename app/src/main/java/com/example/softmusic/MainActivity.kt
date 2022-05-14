@@ -64,6 +64,10 @@ class MainActivity : AppCompatActivity() {
             mainViewModel.nowMusicRecordImageList.value =
                 DataBaseUtils.getPlayListsWithSongsById(it[1]).map { it.songAlbum }
             mainViewModel.rawMusicRecordImageList.value = mainViewModel.nowMusicRecordImageList.value
+
+            mainViewModel.nowPlayList.value = DataBaseUtils.getPlayListsWithSongsById(it[1])
+            mainViewModel.rawPlayList.value = mainViewModel.nowPlayList.value
+
             val bundle = Bundle()
             bundle.apply {
                 putLong("musicSongId", it[0])
@@ -103,10 +107,15 @@ class MainActivity : AppCompatActivity() {
         } else {
             mainViewModel.currentId.value = listOf(kv.decodeLong("musicSongId"),kv.decodeLong("musicSongListId"))
             mainViewModel.currentMusicId.value = kv.decodeLong("musicSongId")
+
             mainViewModel.nowMusicRecordImageList.value =
                 DataBaseUtils.getPlayListsWithSongsById(kv.decodeLong("musicSongListId"))
                     .map { it.songAlbum }
             mainViewModel.rawMusicRecordImageList.value = mainViewModel.nowMusicRecordImageList.value
+
+            mainViewModel.nowPlayList.value = DataBaseUtils.getPlayListsWithSongsById(kv.decodeLong("musicSongListId"))
+            mainViewModel.rawPlayList.value = mainViewModel.nowPlayList.value
+
             if (kv.decodeLong("musicSongListId") == 1L) {
                 mainViewModel.likeFlag.value = true
             }
@@ -216,6 +225,7 @@ class MainActivity : AppCompatActivity() {
                     currentArtist.value =
                         metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
                     currentMusicId.value = metadata.getString(METADATA_KEY_MEDIA_ID).toLong()
+                    Log.d(TAG, "now musicId" + currentMusicId.value)
                     Log.d(TAG, "onMetadataChanged: " + currentImageUri.value)
                 }
                 if (mController.playbackState.state == PlaybackStateCompat.STATE_NONE){

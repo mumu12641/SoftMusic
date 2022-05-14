@@ -3,6 +3,7 @@ package com.example.softmusic
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.room.DataBaseUtils
 
 class MainViewModel : ViewModel() {
@@ -26,6 +27,10 @@ class MainViewModel : ViewModel() {
     val currentTitle: MutableLiveData<String> = MutableLiveData()
 
     val currentArtist: MutableLiveData<String> = MutableLiveData()
+
+    val nowPlayList = MutableLiveData<List<MusicSong>>()
+
+    val rawPlayList = MutableLiveData<List<MusicSong>>()
 
     val nowMusicRecordImageList = MutableLiveData<List<String>>()
 

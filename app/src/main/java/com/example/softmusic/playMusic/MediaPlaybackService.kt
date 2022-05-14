@@ -207,25 +207,32 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             override fun onSkipToNext() {
                 super.onSkipToNext()
                 Log.d(TAG, "onSkipToNext")
-                if (mode == REPEAT_ONE) {
-                    mExoPlayer.seekTo(mExoPlayer.currentMediaItemIndex, 0L)
-                }else if (mExoPlayer.currentMediaItemIndex == list?.size?.minus(1)
-                        && mode == DEFAULT) {
-                    mExoPlayer.seekTo(0,0L)
-                } else {
-                    mExoPlayer.seekToNextMediaItem()
+                when {
+                    mode == REPEAT_ONE -> {
+                        mExoPlayer.seekTo(mExoPlayer.currentMediaItemIndex, 0L)
+                    }
+                    mExoPlayer.currentMediaItemIndex == list?.size?.minus(1) -> {
+                        mExoPlayer.seekTo(0,0L)
+                    }
+                    else -> {
+                        mExoPlayer.seekToNextMediaItem()
+                    }
                 }
                 changeMusicSong(list?.get(mExoPlayer.currentMediaItemIndex)!!)
             }
 
             override fun onSkipToPrevious() {
                 super.onSkipToPrevious()
-                if (mode == REPEAT_ONE) {
-                    mExoPlayer.seekTo(mExoPlayer.currentMediaItemIndex, 0L)
-                } else if (mExoPlayer.currentMediaItemIndex == 0 && mode == DEFAULT){
-                    mExoPlayer.seekTo(list?.size?.minus(1)!! ,0L)
-                } else {
-                    mExoPlayer.seekToPreviousMediaItem()
+                when {
+                    mode == REPEAT_ONE -> {
+                        mExoPlayer.seekTo(mExoPlayer.currentMediaItemIndex, 0L)
+                    }
+                    mExoPlayer.currentMediaItemIndex == 0 -> {
+                        mExoPlayer.seekTo(list?.size?.minus(1)!! ,0L)
+                    }
+                    else -> {
+                        mExoPlayer.seekToPreviousMediaItem()
+                    }
                 }
                 changeMusicSong(list?.get(mExoPlayer.currentMediaItemIndex)!!)
             }
@@ -246,8 +253,12 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                             val seed = extras.getInt("seed")
                             val nowIndex = extras.getInt("nowIndex")
                             val position = mExoPlayer.currentPosition
+
+                            Log.d(TAG, "onCustomAction: before$list")
+
                             nowNum = nowIndex
                             list = list?.shuffled(kotlin.random.Random(seed))
+                            Log.d(TAG, "onCustomAction: after$list")
                             mExoPlayer.clearMediaItems()
                             reLoadMusic(nowIndex,list,position)
                         }

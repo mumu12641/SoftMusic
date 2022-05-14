@@ -136,7 +136,10 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                 }
             }
 
-            nowMusicRecordImageList.observe(viewLifecycleOwner) {
+//            nowMusicRecordImageList.observe(viewLifecycleOwner) {
+//                adapter.setRecordList(it)
+//            }
+            nowPlayList.observe(viewLifecycleOwner){
                 adapter.setRecordList(it)
             }
 
@@ -222,15 +225,32 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                             Toast.makeText(requireContext(), "随机播放", Toast.LENGTH_LONG).show()
 
                             bundle.putInt("seed", 1)
-                            mainViewModel.nowMusicRecordImageList.value =
-                                mainViewModel.nowMusicRecordImageList.value?.shuffled(Random(1))
+//                            mainViewModel.nowMusicRecordImageList.value =
+//                                mainViewModel.nowMusicRecordImageList.value?.shuffled(Random(1))
+                            Log.d(TAG, "onClick: before" + mainViewModel.nowPlayList.value)
+                            Log.d(TAG, "onClick: position$currentPosition")
+                            mainViewModel.nowPlayList.value =
+                                mainViewModel.nowPlayList.value?.shuffled(Random(1))
+                            Log.d(TAG, "onClick: after" + mainViewModel.nowPlayList.value)
 
-                            mainViewModel.nowMusicRecordImageList.value?.let {
-                                bundle.putInt("nowIndex",
-                                    it.indexOf(mainViewModel.currentImageUri.value))
-                                currentPosition = it.indexOf(mainViewModel.currentImageUri.value)
+                            mainViewModel.nowPlayList.value?.let {
+
+                                currentPosition = it.indexOf(mainViewModel.currentMusicId.value?.let { it1 ->
+                                    DataBaseUtils.getMusicSongById(it1)
+                                })
+
+                                Log.d(TAG, "onClick: position$currentPosition")
+
+                                bundle.putInt("nowIndex",currentPosition)
                                 binding.snapRecyclerview.scrollToPosition(currentPosition)
                             }
+
+//                            mainViewModel.nowMusicRecordImageList.value?.let {
+//                                bundle.putInt("nowIndex",
+//                                    it.indexOf(mainViewModel.currentImageUri.value))
+//                                currentPosition = it.indexOf(mainViewModel.currentImageUri.value)
+//                                binding.snapRecyclerview.scrollToPosition(currentPosition)
+//                            }
 
                         }
                         MediaPlaybackService.SHUFFLE -> {
@@ -238,16 +258,24 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                             binding.repeatMode.setBackgroundResource(R.drawable.repeat_one_24px)
                             Toast.makeText(requireContext(), "单曲循环", Toast.LENGTH_LONG).show()
 
+
                         }
                         MediaPlaybackService.REPEAT_ONE -> {
                             repeatMode = MediaPlaybackService.DEFAULT
                             binding.repeatMode.setBackgroundResource(R.drawable.repeat_24px)
                             Toast.makeText(requireContext(), "列表循环", Toast.LENGTH_LONG).show()
 
-                            mainViewModel.nowMusicRecordImageList.value = mainViewModel.rawMusicRecordImageList.value
-                            currentPosition = mainViewModel.nowMusicRecordImageList.value?.indexOf(mainViewModel.currentImageUri.value)!!
+                            mainViewModel.nowPlayList.value = mainViewModel.rawPlayList.value
+                            currentPosition = mainViewModel.nowPlayList.value?.indexOf(mainViewModel.currentMusicId.value?.let {
+                                DataBaseUtils.getMusicSongById(it)
+                            })!!
                             bundle.putInt("nowIndex",currentPosition)
                             binding.snapRecyclerview.scrollToPosition(currentPosition)
+
+//                            mainViewModel.nowMusicRecordImageList.value = mainViewModel.rawMusicRecordImageList.value
+//                            currentPosition = mainViewModel.nowMusicRecordImageList.value?.indexOf(mainViewModel.currentImageUri.value)!!
+//                            bundle.putInt("nowIndex",currentPosition)
+//                            binding.snapRecyclerview.scrollToPosition(currentPosition)
                         }
                     }
                     bundle.putInt("order", repeatMode)

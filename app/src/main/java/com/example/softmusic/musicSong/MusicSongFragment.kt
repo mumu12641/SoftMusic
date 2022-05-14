@@ -30,6 +30,7 @@ class MusicSongFragment : Fragment() {
     private lateinit var _fragmentSongBinding: FragmentSongBinding
     private val fragmentSongBinding get() = _fragmentSongBinding
     private lateinit var musicSongViewModel: MusicSongViewModel
+    private  val TAG = "MusicSongFragment"
     private val mainViewModel:MainViewModel by lazy {
         (requireActivity() as MainActivity).mainViewModel
     }
@@ -58,6 +59,7 @@ class MusicSongFragment : Fragment() {
                         mainViewModel.currentMusicId.value = musicSongId
                     }
                 },0L)
+
         fragmentSongBinding.songsList.adapter = adapter
         musicSongViewModel.getPlaylistWithSongs(musicSongViewModel.musicSongListId).observe(viewLifecycleOwner) {
             adapter.setMusicSongs(it.songs)
@@ -65,9 +67,9 @@ class MusicSongFragment : Fragment() {
             adapter.notifyItemChanged(0)
             fragmentSongBinding.textView.text = it?.musicSongList?.songListTitle
         }
-        mainViewModel.currentMusicId.observe(viewLifecycleOwner){
-//            adapter.setSelectId(it)
-        }
+//        mainViewModel.currentMusicId.observe(viewLifecycleOwner){
+////            adapter.setSelectId(it)
+//        }
         fragmentSongBinding.addMusicSong.setOnClickListener {
             PermissionX.init(this)
                 .permissions(
@@ -96,7 +98,7 @@ class MusicSongFragment : Fragment() {
             null,
             MediaStore.Audio.AudioColumns.IS_MUSIC
         )
-
+        val list = DataBaseUtils.getAllRef()
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 if (cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)) > 100 * 1000) {
@@ -119,10 +121,12 @@ class MusicSongFragment : Fragment() {
 
                     if (id == 0L){
                         // 已经存在歌曲 还应该判断是否存在Ref
-                            if (musicSongViewModel.allCrossRef.value?.contains(PlaylistSongCrossRef(
+                            if (!list.contains(PlaylistSongCrossRef(
                                     musicSongViewModel.musicSongListId,
                                     DataBaseUtils.getSongIdByUri(song.mediaFileUri)
-                                )) == false){
+                                ))
+                            ){
+                                Log.d(TAG, "getLocalMusic: false")
                                 DataBaseUtils.insertMusicSongRef(
                                     PlaylistSongCrossRef(
                                         musicSongViewModel.musicSongListId,
@@ -140,7 +144,7 @@ class MusicSongFragment : Fragment() {
                             PlaylistSongCrossRef(
                             musicSongViewModel.musicSongListId,
                             id
-                        )
+                            )
                         )
                         val songList =
                             DataBaseUtils.getMusicSongListById(musicSongViewModel.musicSongListId)
