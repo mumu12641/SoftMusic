@@ -58,7 +58,8 @@ class MusicSongFragment : Fragment() {
                         (requireActivity() as MainActivity).mainViewModel.currentId.value = list
                         mainViewModel.currentMusicId.value = musicSongId
                     }
-                },0L)
+                }, 0L
+        )
 
         fragmentSongBinding.songsList.adapter = adapter
         musicSongViewModel.getPlaylistWithSongs(musicSongViewModel.musicSongListId).observe(viewLifecycleOwner) {
@@ -68,7 +69,7 @@ class MusicSongFragment : Fragment() {
             fragmentSongBinding.textView.text = it?.musicSongList?.songListTitle
         }
 //        mainViewModel.currentMusicId.observe(viewLifecycleOwner){
-////            adapter.setSelectId(it)
+//            adapter.setSelectId(it)
 //        }
         fragmentSongBinding.addMusicSong.setOnClickListener {
             PermissionX.init(this)

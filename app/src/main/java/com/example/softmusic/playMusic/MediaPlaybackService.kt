@@ -106,10 +106,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
     override fun onDestroy() {
         super.onDestroy()
-        val kv = MMKV.defaultMMKV()
-        Log.d(TAG, "onDestroy")
-        kv.encode("musicSongId", list?.get(nowNum)?.musicSongId!!)
-        kv.encode("musicSongListId", musicSongListId)
+
         mExoPlayer.release()
         mSession.release()
         unregisterReceiver(mReceiver)
@@ -255,8 +252,9 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                     when (mode) {
                         DEFAULT -> {
                             mExoPlayer.repeatMode = Player.REPEAT_MODE_ALL
+
                             list = rawList
-//                            nowNum = extras.getInt("nowIndex")
+                            Log.d(TAG, "onCustomAction: $nowNum")
                             val item = mExoPlayer.getMediaItemAt(nowNum)
                             mExoPlayer.clearMediaItems()
                             reLoadMusic(list,mExoPlayer.currentPosition,item)
@@ -276,12 +274,20 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
                         REPEAT_ONE -> {
                             mExoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+                            nowNum = mExoPlayer.currentMediaItemIndex
+                            Log.d(TAG, "onCustomAction: $nowNum")
                         }
                     }
                 } else if (action == CHANGE_LIST) {
                     musicSongId = extras?.getLong("musicSongId")!!
                     musicSongListId = extras.getLong("musicSongListId")
-                    loadMusic()
+
+//                    loadMusic()
+                    flag = true
+                    Log.d(TAG, "change list: $musicSongId")
+                    Log.d(TAG, "change list: $musicSongListId")
+                    mExoPlayer.clearMediaItems()
+                    this@MediaPlaybackService.notifyChildrenChanged(MY_MEDIA_ROOT_ID)
                 }
             }
         }
@@ -313,6 +319,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         list = DataBaseUtils.getPlayListsWithSongsById(musicSongListId)
         rawList = list
         nowNum = list!!.indexOf(musicSong)
+        Log.d(TAG, "loadMusic: $nowNum")
         playNum = list!!.size
 
         for (i in list!!) {

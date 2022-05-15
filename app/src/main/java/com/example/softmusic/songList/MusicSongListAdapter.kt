@@ -38,9 +38,8 @@ class MusicSongListAdapter(
                 imageSongList.setBackgroundResource(array[1])
             }
             if (musicSongListList[position].musicSongListId == selectId){
-                Log.d("TAG", "onBindViewHolder: selected")
-//                songListTitle.setTextColor(androidx.appcompat.R.attr.colorAccent)
-//                songNumber.setTextColor(androidx.appcompat.R.attr.colorAccent)
+                songListTitle.setTextColor(androidx.appcompat.R.attr.colorAccent)
+                songNumber.setTextColor(androidx.appcompat.R.attr.colorAccent)
             }
             songListItem.setOnClickListener { view: View ->
                 val controller: NavController = findNavController(view)

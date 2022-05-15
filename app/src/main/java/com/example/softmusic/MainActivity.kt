@@ -63,6 +63,8 @@ class MainActivity : AppCompatActivity() {
         }
         mainViewModel.currentId.observe(this) { it ->
 
+            mainViewModel.currentPlayMode.value = MediaPlaybackService.DEFAULT
+
             mainViewModel.nowPlayList.value = DataBaseUtils.getPlayListsWithSongsById(it[1])
             mainViewModel.rawPlayList.value = mainViewModel.nowPlayList.value
 
@@ -140,6 +142,9 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
         Log.d(TAG, "onStop: ")
         // TODO mmkv
+        val kv = MMKV.defaultMMKV()
+        mainViewModel.currentMusicId.value?.let { kv.encode("musicSongId", it) }
+        mainViewModel.currentId.value?.get(1)?.let { kv.encode("musicSongListId", it) }
     }
 
 
