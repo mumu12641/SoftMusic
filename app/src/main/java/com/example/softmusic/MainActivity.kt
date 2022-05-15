@@ -18,6 +18,7 @@ import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import com.example.softmusic.databinding.ActivityMainBinding
+import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.playMusic.MediaPlaybackService
 import com.example.softmusic.room.DataBaseUtils
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -61,9 +62,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         mainViewModel.currentId.observe(this) { it ->
-            mainViewModel.nowMusicRecordImageList.value =
-                DataBaseUtils.getPlayListsWithSongsById(it[1]).map { it.songAlbum }
-            mainViewModel.rawMusicRecordImageList.value = mainViewModel.nowMusicRecordImageList.value
 
             mainViewModel.nowPlayList.value = DataBaseUtils.getPlayListsWithSongsById(it[1])
             mainViewModel.rawPlayList.value = mainViewModel.nowPlayList.value
@@ -108,10 +106,6 @@ class MainActivity : AppCompatActivity() {
             mainViewModel.currentId.value = listOf(kv.decodeLong("musicSongId"),kv.decodeLong("musicSongListId"))
             mainViewModel.currentMusicId.value = kv.decodeLong("musicSongId")
 
-            mainViewModel.nowMusicRecordImageList.value =
-                DataBaseUtils.getPlayListsWithSongsById(kv.decodeLong("musicSongListId"))
-                    .map { it.songAlbum }
-            mainViewModel.rawMusicRecordImageList.value = mainViewModel.nowMusicRecordImageList.value
 
             mainViewModel.nowPlayList.value = DataBaseUtils.getPlayListsWithSongsById(kv.decodeLong("musicSongListId"))
             mainViewModel.rawPlayList.value = mainViewModel.nowPlayList.value
@@ -168,11 +162,19 @@ class MainActivity : AppCompatActivity() {
                 parentId: String,
                 children: MutableList<MediaBrowserCompat.MediaItem>
             ) {
+                Log.d(TAG, "onChildrenLoaded")
                 super.onChildrenLoaded(parentId, children)
                 mainViewModel.duration.value = mController.metadata
                     ?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
-//                thread?.interrupt()
-//                thread = UpdateProcessThread()
+
+                val list = ArrayList<MusicSong>()
+
+                for (i in children){
+                    list.add(DataBaseUtils.getMusicSongById(i.mediaId?.toLong()!!))
+                }
+                mainViewModel.currentPlayList.value = list
+                Log.d(TAG, "onChildrenLoaded: $list")
+
             }
         }
     private val mMediaControllerCallback: MediaControllerCompat.Callback =
@@ -226,7 +228,6 @@ class MainActivity : AppCompatActivity() {
                         metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
                     currentMusicId.value = metadata.getString(METADATA_KEY_MEDIA_ID).toLong()
                     Log.d(TAG, "now musicId" + currentMusicId.value)
-                    Log.d(TAG, "onMetadataChanged: " + currentImageUri.value)
                 }
                 if (mController.playbackState.state == PlaybackStateCompat.STATE_NONE){
                     mainViewModel.lastProgress.value = -1

@@ -1,8 +1,6 @@
 package com.example.softmusic.playMusic
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
-import androidx.compose.runtime.currentRecomposeScope
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.session.MediaControllerCompat
@@ -24,11 +22,11 @@ import com.example.softmusic.MainActivity
 import com.example.softmusic.MainViewModel
 import com.example.softmusic.R
 import com.example.softmusic.databinding.FragmentMusicPlayBinding
+import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.room.DataBaseUtils
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.random.Random
 
 
 class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnClickListener {
@@ -91,25 +89,43 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                     super.onScrollStateChanged(recyclerView, newState)
                     when (newState) {
                         SCROLL_STATE_IDLE -> {
-                            if (layoutManager.findFirstCompletelyVisibleItemPosition() == currentPosition + 1) {
-                                binding.nextsong.performClick()
-                            } else if (layoutManager.findFirstCompletelyVisibleItemPosition() == currentPosition - 1) {
-                                binding.lastsong.performClick()
+                            when {
+                                layoutManager.findFirstCompletelyVisibleItemPosition() == currentPosition + 1 -> {
+                                    binding.nextsong.performClick()
+                                }
+                                layoutManager.findFirstCompletelyVisibleItemPosition() == currentPosition - 1 -> {
+                                    binding.lastsong.performClick()
+                                }
                             }
                             currentPosition = layoutManager.findFirstCompletelyVisibleItemPosition()
                         }
                     }
                 }
             })
+            when(mainViewModel.currentPlayMode.value){
+                MediaPlaybackService.DEFAULT -> {
+                    binding.repeatMode.setBackgroundResource(R.drawable.repeat_24px)
+                }
+                MediaPlaybackService.REPEAT_ONE -> {
+                    binding.repeatMode.setBackgroundResource(R.drawable.repeat_one_24px)
+                    adapter.setRecordList(listOf(mainViewModel.currentMusicId.value?.let { it1 ->
+                        DataBaseUtils.getMusicSongById(
+                            it1
+                        )
+                    }) as List<MusicSong>)
+                }
+                MediaPlaybackService.SHUFFLE -> {
+                    binding.repeatMode.setImageResource(R.drawable.shuffle_24px)
+                }
+            }
+
         }
 
 
 
         mainViewModel.run {
-            currentImageUri.observe(viewLifecycleOwner) {
-                currentPosition = mainViewModel.nowMusicRecordImageList.value!!.indexOf(it)
-                Log.d(TAG, "onCreateView: $currentPosition")
-                Log.d(TAG, "onCreateView: $it")
+            currentMusicId.observe(viewLifecycleOwner) {
+                currentPosition = mainViewModel.currentPlayList.value!!.indexOf(DataBaseUtils.getMusicSongById(it))
                 binding.snapRecyclerview.scrollToPosition(currentPosition)
             }
             duration.observe(viewLifecycleOwner) {
@@ -130,17 +146,24 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                 binding.artistName.text = it
             }
 
+            currentPlayMode.observe(viewLifecycleOwner) {
+
+            }
+
+            currentPlayList.observe(viewLifecycleOwner) {
+                currentPosition = mainViewModel.currentPlayList.value!!.indexOf(mainViewModel.currentMusicId.value?.let { it1 ->
+                    DataBaseUtils.getMusicSongById(
+                        it1
+                    )
+                })
+                binding.snapRecyclerview.scrollToPosition(currentPosition)
+                adapter.setRecordList(it)
+            }
+
             likeFlag.observe(viewLifecycleOwner) {
                 if (it == true) {
                     binding.favoriteFlag.setBackgroundResource(R.drawable.favorite_24px_yes)
                 }
-            }
-
-//            nowMusicRecordImageList.observe(viewLifecycleOwner) {
-//                adapter.setRecordList(it)
-//            }
-            nowPlayList.observe(viewLifecycleOwner){
-                adapter.setRecordList(it)
             }
 
             playbackState.observe(viewLifecycleOwner) {
@@ -191,7 +214,6 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                             mController!!.transportControls.play()
                         }
                     }
-
                 }
                 R.id.nextsong -> {
                     mController?.transportControls?.skipToNext()
@@ -220,62 +242,28 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
                     when (repeatMode) {
                         MediaPlaybackService.DEFAULT -> {
+                            mainViewModel.currentPlayMode.value = MediaPlaybackService.SHUFFLE
                             repeatMode = MediaPlaybackService.SHUFFLE
                             binding.repeatMode.setBackgroundResource(R.drawable.shuffle_24px)
                             Toast.makeText(requireContext(), "随机播放", Toast.LENGTH_LONG).show()
-
-                            bundle.putInt("seed", 1)
-//                            mainViewModel.nowMusicRecordImageList.value =
-//                                mainViewModel.nowMusicRecordImageList.value?.shuffled(Random(1))
-                            Log.d(TAG, "onClick: before" + mainViewModel.nowPlayList.value)
-                            Log.d(TAG, "onClick: position$currentPosition")
-                            mainViewModel.nowPlayList.value =
-                                mainViewModel.nowPlayList.value?.shuffled(Random(1))
-                            Log.d(TAG, "onClick: after" + mainViewModel.nowPlayList.value)
-
-                            mainViewModel.nowPlayList.value?.let {
-
-                                currentPosition = it.indexOf(mainViewModel.currentMusicId.value?.let { it1 ->
-                                    DataBaseUtils.getMusicSongById(it1)
-                                })
-
-                                Log.d(TAG, "onClick: position$currentPosition")
-
-                                bundle.putInt("nowIndex",currentPosition)
-                                binding.snapRecyclerview.scrollToPosition(currentPosition)
-                            }
-
-//                            mainViewModel.nowMusicRecordImageList.value?.let {
-//                                bundle.putInt("nowIndex",
-//                                    it.indexOf(mainViewModel.currentImageUri.value))
-//                                currentPosition = it.indexOf(mainViewModel.currentImageUri.value)
-//                                binding.snapRecyclerview.scrollToPosition(currentPosition)
-//                            }
-
                         }
                         MediaPlaybackService.SHUFFLE -> {
+                            mainViewModel.currentPlayMode.value = MediaPlaybackService.REPEAT_ONE
                             repeatMode = MediaPlaybackService.REPEAT_ONE
+                            adapter.setRecordList(listOf(mainViewModel.currentMusicId.value?.let { it1 ->
+                                DataBaseUtils.getMusicSongById(
+                                    it1
+                                )
+                            }) as List<MusicSong>)
                             binding.repeatMode.setBackgroundResource(R.drawable.repeat_one_24px)
                             Toast.makeText(requireContext(), "单曲循环", Toast.LENGTH_LONG).show()
 
-
                         }
                         MediaPlaybackService.REPEAT_ONE -> {
+                            mainViewModel.currentPlayMode.value = MediaPlaybackService.DEFAULT
                             repeatMode = MediaPlaybackService.DEFAULT
                             binding.repeatMode.setBackgroundResource(R.drawable.repeat_24px)
                             Toast.makeText(requireContext(), "列表循环", Toast.LENGTH_LONG).show()
-
-                            mainViewModel.nowPlayList.value = mainViewModel.rawPlayList.value
-                            currentPosition = mainViewModel.nowPlayList.value?.indexOf(mainViewModel.currentMusicId.value?.let {
-                                DataBaseUtils.getMusicSongById(it)
-                            })!!
-                            bundle.putInt("nowIndex",currentPosition)
-                            binding.snapRecyclerview.scrollToPosition(currentPosition)
-
-//                            mainViewModel.nowMusicRecordImageList.value = mainViewModel.rawMusicRecordImageList.value
-//                            currentPosition = mainViewModel.nowMusicRecordImageList.value?.indexOf(mainViewModel.currentImageUri.value)!!
-//                            bundle.putInt("nowIndex",currentPosition)
-//                            binding.snapRecyclerview.scrollToPosition(currentPosition)
                         }
                     }
                     bundle.putInt("order", repeatMode)

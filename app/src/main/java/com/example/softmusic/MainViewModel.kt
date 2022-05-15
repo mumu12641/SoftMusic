@@ -4,6 +4,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.softmusic.entity.MusicSong
+import com.example.softmusic.playMusic.MediaPlaybackService
 import com.example.softmusic.room.DataBaseUtils
 
 class MainViewModel : ViewModel() {
@@ -28,13 +29,13 @@ class MainViewModel : ViewModel() {
 
     val currentArtist: MutableLiveData<String> = MutableLiveData()
 
+    val currentPlayMode:MutableLiveData<Int> = MutableLiveData(MediaPlaybackService.DEFAULT)
+
     val nowPlayList = MutableLiveData<List<MusicSong>>()
 
+    val currentPlayList = MutableLiveData<List<MusicSong>>()
+
     val rawPlayList = MutableLiveData<List<MusicSong>>()
-
-    val nowMusicRecordImageList = MutableLiveData<List<String>>()
-
-    val rawMusicRecordImageList = MutableLiveData<List<String>>()
 
     var haveMusicFlag = false
 

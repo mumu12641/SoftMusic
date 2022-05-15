@@ -52,6 +52,10 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
     private lateinit var manager: NotificationManager
     private lateinit var channelId: String
 
+    private var flag = true
+
+    private lateinit var result:Result<MutableList<MediaBrowserCompat.MediaItem>>
+
     override fun onCreate() {
         super.onCreate()
         mPlaybackState = PlaybackStateCompat.Builder().setActions(
@@ -125,9 +129,14 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         parentId: String,
         result: Result<MutableList<MediaBrowserCompat.MediaItem>>
     ) {
+        Log.d(TAG, "onLoadChildren")
+
         result.detach()
         val mediaItems = ArrayList<MediaBrowserCompat.MediaItem>()
-        loadMusic()
+        if (flag) {
+            loadMusic()
+            flag = false
+        }
         for (i in list!!) {
             val metadata = createMetadataFromMusic(i)
             mediaItems.add(
@@ -137,7 +146,9 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 )
             )
         }
+
         result.sendResult(mediaItems)
+        this.result = result
     }
 
     inner class MediaActionReceiver : BroadcastReceiver() {
@@ -245,22 +256,22 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                         DEFAULT -> {
                             mExoPlayer.repeatMode = Player.REPEAT_MODE_ALL
                             list = rawList
-                            nowNum = extras.getInt("nowIndex")
+//                            nowNum = extras.getInt("nowIndex")
+                            val item = mExoPlayer.getMediaItemAt(nowNum)
                             mExoPlayer.clearMediaItems()
-                            reLoadMusic(nowNum,list,mExoPlayer.currentPosition)
+                            reLoadMusic(list,mExoPlayer.currentPosition,item)
                         }
                         SHUFFLE -> {
-                            val seed = extras.getInt("seed")
-                            val nowIndex = extras.getInt("nowIndex")
+                            val seed = 1
                             val position = mExoPlayer.currentPosition
 
-                            Log.d(TAG, "onCustomAction: before$list")
-
-                            nowNum = nowIndex
-                            list = list?.shuffled(kotlin.random.Random(seed))
-                            Log.d(TAG, "onCustomAction: after$list")
+                            nowNum = mExoPlayer.currentMediaItemIndex
+                            val item = mExoPlayer.getMediaItemAt(nowNum)
+                            list = rawList?.shuffled(kotlin.random.Random(seed))
                             mExoPlayer.clearMediaItems()
-                            reLoadMusic(nowIndex,list,position)
+
+                            reLoadMusic(list,position,item)
+
                         }
 
                         REPEAT_ONE -> {
@@ -315,13 +326,21 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         updatePlayBackState(PlaybackStateCompat.STATE_NONE)
     }
 
-    private fun reLoadMusic(index:Int,l:List<MusicSong>?,position:Long){
+    private fun reLoadMusic(l:List<MusicSong>?,position:Long,item: MediaItem?){
+        this.notifyChildrenChanged(MY_MEDIA_ROOT_ID)
+        var j =0
+        var index = 0
         if (l != null) {
             for (i in l) {
                 mExoPlayer.addMediaItem(MediaItem.fromUri(i.mediaFileUri))
+                if (MediaItem.fromUri(i.mediaFileUri) == item){
+                    index = j
+                }
+                j++
             }
         }
         mExoPlayer.seekTo(index, 0L)
+        nowNum = index
         mExoPlayer.prepare()
         val metadata = l?.get(index)?.let { createMetadataFromMusic(it) }
         mSession.isActive = true
@@ -433,6 +452,9 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, songTitle)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, songSinger)
                 .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration.toLong())
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI,songAlbum)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM,albumId.toString())
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI,mediaFileUri)
                 .build()
         }
     }

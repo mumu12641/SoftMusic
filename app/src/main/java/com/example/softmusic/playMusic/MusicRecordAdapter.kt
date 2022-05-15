@@ -25,7 +25,7 @@ class MusicRecordAdapter(private var nowPlayList:List<MusicSong>,
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        Glide.with(context).load(nowPlayList[position].mediaFileUri).placeholder(R.drawable.music_note_150)
+        Glide.with(context).load(nowPlayList[position].songAlbum).placeholder(R.drawable.music_note_150)
             .into(holder.musicRecordBinding.recordImage)
     }
 
