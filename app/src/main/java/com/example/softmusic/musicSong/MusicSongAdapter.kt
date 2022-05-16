@@ -32,40 +32,48 @@ class MusicSongAdapter(private val context: Context,
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        with(holder.cardSongListBinding) {
 
-        holder.cardSongListBinding.songSinger.text = musicSongList?.get(position)?.songSinger
-        holder.cardSongListBinding.songTitle.text = musicSongList?.get(position)?.songTitle
-        Glide.with(context)
-            .load(musicSongList?.get(position)?.songAlbum)
-            .placeholder(R.drawable.music_note_150)
-            .into(holder.cardSongListBinding.songRecord)
-        holder.cardSongListBinding.songItem.setOnLongClickListener{
-            MaterialAlertDialogBuilder(context)
-                .setTitle("删除歌曲")
-                .setMessage("确认删除 " + musicSongList?.get(position)?.songTitle.toString() + " 吗？")
-                .setNegativeButton("取消") { dialog, _ ->
-                    dialog.cancel()
-                }
-                .setPositiveButton("确认") { _, _ ->
+            songSinger.text = musicSongList?.get(position)?.songSinger
+            songTitle.text = musicSongList?.get(position)?.songTitle
+            Glide.with(context)
+                .load(musicSongList?.get(position)?.songAlbum)
+                .placeholder(R.drawable.music_note_150)
+                .into(holder.cardSongListBinding.songRecord)
+            songItem.setOnLongClickListener {
+                MaterialAlertDialogBuilder(context)
+                    .setTitle("删除歌曲")
+                    .setMessage("确认删除 " + musicSongList?.get(position)?.songTitle.toString() + " 吗？")
+                    .setNegativeButton("取消") { dialog, _ ->
+                        dialog.cancel()
+                    }
+                    .setPositiveButton("确认") { _, _ ->
 //                    DataBaseUtils.deleteMusicSong(musicSongList?.get(position))
-                    DataBaseUtils.deleteMusicSongRef(
-                        PlaylistSongCrossRef(musicSongListId,
-                            musicSongList?.get(position)?.musicSongId!!)
-                    )
-                    val songList = DataBaseUtils.getMusicSongListById(musicSongListId)
-                    songList.songNumber --
-                    DataBaseUtils.updateMusicSongList(songList)
-                }
-                .show()
-            return@setOnLongClickListener true
-        }
-        holder.cardSongListBinding.songItem.setOnClickListener{
-            listener.changePlayMusic(musicSongList?.get(position)?.musicSongId!!,musicSongListId)
-        }
-        if (musicSongList?.get(holder.layoutPosition)?.musicSongId == selectedId){
-            holder.cardSongListBinding.apply {
+                        DataBaseUtils.deleteMusicSongRef(
+                            PlaylistSongCrossRef(
+                                musicSongListId,
+                                musicSongList?.get(position)?.musicSongId!!
+                            )
+                        )
+                        val songList = DataBaseUtils.getMusicSongListById(musicSongListId)
+                        songList.songNumber--
+                        DataBaseUtils.updateMusicSongList(songList)
+                    }
+                    .show()
+                return@setOnLongClickListener true
+            }
+            songItem.setOnClickListener {
+                listener.changePlayMusic(
+                    musicSongList?.get(position)?.musicSongId!!,
+                    musicSongListId
+                )
+            }
+            if (musicSongList?.get(position)?.musicSongId == selectedId) {
                 songSinger.setTextColor(androidx.appcompat.R.attr.colorAccent)
                 songTitle.setTextColor(androidx.appcompat.R.attr.colorAccent)
+            }else{
+                songSinger.setTextColor(androidx.appcompat.R.attr.colorPrimaryDark)
+                songTitle.setTextColor(androidx.appcompat.R.attr.colorPrimaryDark)
             }
         }
 

@@ -64,13 +64,13 @@ class MusicSongFragment : Fragment() {
         fragmentSongBinding.songsList.adapter = adapter
         musicSongViewModel.getPlaylistWithSongs(musicSongViewModel.musicSongListId).observe(viewLifecycleOwner) {
             adapter.setMusicSongs(it.songs)
-//            mainViewModel.currentMusicId.value?.let { it1 -> adapter.setSelectId(it1) }
+            mainViewModel.currentMusicId.value?.let { it1 -> adapter.setSelectId(it1) }
             adapter.notifyItemChanged(0)
             fragmentSongBinding.textView.text = it?.musicSongList?.songListTitle
         }
-//        mainViewModel.currentMusicId.observe(viewLifecycleOwner){
-//            adapter.setSelectId(it)
-//        }
+        mainViewModel.currentMusicId.observe(viewLifecycleOwner){
+            adapter.setSelectId(it)
+        }
         fragmentSongBinding.addMusicSong.setOnClickListener {
             PermissionX.init(this)
                 .permissions(

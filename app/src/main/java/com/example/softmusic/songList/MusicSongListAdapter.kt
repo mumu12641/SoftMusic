@@ -40,6 +40,9 @@ class MusicSongListAdapter(
             if (musicSongListList[position].musicSongListId == selectId){
                 songListTitle.setTextColor(androidx.appcompat.R.attr.colorAccent)
                 songNumber.setTextColor(androidx.appcompat.R.attr.colorAccent)
+            } else {
+                songListTitle.setTextColor(androidx.appcompat.R.attr.colorPrimaryDark)
+                songNumber.setTextColor(androidx.appcompat.R.attr.colorPrimaryDark)
             }
             songListItem.setOnClickListener { view: View ->
                 val controller: NavController = findNavController(view)

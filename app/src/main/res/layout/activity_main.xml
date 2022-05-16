@@ -19,6 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:textSize="?attr/textAppearanceDisplayLarge"
+            app:menu="@menu/top_bar_menu"
             app:title="SoftMusic" />
     </com.google.android.material.appbar.AppBarLayout>
 

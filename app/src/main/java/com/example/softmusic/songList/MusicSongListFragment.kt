@@ -37,7 +37,7 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
         val adapter = MusicSongListAdapter(
             requireContext(),
             listOf(),
-            1L
+            0L
         )
         fragmentSongListBinding.songListList.adapter = adapter
         viewModel.musicSongListLiveData

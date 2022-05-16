@@ -11,6 +11,8 @@ import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import android.view.View
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -22,6 +24,8 @@ import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.playMusic.MediaPlaybackService
 import com.example.softmusic.room.DataBaseUtils
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.tencent.mmkv.MMKV
 
 class MainActivity : AppCompatActivity() {
@@ -35,6 +39,8 @@ class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
     private lateinit var activityMainBinding: ActivityMainBinding
 
+    lateinit var bottomSheet:BottomSheet
+
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,12 +48,27 @@ class MainActivity : AppCompatActivity() {
         setContentView(activityMainBinding.root)
         val navController: NavController = findNavController(R.id.nav_host_fragment_activity_main)
         val navigationView: BottomNavigationView = activityMainBinding.navView
+        bottomSheet = BottomSheet(mainViewModel.currentMusicId.value?:0L)
         setupWithNavController(navigationView, navController)
-
         navController.addOnDestinationChangedListener { _, _, _ ->
             activityMainBinding.appBar.title = navController.currentDestination?.label
         }
 
+        activityMainBinding.appBar.setOnMenuItemClickListener{menuItem ->
+            when(menuItem.itemId){
+                R.id.song_menu -> {
+                    bottomSheet.show(supportFragmentManager, BottomSheet.TAG)
+                    true
+                }
+                else -> {
+                    true
+                }
+            }
+        }
+
+        mainViewModel.currentMusicId.observe(this) {
+            bottomSheet = BottomSheet(it)
+        }
 
         mainViewModel.initFlag.observe(this){
             if (it == true){

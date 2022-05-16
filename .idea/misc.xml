@@ -14,6 +14,7 @@
         <entry key="app/src/main/res/drawable/favorite_24px.xml" value="0.366" />
         <entry key="app/src/main/res/drawable/format_list_bulleted-48px.xml" value="0.366" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.3185" />
+        <entry key="app/src/main/res/drawable/menu_48px.xml" value="0.366" />
         <entry key="app/src/main/res/drawable/outline_arrow_back_24.xml" value="0.3185" />
         <entry key="app/src/main/res/drawable/outline_pause_24.xml" value="0.3185" />
         <entry key="app/src/main/res/drawable/outline_pause_64.xml" value="0.363" />
@@ -24,6 +25,7 @@
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.3333333333333333" />
         <entry key="app/src/main/res/layout/blank_fragment.xml" value="0.42934782608695654" />
         <entry key="app/src/main/res/layout/bottom_list_dialog.xml" value="0.4375" />
+        <entry key="app/src/main/res/layout/bottom_sheet.xml" value="0.4466666666666667" />
         <entry key="app/src/main/res/layout/card_song.xml" value="0.3333333333333333" />
         <entry key="app/src/main/res/layout/card_song_list.xml" value="0.3333333333333333" />
         <entry key="app/src/main/res/layout/custom_player_control_view.xml" value="0.42934782608695654" />
@@ -34,6 +36,7 @@
         <entry key="app/src/main/res/layout/fragment_song_list.xml" value="0.41625" />
         <entry key="app/src/main/res/layout/music_record.xml" value="0.39855072463768115" />
         <entry key="app/src/main/res/menu/bottom_navigation_menu.xml" value="0.5453125" />
+        <entry key="app/src/main/res/menu/top_bar_menu.xml" value="0.5453125" />
         <entry key="app/src/main/res/xml/network_security_config.xml" value="0.42934782608695654" />
       </map>
     </option>
