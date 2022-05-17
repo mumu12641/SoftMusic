@@ -18,7 +18,7 @@ class MusicSongAdapter(private val context: Context,
                        private var musicSongList: List<MusicSong>?,
                        private val musicSongListId:Long,
                        private val listener:ChangePlayMusicListener,
-                       var selectedId:Long) :
+                       private var selectedId:Long) :
     RecyclerView.Adapter<MusicSongAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -27,8 +27,6 @@ class MusicSongAdapter(private val context: Context,
         )
         return ViewHolder(cardSongListBinding)
     }
-
-
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -48,7 +46,6 @@ class MusicSongAdapter(private val context: Context,
                         dialog.cancel()
                     }
                     .setPositiveButton("确认") { _, _ ->
-//                    DataBaseUtils.deleteMusicSong(musicSongList?.get(position))
                         DataBaseUtils.deleteMusicSongRef(
                             PlaylistSongCrossRef(
                                 musicSongListId,
@@ -67,8 +64,9 @@ class MusicSongAdapter(private val context: Context,
                     musicSongList?.get(position)?.musicSongId!!,
                     musicSongListId
                 )
+                setSelectId(musicSongList?.get(position)?.musicSongId!!)
             }
-            if (musicSongList?.get(position)?.musicSongId == selectedId) {
+            if (musicSongList?.get(position)?.musicSongId == selectedId ) {
                 songSinger.setTextColor(androidx.appcompat.R.attr.colorAccent)
                 songTitle.setTextColor(androidx.appcompat.R.attr.colorAccent)
             }else{

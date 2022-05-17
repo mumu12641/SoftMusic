@@ -3,7 +3,6 @@ package com.example.softmusic.songList
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,11 +31,7 @@ class MusicSongListAdapter(
             songListTitle.text = musicSongListList[position].songListTitle
             val array =
                 intArrayOf(R.drawable.card, R.drawable.card2, R.drawable.card3, R.drawable.card3)
-            if (musicSongListList[position].imageFileUri == "like"){
-                imageSongList.setBackgroundResource(array[0])
-            }else {
-                imageSongList.setBackgroundResource(array[1])
-            }
+            imageSongList.setBackgroundResource(array[0])
             if (musicSongListList[position].musicSongListId == selectId){
                 songListTitle.setTextColor(androidx.appcompat.R.attr.colorAccent)
                 songNumber.setTextColor(androidx.appcompat.R.attr.colorAccent)

@@ -2,7 +2,6 @@ package com.example.softmusic.musicSong
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.entity.PlaylistWithSongs
 import com.example.softmusic.room.DataBaseUtils
 import kotlin.properties.Delegates

@@ -1,13 +1,11 @@
 package com.example.softmusic.playMusic
 
 import android.annotation.SuppressLint
-import android.app.Dialog
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,7 +14,6 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -27,9 +24,8 @@ import com.example.softmusic.R
 import com.example.softmusic.databinding.FragmentMusicPlayBinding
 import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.entity.PlaylistSongCrossRef
-import com.example.softmusic.listener.ChangePlayMusicListener
-import com.example.softmusic.musicSong.MusicSongAdapter
 import com.example.softmusic.room.DataBaseUtils
+import com.example.softmusic.songList.ListBottomSheet
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -274,34 +270,8 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                     )
                 }
                 R.id.play_list -> {
-                    val bottomDialog = Dialog(requireContext(), R.style.BottomDialog)
-                    val contentView: View =
-                        LayoutInflater.from(requireContext()).inflate(R.layout.bottom_list_dialog, null)
-                    bottomDialog.setContentView(contentView)
-                    val layoutParams = contentView.layoutParams
-                    layoutParams.width = resources.displayMetrics.widthPixels
-                    contentView.layoutParams = layoutParams
-                    bottomDialog.window?.setGravity(Gravity.BOTTOM)
-                    bottomDialog.window?.setWindowAnimations(R.style.BottomDialog_Animation)
-
-                    val listView = contentView.findViewById<RecyclerView>(R.id.bottom_list)
-                    listView.layoutManager = GridLayoutManager(requireActivity(), 1, GridLayoutManager.VERTICAL, false)
-                    val adapter = MusicSongAdapter(requireContext(),mainViewModel.currentPlayList.value,
-                        mainViewModel.currentId.value!![1],object : ChangePlayMusicListener {
-                            override fun changePlayMusic(musicSongId: Long, musicSongListId: Long) {
-                                val list = listOf(musicSongId, musicSongListId)
-                                (requireActivity() as MainActivity).mainViewModel.currentId.value = list
-                                mainViewModel.currentMusicId.value = musicSongId
-                            }
-                        }, mainViewModel.currentMusicId.value!!
-                    )
-                    listView.adapter = adapter
-
-                    val position = mainViewModel.currentPlayList.value!!.indexOf(DataBaseUtils.getMusicSongById(
-                        mainViewModel.currentMusicId.value!!
-                    ))
-                    listView.scrollToPosition(position)
-                    bottomDialog.show()
+                    val listBottomSheet = ListBottomSheet()
+                    listBottomSheet.show((requireActivity() as MainActivity).supportFragmentManager,ListBottomSheet.TAG)
                 }
             }
         } else {

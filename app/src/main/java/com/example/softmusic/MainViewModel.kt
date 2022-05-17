@@ -46,6 +46,7 @@ class MainViewModel : ViewModel() {
     val playbackState by lazy { MutableLiveData(EMPTY_PLAYBACK_STATE) }
 
 
+
     @Suppress("PropertyName")
     val EMPTY_PLAYBACK_STATE: PlaybackStateCompat = PlaybackStateCompat.Builder()
         .setState(PlaybackStateCompat.STATE_NONE, 0, 0f)
