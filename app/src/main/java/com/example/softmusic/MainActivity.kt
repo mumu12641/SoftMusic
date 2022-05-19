@@ -40,6 +40,8 @@ class MainActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d(TAG, "onCreate")
+
         super.onCreate(savedInstanceState)
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
@@ -62,6 +64,8 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        mainViewModel.haveMusicFlag = false
 
         mainViewModel.currentMusicId.observe(this) {
             songBottomSheet = SongBottomSheet(it)
@@ -126,7 +130,6 @@ class MainActivity : AppCompatActivity() {
             mainViewModel.currentId.value = listOf(kv.decodeLong("musicSongId"),kv.decodeLong("musicSongListId"))
             mainViewModel.currentMusicId.value = kv.decodeLong("musicSongId")
 
-
             mainViewModel.nowPlayList.value = DataBaseUtils.getPlayListsWithSongsById(kv.decodeLong("musicSongListId"))
             mainViewModel.rawPlayList.value = mainViewModel.nowPlayList.value
 
@@ -138,6 +141,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+        Log.d(TAG, "onStart")
         if (mainViewModel.haveMusicFlag) {
             if (!mBrowser.isConnected) {
                 mBrowser.connect()
@@ -146,6 +150,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        Log.d(TAG, "onDestroy")
         super.onDestroy()
         if (mainViewModel.haveMusicFlag) {
             if (mBrowser.isConnected) {
@@ -158,17 +163,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        Log.d(TAG, "onStop: ")
-        // TODO mmkv
+        Log.d(TAG, "onStop")
+        // TODO MMKV save the position
         val kv = MMKV.defaultMMKV()
         mainViewModel.currentMusicId.value?.let { kv.encode("musicSongId", it) }
         mainViewModel.currentId.value?.get(1)?.let { kv.encode("musicSongListId", it) }
+        thread?.interrupt()
     }
 
 
     private val mBrowserConnectionCallback: MediaBrowserCompat.ConnectionCallback =
         object : MediaBrowserCompat.ConnectionCallback() {
             override fun onConnected() {
+                Log.d(TAG, "onConnected")
                 super.onConnected()
                 if (mBrowser.isConnected) {
                     val mediaId: String = mBrowser.root

@@ -2,8 +2,14 @@ package com.example.softmusic.musicSong
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Resources
+import android.content.res.TypedArray
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.annotation.AttrRes
+import androidx.annotation.ColorInt
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.softmusic.R
@@ -13,6 +19,7 @@ import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.listener.ChangePlayMusicListener
 import com.example.softmusic.room.DataBaseUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+
 
 class MusicSongAdapter(private val context: Context,
                        private var musicSongList: List<MusicSong>?,
@@ -28,7 +35,7 @@ class MusicSongAdapter(private val context: Context,
         return ViewHolder(cardSongListBinding)
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18n", "Recycle")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         with(holder.cardSongListBinding) {
 
@@ -36,6 +43,7 @@ class MusicSongAdapter(private val context: Context,
             songTitle.text = musicSongList?.get(position)?.songTitle
             Glide.with(context)
                 .load(musicSongList?.get(position)?.songAlbum)
+                    .centerCrop()
                 .placeholder(R.drawable.music_note_150)
                 .into(holder.cardSongListBinding.songRecord)
             songItem.setOnLongClickListener {
@@ -67,14 +75,27 @@ class MusicSongAdapter(private val context: Context,
                 setSelectId(musicSongList?.get(position)?.musicSongId!!)
             }
             if (musicSongList?.get(position)?.musicSongId == selectedId ) {
-                songSinger.setTextColor(androidx.appcompat.R.attr.colorAccent)
-                songTitle.setTextColor(androidx.appcompat.R.attr.colorAccent)
+                songSinger.setTextColor(context.resolveColorAttr(android.R.attr.colorPrimaryDark))
+                songTitle.setTextColor(context.resolveColorAttr(android.R.attr.colorPrimaryDark))
             }else{
-                songSinger.setTextColor(androidx.appcompat.R.attr.colorPrimaryDark)
-                songTitle.setTextColor(androidx.appcompat.R.attr.colorPrimaryDark)
+                songSinger.setTextColor(context.resolveColorAttr(android.R.attr.colorAccent))
+                songTitle.setTextColor(context.resolveColorAttr(android.R.attr.colorAccent))
             }
         }
 
+    }
+
+    @ColorInt
+    private fun Context.resolveColorAttr(@AttrRes colorAttr: Int): Int {
+        val resolvedAttr = resolveThemeAttr(colorAttr)
+        val colorRes = if (resolvedAttr.resourceId != 0) resolvedAttr.resourceId else resolvedAttr.data
+        return ContextCompat.getColor(this, colorRes)
+    }
+
+    private fun Context.resolveThemeAttr(@AttrRes attrRes: Int): TypedValue {
+        val typedValue = TypedValue()
+        theme.resolveAttribute(attrRes, typedValue, true)
+        return typedValue
     }
 
     override fun getItemCount(): Int {

@@ -34,15 +34,14 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
     private lateinit var musicPlayViewModel: MusicPlayViewModel
     private lateinit var mainViewModel: MainViewModel
-    private var mController: MediaControllerCompat? = null
+    private val mController:MediaControllerCompat by lazy {
+        (requireActivity() as MainActivity).mController
+    }
     private val TAG = "MusicPlayFragment"
     private lateinit var _binding: FragmentMusicPlayBinding
     private val binding get() = _binding
     private var repeatMode = MediaPlaybackService.DEFAULT
-
     private var currentPosition = 0
-
-
     private val adapter: MusicRecordAdapter by lazy {
         MusicRecordAdapter(listOf(), requireContext())
     }
@@ -66,9 +65,6 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
         mainViewModel = (requireActivity() as MainActivity).mainViewModel
         repeatMode = mainViewModel.currentPlayMode.value!!
-        if (mainViewModel.haveMusicFlag) {
-            mController = (requireActivity() as MainActivity).mController
-        }
         _binding = FragmentMusicPlayBinding.inflate(inflater, container, false)
 
         val layoutManager = LinearLayoutManager(requireContext())
@@ -190,8 +186,8 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             val pos: Int = seekBar.progress
             mainViewModel.currentProgress.value = pos / 1000
             mainViewModel.lastProgress.value = -1
-            mController?.transportControls?.seekTo(pos.toLong())
-            mController?.transportControls?.play()
+            mController.transportControls?.seekTo(pos.toLong())
+            mController.transportControls?.play()
         }
     }
 
@@ -200,26 +196,26 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         if (mainViewModel.haveMusicFlag) {
             when (view.id) {
                 R.id.playsong -> {
-                    when (mController?.playbackState?.state) {
+                    when (mController.playbackState?.state) {
                         PlaybackStateCompat.STATE_PLAYING -> {
-                            mController!!.transportControls.pause()
+                            mController.transportControls.pause()
                         }
                         PlaybackStateCompat.STATE_PAUSED -> {
-                            mController!!.transportControls.play()
+                            mController.transportControls.play()
                         }
                         PlaybackStateCompat.STATE_NONE -> {
-                            mController!!.transportControls.play()
+                            mController.transportControls.play()
                         }
                         PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> {
-                            mController!!.transportControls.play()
+                            mController.transportControls.play()
                         }
                     }
                 }
                 R.id.nextsong -> {
-                    mController?.transportControls?.skipToNext()
+                    mController.transportControls?.skipToNext()
                 }
                 R.id.lastsong -> {
-                    mController?.transportControls?.skipToPrevious()
+                    mController.transportControls?.skipToPrevious()
                 }
                 R.id.favorite_flag -> {
                     if (!mainViewModel.allPlayListSongsCrossRef.value!!.contains(
@@ -264,7 +260,7 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                         }
                     }
                     bundle.putInt("order", repeatMode)
-                    mController?.transportControls?.sendCustomAction(
+                    mController.transportControls?.sendCustomAction(
                         MediaPlaybackService.CHANGE_MODE,
                         bundle
                     )
