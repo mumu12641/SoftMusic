@@ -124,7 +124,6 @@ class MusicSongFragment : Fragment() {
                     if (musicSongViewModel.getMediaUriList().isEmpty() || !musicSongViewModel.getMediaUriList().contains(song.mediaFileUri)){
                         // 防止重复插入歌曲
                         id = DataBaseUtils.insertMusicSong(song)
-                        Log.d("TAG", "getLocalMusic: " + musicSongViewModel.getMediaUriList().toString())
                     }
 
                     if (id == 0L){
@@ -134,36 +133,28 @@ class MusicSongFragment : Fragment() {
                                     DataBaseUtils.getSongIdByUri(song.mediaFileUri)
                                 ))
                             ){
-                                Log.d(TAG, "getLocalMusic: false")
                                 DataBaseUtils.insertMusicSongRef(
                                     PlaylistSongCrossRef(
                                         musicSongViewModel.musicSongListId,
                                         DataBaseUtils.getSongIdByUri(song.mediaFileUri)
                                     )
                                 )
-                                val songList =
-                                    DataBaseUtils.getMusicSongListById(musicSongViewModel.musicSongListId)
-                                songList.songNumber++
-                                DataBaseUtils.updateMusicSongList(songList)
                             }
                     } else {
                         // 如果这个歌还没插入过 一定就要插入Ref
                         DataBaseUtils.insertMusicSongRef(
-                            PlaylistSongCrossRef(
-                            musicSongViewModel.musicSongListId,
-                            id
-                            )
+                            PlaylistSongCrossRef(musicSongViewModel.musicSongListId, id)
                         )
-                        val songList =
-                            DataBaseUtils.getMusicSongListById(musicSongViewModel.musicSongListId)
-                        songList.songNumber++
-                        DataBaseUtils.updateMusicSongList(songList)
                     }
 
                 }
             }
 
         }
+        val songList =
+                DataBaseUtils.getMusicSongListById(musicSongViewModel.musicSongListId)
+        songList.songNumber = DataBaseUtils.getPlayListsWithSongsById(musicSongViewModel.musicSongListId).size
+        DataBaseUtils.updateMusicSongList(songList)
         cursor?.close()
     }
 

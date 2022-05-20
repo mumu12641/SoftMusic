@@ -20,7 +20,6 @@ import com.example.softmusic.room.DataBaseUtils
 class StarListAdapter(val context:Context,
                       private val startList:List<MusicSongList>,
                       private val songId:Long) : RecyclerView.Adapter<StarListAdapter.ViewHolder>() {
-
     class ViewHolder(var cardSongBinding: CardSongBinding) : RecyclerView.ViewHolder(
         cardSongBinding.root
     )
@@ -59,7 +58,6 @@ class StarListAdapter(val context:Context,
             }
         }
         Glide.with(context).load(R.drawable.card).centerCrop().into(holder.cardSongBinding.songRecord)
-
     }
 
     override fun getItemCount(): Int {

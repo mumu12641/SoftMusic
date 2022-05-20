@@ -18,6 +18,16 @@
         android:layout_margin="10dp"
         android:layout_height="match_parent">
 
+        <TextView
+            android:id="@+id/text_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:text="正在播放"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/song_record"
             android:layout_width="40dp"
@@ -27,7 +37,7 @@
             android:layout_marginTop="10dp"
             android:background="@drawable/music_note_150"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/text_title"
             app:shapeAppearance="@style/RoundedStyle" />
 
         <TextView

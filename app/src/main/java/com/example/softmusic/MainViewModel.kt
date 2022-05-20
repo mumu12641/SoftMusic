@@ -11,11 +11,11 @@ class MainViewModel : ViewModel() {
 
     val allPlayListSongsCrossRef = DataBaseUtils.getAllPlaylistSongCrossRef()
 
-    val currentProgress: MutableLiveData<Int> = MutableLiveData(0)
+    val position : MutableLiveData<Int> = MutableLiveData(0)
+
+    val touchFlag:MutableLiveData<Boolean> = MutableLiveData(false)
 
     val duration: MutableLiveData<Int> = MutableLiveData()
-
-    val lastProgress: MutableLiveData<Int> = MutableLiveData(-1)
 
     var autoChangeFlag = false
 
@@ -44,8 +44,6 @@ class MainViewModel : ViewModel() {
     val likeFlag: MutableLiveData<Boolean> = MutableLiveData(false)
 
     val playbackState by lazy { MutableLiveData(EMPTY_PLAYBACK_STATE) }
-
-
 
     @Suppress("PropertyName")
     val EMPTY_PLAYBACK_STATE: PlaybackStateCompat = PlaybackStateCompat.Builder()

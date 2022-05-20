@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.os.Build
 import android.os.Bundle
-import android.os.SystemClock
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
@@ -19,7 +18,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import com.example.softmusic.databinding.ActivityMainBinding
 import com.example.softmusic.entity.MusicSong
-import com.example.softmusic.musicSong.SongBottomSheet
+import com.example.softmusic.bottomSheet.SongBottomSheet
 import com.example.softmusic.playMusic.MediaPlaybackService
 import com.example.softmusic.room.DataBaseUtils
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -32,16 +31,13 @@ class MainActivity : AppCompatActivity() {
     val mainViewModel: MainViewModel by lazy {
         ViewModelProvider(this@MainActivity)[MainViewModel::class.java]
     }
-    var thread: UpdateProcessThread? = null
+    var t : UpdatePositionThread ?= null
     private val TAG = "MainActivity"
     private lateinit var activityMainBinding: ActivityMainBinding
-
     lateinit var songBottomSheet: SongBottomSheet
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d(TAG, "onCreate")
-
         super.onCreate(savedInstanceState)
         activityMainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(activityMainBinding.root)
@@ -75,20 +71,17 @@ class MainActivity : AppCompatActivity() {
             if (it == true){
                 mainViewModel.initFlag.value = false
                 mController.transportControls.play()
-                Log.d(TAG, "onCreate: " + mainViewModel.duration.value)
-                Log.d(TAG, "onCreate: " + mainViewModel.currentProgress.value)
-                thread?.interrupt()
-                thread = null
-                thread = UpdateProcessThread()
-                thread?.start()
+                t = UpdatePositionThread()
+                t?.start()
             }
         }
         mainViewModel.currentId.observe(this) {
 
-            mainViewModel.currentPlayMode.value = MediaPlaybackService.DEFAULT
-
-            mainViewModel.nowPlayList.value = DataBaseUtils.getPlayListsWithSongsById(it[1])
-            mainViewModel.rawPlayList.value = mainViewModel.nowPlayList.value
+            with(mainViewModel){
+                currentPlayMode.value = MediaPlaybackService.DEFAULT
+                nowPlayList.value = DataBaseUtils.getPlayListsWithSongsById(it[1])
+                rawPlayList.value = mainViewModel.nowPlayList.value
+            }
 
             val bundle = Bundle()
             bundle.apply {
@@ -101,26 +94,16 @@ class MainActivity : AppCompatActivity() {
                     mBrowser.disconnect()
                 }
                 mainViewModel.haveMusicFlag = true
-                mBrowser = MediaBrowserCompat(this, ComponentName(this,
-                    MediaPlaybackService::class.java),
-                    mBrowserConnectionCallback,
-                    bundle
-                )
+                mBrowser = MediaBrowserCompat(this, ComponentName(this, MediaPlaybackService::class.java),
+                    mBrowserConnectionCallback, bundle)
                 mBrowser.connect()
             } else {
-                mController.transportControls?.sendCustomAction(
-                    MediaPlaybackService.CHANGE_LIST,
-                    bundle
-                )
-                thread?.interrupt()
-                thread = UpdateProcessThread()
+                mController.transportControls?.sendCustomAction(MediaPlaybackService.CHANGE_LIST, bundle)
             }
             mainViewModel.haveMusicFlag = true
-
             if (it[1] == 1L) {
                 mainViewModel.likeFlag.value = true
             }
-
         }
 
         val kv = MMKV.defaultMMKV()
@@ -168,7 +151,7 @@ class MainActivity : AppCompatActivity() {
         val kv = MMKV.defaultMMKV()
         mainViewModel.currentMusicId.value?.let { kv.encode("musicSongId", it) }
         mainViewModel.currentId.value?.get(1)?.let { kv.encode("musicSongListId", it) }
-        thread?.interrupt()
+        t?.interrupt()
     }
 
 
@@ -188,11 +171,7 @@ class MainActivity : AppCompatActivity() {
         }
     private val mBrowserSubscriptionCallback: MediaBrowserCompat.SubscriptionCallback =
         object : MediaBrowserCompat.SubscriptionCallback() {
-            override fun onChildrenLoaded(
-                parentId: String,
-                children: MutableList<MediaBrowserCompat.MediaItem>
-            ) {
-                Log.d(TAG, "onChildrenLoaded")
+            override fun onChildrenLoaded(parentId: String, children: MutableList<MediaBrowserCompat.MediaItem>) {
                 super.onChildrenLoaded(parentId, children)
                 mainViewModel.duration.value = mController.metadata
                     ?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
@@ -203,8 +182,6 @@ class MainActivity : AppCompatActivity() {
                     list.add(DataBaseUtils.getMusicSongById(i.mediaId?.toLong()!!))
                 }
                 mainViewModel.currentPlayList.value = list
-                Log.d(TAG, "onChildrenLoaded: $list")
-
             }
         }
     private val mMediaControllerCallback: MediaControllerCompat.Callback =
@@ -212,72 +189,55 @@ class MainActivity : AppCompatActivity() {
             @SuppressLint("SwitchIntDef")
             override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
                 super.onPlaybackStateChanged(state)
-
                 mainViewModel.playbackState.value = state
-
                 when (state?.state) {
                     PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> {
-                        mainViewModel.currentProgress.value = 0
-                        mainViewModel.lastProgress.value = -1
                         if (mainViewModel.autoChangeFlag) {
-                            thread?.interrupt()
+                            t?.interrupt()
                             mainViewModel.autoChangeFlag = false
-                            mainViewModel.currentProgress.value = -1
-                            mainViewModel.lastProgress.value = -2
-                            thread = UpdateProcessThread()
-                            thread?.start()
+                            t = UpdatePositionThread()
+                            t?.start()
                         }
                         mController.transportControls?.play()
                     }
                     PlaybackStateCompat.STATE_NONE -> {
-                        mainViewModel.currentProgress.value = (state.position / 1000).toInt()
-                        mainViewModel.lastProgress.value = -1
                     }
                     PlaybackStateCompat.STATE_PLAYING -> {
-                        mainViewModel.lastProgress.value = -1
-                        mainViewModel.currentProgress.value = (state.position / 1000).toInt()
                     }
                     PlaybackStateCompat.STATE_PAUSED -> {
-                        mainViewModel.lastProgress.value = mainViewModel.currentProgress.value
                     }
                 }
-
+                mainViewModel.position.value = (state?.position?.div(1000))?.toInt()
             }
 
             override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
                 super.onMetadataChanged(metadata)
                 with(mainViewModel) {
-                    duration.value = metadata
-                        ?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
-                    currentTitle.value = metadata
-                        ?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
-                    currentImageUri.value = DataBaseUtils.getImageUri(
-                        metadata?.getString(METADATA_KEY_MEDIA_ID)!!.toLong()
+                    duration.value = metadata?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
+                    currentTitle.value = metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
+                    currentImageUri.value = DataBaseUtils.getImageUri(metadata?.getString(METADATA_KEY_MEDIA_ID)!!.toLong()
                     )
-                    currentArtist.value =
-                        metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
+                    currentArtist.value = metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
                     currentMusicId.value = metadata.getString(METADATA_KEY_MEDIA_ID).toLong()
-                    Log.d(TAG, "now musicId" + currentMusicId.value)
                 }
                 if (mController.playbackState.state == PlaybackStateCompat.STATE_NONE){
-                    mainViewModel.lastProgress.value = -1
                     mainViewModel.initFlag.value = true
                 }
             }
         }
 
-    inner class UpdateProcessThread : Thread() {
+    inner class UpdatePositionThread : Thread() {
         override fun run() {
             super.run()
-            while (!interrupted() && mainViewModel.currentProgress.value!! < (mainViewModel.duration.value!!.div(1000))) {
-                if (mainViewModel.currentProgress.value == mainViewModel.lastProgress.value) {
-                    continue
-                }
-                mainViewModel.currentProgress.postValue(mainViewModel.currentProgress.value!!.plus(1))
-                SystemClock.sleep(1000)
-                if (mainViewModel.currentProgress.value!! >= (mainViewModel.duration.value!!.div(1000)) - 1) {
-                    mController.transportControls?.skipToNext()
-                    mainViewModel.autoChangeFlag = true
+            var flag = true
+            while (!interrupted()) {
+                if (mController.playbackState.state == PlaybackStateCompat.STATE_PLAYING && flag && !mainViewModel.touchFlag.value!!) {
+                    mainViewModel.position.postValue((mController.playbackState.position / 1000).toInt())
+                    if (mainViewModel.position.value!! >= (mainViewModel.duration.value!!.div(1000)) ){
+                        mController.transportControls?.skipToNext()
+                        flag = false
+                        mainViewModel.autoChangeFlag = true
+                    }
                 }
             }
         }

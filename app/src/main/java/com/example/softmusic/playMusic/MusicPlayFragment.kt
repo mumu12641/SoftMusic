@@ -5,7 +5,6 @@ import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,7 +24,7 @@ import com.example.softmusic.databinding.FragmentMusicPlayBinding
 import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.room.DataBaseUtils
-import com.example.softmusic.songList.ListBottomSheet
+import com.example.softmusic.bottomSheet.ListBottomSheet
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -46,7 +45,6 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         MusicRecordAdapter(listOf(), requireContext())
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         musicPlayViewModel = ViewModelProvider(requireActivity())[MusicPlayViewModel::class.java]
@@ -59,7 +57,6 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        Log.d(TAG, "onCreateView")
         val dateFormat = SimpleDateFormat("mm:ss", Locale.CHINA)
         dateFormat.timeZone = TimeZone.getTimeZone("GMT+00:00")
 
@@ -130,7 +127,7 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                 binding.durationTime.text = dateFormat.format(Date(it.toLong()))
             }
 
-            currentProgress.observe(viewLifecycleOwner) {
+            position.observe(viewLifecycleOwner) {
                 binding.seekBar.progress = (it * 1000)
                 binding.nowTime.text = dateFormat.format(Date((it * 1000).toLong()))
             }
@@ -179,16 +176,18 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
     override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {}
 
-    override fun onStartTrackingTouch(p0: SeekBar?) {}
+    override fun onStartTrackingTouch(p0: SeekBar?) {
+        mainViewModel.touchFlag.value = true
+    }
 
     override fun onStopTrackingTouch(seekBar: SeekBar) {
         if (mainViewModel.haveMusicFlag) {
             val pos: Int = seekBar.progress
-            mainViewModel.currentProgress.value = pos / 1000
-            mainViewModel.lastProgress.value = -1
+            mainViewModel.position.value = pos / 1000
             mController.transportControls?.seekTo(pos.toLong())
             mController.transportControls?.play()
         }
+        mainViewModel.touchFlag.value = false
     }
 
     @SuppressLint("SwitchIntDef", "NonConstantResourceId", "InflateParams")
@@ -267,7 +266,7 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                 }
                 R.id.play_list -> {
                     val listBottomSheet = ListBottomSheet()
-                    listBottomSheet.show((requireActivity() as MainActivity).supportFragmentManager,ListBottomSheet.TAG)
+                    listBottomSheet.show((requireActivity() as MainActivity).supportFragmentManager, ListBottomSheet.TAG)
                 }
             }
         } else {

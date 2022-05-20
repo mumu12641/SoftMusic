@@ -1,4 +1,4 @@
-package com.example.softmusic.musicSong
+package com.example.softmusic.bottomSheet
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -36,7 +36,7 @@ class SongBottomSheet (private val songId : Long):BottomSheetDialogFragment() {
             textView4.text = song.mediaFileUri
             star.setOnClickListener{
                 val starSheet = StarBottomSheet()
-                starSheet.show((requireActivity() as MainActivity).supportFragmentManager,StarBottomSheet.TAG)
+                starSheet.show((requireActivity() as MainActivity).supportFragmentManager, StarBottomSheet.TAG)
             }
         }
         return binding.root

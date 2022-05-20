@@ -76,10 +76,7 @@ class MusicSongListFragment : Fragment(), View.OnClickListener {
                     "/" + calendar[Calendar.DAY_OF_MONTH]
             if (des != "" && title != "") {
                 DataBaseUtils.insertMusicSongList(
-                    MusicSongList(
-                        0, title, date, 0, "me", des, "none"
-                    )
-                )
+                        MusicSongList(0, title, date, 0, "me", des, "none"))
                 dialog.cancel()
             }
         }

@@ -1,4 +1,4 @@
-package com.example.softmusic.songList
+package com.example.softmusic.bottomSheet
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -44,7 +44,6 @@ class ListBottomSheet : BottomSheetDialogFragment(){
             mainViewModel.currentMusicId.value!!
         ))
         binding.bottomList.scrollToPosition(position)
-
         return binding.root
     }
     companion object{
