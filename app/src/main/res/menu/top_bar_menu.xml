@@ -6,5 +6,5 @@
         android:title="song"
         android:contentDescription="get song menu"
         app:showAsAction="always"
-        android:icon="@drawable/menu_48px"/>
+        android:icon="@drawable/more_vert48px"/>
 </menu>

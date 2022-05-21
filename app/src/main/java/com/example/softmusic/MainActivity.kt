@@ -151,7 +151,6 @@ class MainActivity : AppCompatActivity() {
         val kv = MMKV.defaultMMKV()
         mainViewModel.currentMusicId.value?.let { kv.encode("musicSongId", it) }
         mainViewModel.currentId.value?.get(1)?.let { kv.encode("musicSongListId", it) }
-        t?.interrupt()
     }
 
 

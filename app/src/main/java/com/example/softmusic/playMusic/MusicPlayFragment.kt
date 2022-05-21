@@ -25,6 +25,7 @@ import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.room.DataBaseUtils
 import com.example.softmusic.bottomSheet.ListBottomSheet
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -97,22 +98,6 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                     }
                 }
             })
-            when(this@MusicPlayFragment.repeatMode){
-                    MediaPlaybackService.DEFAULT -> {
-                        repeatMode.setBackgroundResource(R.drawable.repeat_24px)
-                    }
-                    MediaPlaybackService.REPEAT_ONE -> {
-                        binding.repeatMode.setBackgroundResource(R.drawable.repeat_one_24px)
-                        adapter.setRecordList(listOf(mainViewModel.currentMusicId.value?.let { it1 ->
-                            DataBaseUtils.getMusicSongById(
-                                it1
-                            )
-                        }) as List<MusicSong>)
-                    }
-                    MediaPlaybackService.SHUFFLE -> {
-                        binding.repeatMode.setImageResource(R.drawable.shuffle_24px)
-                    }
-                }
         }
 
 
@@ -141,6 +126,22 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
             }
 
             currentPlayMode.observe(viewLifecycleOwner) {
+                when(it){
+                    MediaPlaybackService.DEFAULT -> {
+                        binding.repeatMode.setBackgroundResource(R.drawable.repeat_24px)
+                    }
+                    MediaPlaybackService.REPEAT_ONE -> {
+                        binding.repeatMode.setBackgroundResource(R.drawable.repeat_one_24px)
+                        adapter.setRecordList(listOf(mainViewModel.currentMusicId.value?.let { it1 ->
+                            DataBaseUtils.getMusicSongById(
+                                    it1
+                            )
+                        }) as List<MusicSong>)
+                    }
+                    MediaPlaybackService.SHUFFLE -> {
+                        binding.repeatMode.setBackgroundResource(R.drawable.shuffle_24px)
+                    }
+                }
             }
 
             currentPlayList.observe(viewLifecycleOwner) {
@@ -265,7 +266,7 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
                     )
                 }
                 R.id.play_list -> {
-                    val listBottomSheet = ListBottomSheet()
+                    val listBottomSheet = ListBottomSheet(mainViewModel.currentPlayMode.value!!, mainViewModel.currentPlayList.value!!.size)
                     listBottomSheet.show((requireActivity() as MainActivity).supportFragmentManager, ListBottomSheet.TAG)
                 }
             }

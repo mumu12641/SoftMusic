@@ -281,7 +281,6 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                 } else if (action == CHANGE_LIST) {
                     musicSongId = extras?.getLong("musicSongId")!!
                     musicSongListId = extras.getLong("musicSongListId")
-
                     flag = true
                     Log.d(TAG, "change list: $musicSongId")
                     Log.d(TAG, "change list: $musicSongListId")
