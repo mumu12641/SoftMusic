@@ -142,6 +142,7 @@ class MainActivity : AppCompatActivity() {
                 mBrowser.disconnect()
             }
         }
+        t?.interrupt()
     }
 
     override fun onStop() {
@@ -152,7 +153,6 @@ class MainActivity : AppCompatActivity() {
         mainViewModel.currentMusicId.value?.let { kv.encode("musicSongId", it) }
         mainViewModel.currentId.value?.get(1)?.let { kv.encode("musicSongListId", it) }
     }
-
 
     private val mBrowserConnectionCallback: MediaBrowserCompat.ConnectionCallback =
         object : MediaBrowserCompat.ConnectionCallback() {
