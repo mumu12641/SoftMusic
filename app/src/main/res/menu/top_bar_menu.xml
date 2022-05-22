@@ -2,6 +2,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/search_song"
+        android:title="search"
+        android:contentDescription="search song"
+        app:showAsAction="always"
+        android:icon="@drawable/search_48px"/>
+    <item
         android:id="@+id/song_menu"
         android:title="song"
         android:contentDescription="get song menu"

@@ -61,6 +61,10 @@ class MainActivity : AppCompatActivity() {
                     songBottomSheet.show(supportFragmentManager, SongBottomSheet.TAG)
                     true
                 }
+                R.id.search_song -> {
+                    navController.navigate(R.id.action_to_search_fragment)
+                    true
+                }
                 else -> {
                     true
                 }

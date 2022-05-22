@@ -2,6 +2,7 @@ package com.example.softmusic.songList
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -16,12 +17,17 @@ import com.example.softmusic.databinding.CardSongBinding
 import com.example.softmusic.entity.MusicSongList
 import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.room.DataBaseUtils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class StarListAdapter(val context:Context,
                       private val startList:List<MusicSongList>,
                       private val songId:Long) : RecyclerView.Adapter<StarListAdapter.ViewHolder>() {
 
-    private val TAG = "StarListAdapter"
+    private val job = Job()
+    private val scope = CoroutineScope(job)
 
     class ViewHolder(var cardSongBinding: CardSongBinding) : RecyclerView.ViewHolder(
         cardSongBinding.root
@@ -38,13 +44,15 @@ class StarListAdapter(val context:Context,
         with(holder.cardSongBinding){
             songTitle.text = startList[position].songListTitle
             songSinger.text = startList[position].songNumber.toString() + "首"
-
-            if (DataBaseUtils.getAllRef().contains(PlaylistSongCrossRef(startList[position].musicSongListId,songId))){
-                songTitle.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorPrimaryDark))
-                songSinger.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorPrimaryDark))
-            }else{
-                songTitle.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorAccent))
-                songSinger.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorAccent))
+            scope.launch(Dispatchers.IO) {
+                val refs = getRef()
+                if (refs.contains(PlaylistSongCrossRef(startList[position].musicSongListId,songId))){
+                    songTitle.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorPrimaryDark))
+                    songSinger.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorPrimaryDark))
+                }else{
+                    songTitle.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorAccent))
+                    songSinger.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorAccent))
+                }
             }
             songItem.setOnClickListener{
                 if (DataBaseUtils.getAllRef().contains(PlaylistSongCrossRef(startList[position].musicSongListId,songId))){
