@@ -3,12 +3,13 @@ package com.example.softmusic
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.playMusic.MediaPlaybackService
 import com.example.softmusic.room.DataBaseUtils
+import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
-
     val allPlayListSongsCrossRef = DataBaseUtils.getAllPlaylistSongCrossRef()
 
     val position : MutableLiveData<Int> = MutableLiveData(0)

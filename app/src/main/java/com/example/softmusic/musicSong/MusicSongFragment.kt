@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.softmusic.MainActivity
 import com.example.softmusic.MainViewModel
@@ -24,6 +25,8 @@ import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.listener.ChangePlayMusicListener
 import com.example.softmusic.room.DataBaseUtils
 import com.permissionx.guolindev.PermissionX
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 class MusicSongFragment : Fragment() {
@@ -87,7 +90,9 @@ class MusicSongFragment : Fragment() {
                 )
                 .request { allGranted, _, _ ->
                     if (allGranted) {
-                        getLocalMusic()
+                        lifecycleScope.launch (Dispatchers.IO){
+                            getLocalMusic()
+                        }
                         Toast.makeText(requireContext(),"加载或更新本地歌曲完成",Toast.LENGTH_LONG).show()
                     } else {
                         Toast.makeText(requireContext(), "你拒绝了以上权限", Toast.LENGTH_LONG).show()
@@ -97,7 +102,7 @@ class MusicSongFragment : Fragment() {
         return fragmentSongBinding.root
     }
 
-    private fun getLocalMusic() {
+    private suspend fun getLocalMusic() {
 
         val cursor: Cursor? = requireContext().contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,

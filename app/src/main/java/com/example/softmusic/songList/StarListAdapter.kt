@@ -20,6 +20,9 @@ import com.example.softmusic.room.DataBaseUtils
 class StarListAdapter(val context:Context,
                       private val startList:List<MusicSongList>,
                       private val songId:Long) : RecyclerView.Adapter<StarListAdapter.ViewHolder>() {
+
+    private val TAG = "StarListAdapter"
+
     class ViewHolder(var cardSongBinding: CardSongBinding) : RecyclerView.ViewHolder(
         cardSongBinding.root
     )
@@ -31,9 +34,11 @@ class StarListAdapter(val context:Context,
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+
         with(holder.cardSongBinding){
             songTitle.text = startList[position].songListTitle
             songSinger.text = startList[position].songNumber.toString() + "首"
+
             if (DataBaseUtils.getAllRef().contains(PlaylistSongCrossRef(startList[position].musicSongListId,songId))){
                 songTitle.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorPrimaryDark))
                 songSinger.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorPrimaryDark))
@@ -74,5 +79,8 @@ class StarListAdapter(val context:Context,
         val typedValue = TypedValue()
         theme.resolveAttribute(attrRes, typedValue, true)
         return typedValue
+    }
+    suspend fun getRef():List<PlaylistSongCrossRef>{
+        return DataBaseUtils.getAllRef()
     }
 }

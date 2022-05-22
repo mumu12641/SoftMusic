@@ -16,13 +16,17 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI.setupWithNavController
+import com.example.softmusic.bottomSheet.SongBottomSheet
 import com.example.softmusic.databinding.ActivityMainBinding
 import com.example.softmusic.entity.MusicSong
-import com.example.softmusic.bottomSheet.SongBottomSheet
 import com.example.softmusic.playMusic.MediaPlaybackService
 import com.example.softmusic.room.DataBaseUtils
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.tencent.mmkv.MMKV
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,10 +35,12 @@ class MainActivity : AppCompatActivity() {
     val mainViewModel: MainViewModel by lazy {
         ViewModelProvider(this@MainActivity)[MainViewModel::class.java]
     }
-    var t : UpdatePositionThread ?= null
     private val TAG = "MainActivity"
     private lateinit var activityMainBinding: ActivityMainBinding
     lateinit var songBottomSheet: SongBottomSheet
+
+    private val job = Job()
+    private val scope = CoroutineScope(job)
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,8 +77,10 @@ class MainActivity : AppCompatActivity() {
             if (it == true){
                 mainViewModel.initFlag.value = false
                 mController.transportControls.play()
-                t = UpdatePositionThread()
-                t?.start()
+                Log.d(TAG, "onCreate: create job ")
+                scope.launch(Dispatchers.IO) {
+                    updateProgress()
+                }
             }
         }
         mainViewModel.currentId.observe(this) {
@@ -142,7 +150,7 @@ class MainActivity : AppCompatActivity() {
                 mBrowser.disconnect()
             }
         }
-        t?.interrupt()
+        job.cancel()
     }
 
     override fun onStop() {
@@ -192,10 +200,7 @@ class MainActivity : AppCompatActivity() {
                 when (state?.state) {
                     PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> {
                         if (mainViewModel.autoChangeFlag) {
-                            t?.interrupt()
                             mainViewModel.autoChangeFlag = false
-                            t = UpdatePositionThread()
-                            t?.start()
                         }
                         mController.transportControls?.play()
                     }
@@ -225,18 +230,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-    inner class UpdatePositionThread : Thread() {
-        override fun run() {
-            super.run()
-            var flag = true
-            while (!interrupted()) {
-                if (mController.playbackState.state == PlaybackStateCompat.STATE_PLAYING && flag && !mainViewModel.touchFlag.value!!) {
-                    mainViewModel.position.postValue((mController.playbackState.position / 1000).toInt())
-                    if (mainViewModel.position.value!! >= (mainViewModel.duration.value!!.div(1000)) ){
-                        mController.transportControls?.skipToNext()
-                        flag = false
-                        mainViewModel.autoChangeFlag = true
-                    }
+    suspend fun updateProgress(){
+        while (job.isActive){
+            if (mController.playbackState.state == PlaybackStateCompat.STATE_PLAYING  && !mainViewModel.autoChangeFlag && !mainViewModel.touchFlag.value!!) {
+                mainViewModel.position.postValue((mController.playbackState.position / 1000).toInt())
+                if (mainViewModel.position.value!! >= (mainViewModel.duration.value!!.div(1000)) ){
+                    mController.transportControls?.skipToNext()
+                    mainViewModel.autoChangeFlag = true
                 }
             }
         }

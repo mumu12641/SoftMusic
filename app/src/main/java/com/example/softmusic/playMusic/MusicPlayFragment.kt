@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -43,7 +44,7 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
     private var repeatMode = MediaPlaybackService.DEFAULT
     private var currentPosition = 0
     private val adapter: MusicRecordAdapter by lazy {
-        MusicRecordAdapter(listOf(), requireContext())
+        MusicRecordAdapter(listOf(), requireContext(), 0L)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -103,6 +104,12 @@ class MusicPlayFragment : Fragment(), SeekBar.OnSeekBarChangeListener, View.OnCl
 
 
         mainViewModel.run {
+
+            currentId.observe(viewLifecycleOwner) {
+                adapter.setListId(it[1])
+                Log.d(TAG, "onCreateView: " + it[1])
+            }
+
             currentMusicId.observe(viewLifecycleOwner) {
                 currentPosition = mainViewModel.currentPlayList.value!!.indexOf(DataBaseUtils.getMusicSongById(it))
                 binding.snapRecyclerview.scrollToPosition(currentPosition)
