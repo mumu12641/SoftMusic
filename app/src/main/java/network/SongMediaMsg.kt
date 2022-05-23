@@ -24,6 +24,7 @@ data class Data(
     val size: Int,
     val type: String,
     val uf: Any,
+    // uri
     val url: String,
     val urlSource: Int
 )

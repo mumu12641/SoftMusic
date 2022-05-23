@@ -26,7 +26,6 @@ data class Song(
     // 歌曲id
     val id: Int,
 
-    val mark: Int,
     val mvid: Int,
 
     // name

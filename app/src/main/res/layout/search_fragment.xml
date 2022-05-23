@@ -29,6 +29,18 @@
             android:textSize="15sp" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/loading"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:lottie_fileName="loading.json"
+        app:lottie_loop="true"
+
+        />
     <com.google.android.material.card.MaterialCardView
         style="?attr/materialCardViewElevatedStyle"
         android:layout_width="match_parent"
