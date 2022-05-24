@@ -25,7 +25,7 @@ data class Data(
     val type: String,
     val uf: Any,
     // uri
-    val url: String,
+    val url: String?,
     val urlSource: Int
 )
 

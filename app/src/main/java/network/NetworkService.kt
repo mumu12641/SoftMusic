@@ -12,6 +12,7 @@ object NetworkService {
         .baseUrl(BASE_URL)
         .build()
 
-    val getMsgService: GetMsgService = retrofit.create<GetMsgService>()
-    val getMediaService:GetMediaService = retrofit.create<GetMediaService>()
+    val getMsgService: GetMsgService = retrofit.create()
+    val getMediaService:GetMediaService = retrofit.create()
+    val getDetailService:GetDetailService = retrofit.create()
 }

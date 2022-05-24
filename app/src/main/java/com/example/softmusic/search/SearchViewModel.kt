@@ -28,14 +28,14 @@ class SearchViewModel : ViewModel() {
             val list = mutableListOf<MusicSong>()
             for(i in msg.result.songs){
                 val media = NetworkService.getMediaService.getSongMediaMsg(i.id)
-                Log.d(TAG, "getSongResultMsg: " + media.data[0].url)
-                Log.d(TAG, "https://netease-cloud-music-api-self-ten.vercel.app/song/url?id=" + i.id)
-                if (media.data[0].url == null){
-                    continue
+                Log.d(TAG, "getSongResultMsg: "+ i.id)
+                val pictureUrl = NetworkService.getDetailService.getSongDetailMsg(i.id).songs[0].al?.picUrl
+                val song = media.data[0].url?.let {
+                    pictureUrl?.let { it1 -> MusicSong(0L, i.name,i.artists[0].name, it1, it,i.duration,123) }
                 }
-                val song = MusicSong(0L, i.name,i.artists[0].name,"adsf",media.data[0].url,i.duration,123
-                )
-                list.add(song)
+                song?.let {
+                    list.add(it)
+                }
             }
             searchSongs.value = list
             loadState.value = LoadState.Success()

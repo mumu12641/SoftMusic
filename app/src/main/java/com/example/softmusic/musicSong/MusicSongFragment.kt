@@ -61,6 +61,9 @@ class MusicSongFragment : Fragment() {
                         (requireActivity() as MainActivity).mainViewModel.currentId.value = list
                         mainViewModel.currentMusicId.value = musicSongId
                     }
+
+                    override fun changePlayMusicByEntity(song: MusicSong) {
+                    }
                 }, 0L
         )
 

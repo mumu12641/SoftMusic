@@ -223,10 +223,12 @@ class MainActivity : AppCompatActivity() {
                 with(mainViewModel) {
                     duration.value = metadata?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
                     currentTitle.value = metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
-                    currentImageUri.value = DataBaseUtils.getImageUri(metadata?.getString(METADATA_KEY_MEDIA_ID)!!.toLong()
-                    )
-                    currentArtist.value = metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
-                    currentMusicId.value = metadata.getString(METADATA_KEY_MEDIA_ID).toLong()
+//                    currentImageUri.value = DataBaseUtils.getImageUri(metadata?.getString(METADATA_KEY_MEDIA_ID)!!.toLong()
+//                    )
+                    currentImageUri.value = metadata?.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI)
+                    currentArtist.value = metadata?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
+                    currentMusicId.value = metadata?.getString(METADATA_KEY_MEDIA_ID)?.toLong()
+                    Log.d(TAG, "onMetadataChanged: " + duration.value + currentTitle.value+currentImageUri.value)
                 }
                 if (mController.playbackState.state == PlaybackStateCompat.STATE_NONE){
                     mainViewModel.initFlag.value = true

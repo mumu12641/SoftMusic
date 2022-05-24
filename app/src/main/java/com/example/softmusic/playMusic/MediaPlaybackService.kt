@@ -30,7 +30,9 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.tencent.mmkv.MMKV
+import java.lang.reflect.Array
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 class MediaPlaybackService : MediaBrowserServiceCompat() {
@@ -247,45 +249,71 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
             override fun onCustomAction(action: String?, extras: Bundle?) {
                 super.onCustomAction(action, extras)
-                if (action == CHANGE_MODE) {
-                    mode = extras?.getInt("order")!!
-                    when (mode) {
-                        DEFAULT -> {
-                            mExoPlayer.repeatMode = Player.REPEAT_MODE_ALL
+                when (action) {
+                    CHANGE_MODE -> {
+                        mode = extras?.getInt("order")!!
+                        when (mode) {
+                            DEFAULT -> {
+                                mExoPlayer.repeatMode = Player.REPEAT_MODE_ALL
 
-                            list = rawList
-                            Log.d(TAG, "onCustomAction: $nowNum")
-                            val item = mExoPlayer.getMediaItemAt(nowNum)
-                            mExoPlayer.clearMediaItems()
-                            reLoadMusic(list,mExoPlayer.currentPosition,item)
-                        }
-                        SHUFFLE -> {
-                            val seed = 1
-                            val position = mExoPlayer.currentPosition
+                                list = rawList
+                                Log.d(TAG, "onCustomAction: $nowNum")
+                                val item = mExoPlayer.getMediaItemAt(nowNum)
+                                mExoPlayer.clearMediaItems()
+                                reLoadMusic(list,mExoPlayer.currentPosition,item)
+                            }
+                            SHUFFLE -> {
+                                val seed = 1
+                                val position = mExoPlayer.currentPosition
 
-                            nowNum = mExoPlayer.currentMediaItemIndex
-                            val item = mExoPlayer.getMediaItemAt(nowNum)
-                            list = rawList?.shuffled(kotlin.random.Random(seed))
-                            mExoPlayer.clearMediaItems()
+                                nowNum = mExoPlayer.currentMediaItemIndex
+                                val item = mExoPlayer.getMediaItemAt(nowNum)
+                                list = rawList?.shuffled(kotlin.random.Random(seed))
+                                mExoPlayer.clearMediaItems()
 
-                            reLoadMusic(list,position,item)
+                                reLoadMusic(list,position,item)
 
-                        }
+                            }
 
-                        REPEAT_ONE -> {
-                            mExoPlayer.repeatMode = Player.REPEAT_MODE_ONE
-                            nowNum = mExoPlayer.currentMediaItemIndex
-                            Log.d(TAG, "onCustomAction: $nowNum")
+                            REPEAT_ONE -> {
+                                mExoPlayer.repeatMode = Player.REPEAT_MODE_ONE
+                                nowNum = mExoPlayer.currentMediaItemIndex
+                                Log.d(TAG, "onCustomAction: $nowNum")
+                            }
                         }
                     }
-                } else if (action == CHANGE_LIST) {
-                    musicSongId = extras?.getLong("musicSongId")!!
-                    musicSongListId = extras.getLong("musicSongListId")
-                    flag = true
-                    Log.d(TAG, "change list: $musicSongId")
-                    Log.d(TAG, "change list: $musicSongListId")
-                    mExoPlayer.clearMediaItems()
-                    this@MediaPlaybackService.notifyChildrenChanged(MY_MEDIA_ROOT_ID)
+                    CHANGE_LIST -> {
+                        musicSongId = extras?.getLong("musicSongId")!!
+                        musicSongListId = extras.getLong("musicSongListId")
+                        flag = true
+                        Log.d(TAG, "change list: $musicSongId")
+                        Log.d(TAG, "change list: $musicSongListId")
+                        mExoPlayer.clearMediaItems()
+                        this@MediaPlaybackService.notifyChildrenChanged(MY_MEDIA_ROOT_ID)
+                    }
+                    NEXT_TO_PLAY -> {
+                        Log.d(TAG, "onCustomAction:  + next to play")
+                        val url = extras?.getString("url")!!
+                        val title = extras.getString("title")!!
+                        val duration = extras.getInt("duration")
+                        val singer = extras.getString("singer")!!
+                        val picture = extras.getString("picture")!!
+
+
+                        val item =  MediaItem.fromUri(url)
+                        Log.d(TAG, "onCustomAction: " + mExoPlayer.getMediaItemAt(mExoPlayer.currentMediaItemIndex + 1))
+                        mExoPlayer.addMediaItem(mExoPlayer.currentMediaItemIndex + 1,item)
+                        Log.d(TAG, "onCustomAction: " + mExoPlayer.getMediaItemAt(mExoPlayer.currentMediaItemIndex + 1))
+                        val l =mutableListOf<MusicSong>()
+                        list?.map {
+                            l.add(it)
+                        }
+                        l.add(mExoPlayer.currentMediaItemIndex + 1,MusicSong(0L,title,singer,picture,url,duration,1L))
+                        list = l.toList()
+                        Log.d(TAG, "onCustomAction: " + list!![mExoPlayer.currentMediaItemIndex]+
+                                list!![mExoPlayer.currentMediaItemIndex  + 1] )
+
+                    }
                 }
             }
         }
@@ -303,6 +331,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
         const val CHANGE_MODE = "CHANGE_MODE"
         const val CHANGE_LIST = "CHANGE_LIST"
+        const val NEXT_TO_PLAY = "NEXT_TO_PLAY"
 
     }
 

@@ -72,6 +72,7 @@ class MusicSongAdapter(private val context: Context,
                     musicSongList?.get(position)?.musicSongId!!,
                     musicSongListId
                 )
+                listener.changePlayMusicByEntity(musicSongList?.get(position)!!)
                 setSelectId(musicSongList?.get(position)?.musicSongId!!)
             }
             if (musicSongList?.get(position)?.musicSongId == selectedId ) {
