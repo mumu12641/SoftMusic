@@ -162,8 +162,15 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onStop")
         // TODO MMKV save the position
         val kv = MMKV.defaultMMKV()
-        mainViewModel.currentMusicId.value?.let { kv.encode("musicSongId", it) }
-        mainViewModel.currentId.value?.get(1)?.let { kv.encode("musicSongListId", it) }
+//        val musicSong = DataBaseUtils.getMusicSongById(musicSongId)
+//        list = DataBaseUtils.getPlayListsWithSongsById(musicSongListId)
+//        rawList = list
+//        nowNum = list!!.indexOf(musicSong)
+//        Log.d(TAG, "loadMusic: $nowNum")
+        if (mainViewModel.requestNetwork.value == false) {
+            mainViewModel.currentMusicId.value?.let { kv.encode("musicSongId", it) }
+            mainViewModel.currentId.value?.get(1)?.let { kv.encode("musicSongListId", it) }
+        }
     }
 
     private val mBrowserConnectionCallback: MediaBrowserCompat.ConnectionCallback =
@@ -203,14 +210,15 @@ class MainActivity : AppCompatActivity() {
                 mainViewModel.playbackState.value = state
                 when (state?.state) {
                     PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> {
-                        if (mainViewModel.autoChangeFlag) {
-                            mainViewModel.autoChangeFlag = false
-                        }
                         mController.transportControls?.play()
+
                     }
                     PlaybackStateCompat.STATE_NONE -> {
                     }
                     PlaybackStateCompat.STATE_PLAYING -> {
+                        if (mainViewModel.autoChangeFlag) {
+                            mainViewModel.autoChangeFlag = false
+                        }
                     }
                     PlaybackStateCompat.STATE_PAUSED -> {
                     }
@@ -223,8 +231,6 @@ class MainActivity : AppCompatActivity() {
                 with(mainViewModel) {
                     duration.value = metadata?.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)?.toInt()
                     currentTitle.value = metadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
-//                    currentImageUri.value = DataBaseUtils.getImageUri(metadata?.getString(METADATA_KEY_MEDIA_ID)!!.toLong()
-//                    )
                     currentImageUri.value = metadata?.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI)
                     currentArtist.value = metadata?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
                     currentMusicId.value = metadata?.getString(METADATA_KEY_MEDIA_ID)?.toLong()

@@ -121,6 +121,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         val kv = MMKV.defaultMMKV()
         musicSongId = rootHints?.getLong("musicSongId") ?: kv.decodeLong("musicSongId")
         musicSongListId = rootHints?.getLong("musicSongListId") ?: kv.decodeLong("musicSongListId")
+        Log.d(TAG, "onGetRoot: $musicSongId")
         return BrowserRoot(MY_MEDIA_ROOT_ID, null)
     }
 
@@ -174,6 +175,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
             @RequiresApi(Build.VERSION_CODES.M)
             override fun onPlay() {
                 super.onPlay()
+                Log.d(TAG, "onPlay")
                 if (mPlaybackState.state == PlaybackStateCompat.STATE_PAUSED || mPlaybackState.state == PlaybackStateCompat.STATE_NONE
                     || mPlaybackState.state == PlaybackStateCompat.STATE_SKIPPING_TO_NEXT || mPlaybackState.state == PlaybackStateCompat.STATE_PLAYING
                 ) {
@@ -293,7 +295,8 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                     }
                     NEXT_TO_PLAY -> {
                         Log.d(TAG, "onCustomAction:  + next to play")
-                        val url = extras?.getString("url")!!
+                        val id = extras?.getLong("id")!!
+                        val url = extras.getString("url")!!
                         val title = extras.getString("title")!!
                         val duration = extras.getInt("duration")
                         val singer = extras.getString("singer")!!
@@ -308,12 +311,13 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
                         list?.map {
                             l.add(it)
                         }
-                        l.add(mExoPlayer.currentMediaItemIndex + 1,MusicSong(0L,title,singer,picture,url,duration,1L))
+                        l.add(mExoPlayer.currentMediaItemIndex + 1,MusicSong(id,title,singer,picture,url,duration,1L))
                         list = l.toList()
                         Log.d(TAG, "onCustomAction: " + list!![mExoPlayer.currentMediaItemIndex]+
                                 list!![mExoPlayer.currentMediaItemIndex  + 1] )
-
+                        notifyChangeList()
                     }
+
                 }
             }
         }
@@ -335,6 +339,10 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
     }
 
+    private fun notifyChangeList(){
+        this.notifyChildrenChanged(MY_MEDIA_ROOT_ID)
+    }
+
     private fun changeMusicSong(song: MusicSong) {
         val metadata = createMetadataFromMusic(song)
         mSession.setMetadata(metadata)
@@ -347,6 +355,9 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         rawList = list
         nowNum = list!!.indexOf(musicSong)
         Log.d(TAG, "loadMusic: $nowNum")
+        if (nowNum == -1){
+            nowNum = 0
+        }
         playNum = list!!.size
 
         for (i in list!!) {

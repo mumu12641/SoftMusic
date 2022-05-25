@@ -1,4 +1,4 @@
-package network
+package com.example.softmusic.network
 
 sealed class LoadState(val msg: String) {
     class Loading(msg: String = "") : LoadState(msg)

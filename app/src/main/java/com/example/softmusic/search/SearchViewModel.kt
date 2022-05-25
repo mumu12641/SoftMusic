@@ -6,12 +6,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.softmusic.entity.MusicSong
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import network.LoadState
-import network.NetworkService
+import com.example.softmusic.network.LoadState
+import com.example.softmusic.network.NetworkService
+import com.example.softmusic.room.DataBaseUtils
 
 class SearchViewModel : ViewModel() {
+
+    var allMediaUri:List<String> = DataBaseUtils.getAllMediaUri()
+
     val loadState = MutableLiveData<LoadState>()
 
     val searchSongs = MutableLiveData<List<MusicSong>>()
@@ -29,9 +32,15 @@ class SearchViewModel : ViewModel() {
             for(i in msg.result.songs){
                 val media = NetworkService.getMediaService.getSongMediaMsg(i.id)
                 Log.d(TAG, "getSongResultMsg: "+ i.id)
-                val pictureUrl = NetworkService.getDetailService.getSongDetailMsg(i.id).songs[0].al?.picUrl
+                val detail = NetworkService.getDetailService.getSongDetailMsg(i.id)
                 val song = media.data[0].url?.let {
-                    pictureUrl?.let { it1 -> MusicSong(0L, i.name,i.artists[0].name, it1, it,i.duration,123) }
+                    detail.songs[0].al?.picUrl?.let { it1 ->
+                        MusicSong(0L,detail.songs[0].name,detail.songs[0].ar[0].name, it1,
+                            it,detail.songs[0].dt,i.id.toLong())
+                    }
+                }
+                if (detail.privileges[0].fee == 1){
+                    song?.duration = 30000
                 }
                 song?.let {
                     list.add(it)
@@ -41,6 +50,10 @@ class SearchViewModel : ViewModel() {
             loadState.value = LoadState.Success()
         }
 
+    }
+    fun getMediaUriList():List<String>{
+        allMediaUri = DataBaseUtils.getAllMediaUri()
+        return allMediaUri
     }
 
 }

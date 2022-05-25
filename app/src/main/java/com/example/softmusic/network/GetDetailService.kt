@@ -1,4 +1,4 @@
-package network
+package com.example.softmusic.network
 
 import retrofit2.http.GET
 import retrofit2.http.Query

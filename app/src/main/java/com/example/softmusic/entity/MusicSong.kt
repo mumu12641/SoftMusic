@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class MusicSong(
-    @PrimaryKey(autoGenerate = true) val musicSongId:Long,
+    @PrimaryKey(autoGenerate = true) var musicSongId:Long,
     var songTitle: String,
     var songSinger: String,
     var songAlbum: String,

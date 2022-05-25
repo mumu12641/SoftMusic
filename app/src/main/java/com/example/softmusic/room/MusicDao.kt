@@ -20,8 +20,12 @@ interface MusicDao {
     fun getAllMusicSongs():List<MusicSong>
     @Query("SELECT mediaFileUri FROM musicsong")
     fun getAllMediaUri():List<String>
+    @Query("SELECT albumId FROM musicsong")
+    suspend fun getAllAlbumId():List<Long>
     @Query("SELECT musicSongId FROM musicsong WHERE mediaFileUri = :key")
     fun getSongIdByUri(key:String):Long
+    @Query("SELECT musicSongId FROM musicsong WHERE albumId = :key ")
+    fun getMusicIdByAlbumId(key: Long):Long
 
     @Query("SELECT songAlbum FROM musicsong WHERE musicSongId = :key")
     fun getImageUri(key: Long):String

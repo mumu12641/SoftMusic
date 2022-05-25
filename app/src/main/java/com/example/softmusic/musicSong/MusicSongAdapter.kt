@@ -6,7 +6,9 @@ import android.content.res.Resources
 import android.content.res.TypedArray
 import android.util.TypedValue
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
@@ -25,7 +27,9 @@ class MusicSongAdapter(private val context: Context,
                        private var musicSongList: List<MusicSong>?,
                        private val musicSongListId:Long,
                        private val listener:ChangePlayMusicListener,
-                       private var selectedId:Long) :
+                       private var selectedId:Long,
+                       private val longClickAction:Int
+) :
     RecyclerView.Adapter<MusicSongAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -46,26 +50,46 @@ class MusicSongAdapter(private val context: Context,
                     .centerCrop()
                 .placeholder(R.drawable.music_note_150)
                 .into(holder.cardSongListBinding.songRecord)
-            songItem.setOnLongClickListener {
-                MaterialAlertDialogBuilder(context)
-                    .setTitle("删除歌曲")
-                    .setMessage("确认删除 " + musicSongList?.get(position)?.songTitle.toString() + " 吗？")
-                    .setNegativeButton("取消") { dialog, _ ->
-                        dialog.cancel()
-                    }
-                    .setPositiveButton("确认") { _, _ ->
-                        DataBaseUtils.deleteMusicSongRef(
+            if (longClickAction == DELETE_ACTION){
+                songItem.setOnLongClickListener{
+                    MaterialAlertDialogBuilder(context)
+                        .setTitle("删除歌曲")
+                        .setMessage("确认删除 " + musicSongList?.get(position)?.songTitle.toString() + " 吗？")
+                        .setNegativeButton("取消") { dialog, _ ->
+                            dialog.cancel()
+                        }
+                        .setPositiveButton("确认") { _, _ ->
+                            DataBaseUtils.deleteMusicSongRef(
+                                PlaylistSongCrossRef(
+                                    musicSongListId,
+                                    musicSongList?.get(position)?.musicSongId!!
+                                )
+                            )
+                            val songList = DataBaseUtils.getMusicSongListById(musicSongListId)
+                            songList.songNumber--
+                            DataBaseUtils.updateMusicSongList(songList)
+                        }
+                        .show()
+                    return@setOnLongClickListener true
+                }
+            } else if (longClickAction == ADD_ACTION){
+                songItem.setOnLongClickListener {
+                    Toast.makeText(context, "成功收藏到《我喜欢》", Toast.LENGTH_LONG).show()
+                    musicSongList?.get(position)?.let {
+                        DataBaseUtils.insertMusicSongRef(
                             PlaylistSongCrossRef(
-                                musicSongListId,
-                                musicSongList?.get(position)?.musicSongId!!
+                                1L,
+                                it.musicSongId
                             )
                         )
-                        val songList = DataBaseUtils.getMusicSongListById(musicSongListId)
-                        songList.songNumber--
-                        DataBaseUtils.updateMusicSongList(songList)
                     }
-                    .show()
-                return@setOnLongClickListener true
+
+                    val songList =
+                        DataBaseUtils.getMusicSongListById(1L)
+                    songList.songNumber = DataBaseUtils.getPlayListsWithSongsById(1L).size
+                    DataBaseUtils.updateMusicSongList(songList)
+                    true
+                }
             }
             songItem.setOnClickListener {
                 listener.changePlayMusic(
@@ -117,6 +141,12 @@ class MusicSongAdapter(private val context: Context,
     fun setSelectId(id:Long){
         selectedId = id
         notifyDataSetChanged()
+    }
+
+    companion object{
+        const val DELETE_ACTION = 0
+        const val ADD_ACTION = 1
+        const val NONE_ACTION = 2
     }
 
 }

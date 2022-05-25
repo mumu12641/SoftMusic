@@ -5,12 +5,15 @@ import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.entity.MusicSongList
 import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.entity.PlaylistWithSongs
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 import java.util.concurrent.FutureTask
 
 class DataBaseUtils {
     companion object{
-        private val dataBase : MusicDataBase = MusicDataBase.getInstance()
+        val dataBase : MusicDataBase = MusicDataBase.getInstance()
         private val musicDao : MusicDao = dataBase.musicDao
         fun insertMusicSong(song: MusicSong):Long {
             val future = FutureTask {
@@ -32,6 +35,13 @@ class DataBaseUtils {
             Executors.newCachedThreadPool().execute(future)
             return future.get()
         }
+        fun getMusicIdByAlbumId(key:Long):Long{
+            val future = FutureTask {
+                musicDao.getMusicIdByAlbumId(key)
+            }
+            Executors.newCachedThreadPool().execute(future)
+            return future.get()
+        }
         fun getImageUri(key:Long):String{
             val future = FutureTask {
                 musicDao.getImageUri(key)
@@ -46,6 +56,12 @@ class DataBaseUtils {
             Executors.newCachedThreadPool().execute(future)
             return future.get()
         }
+//        @OptIn(DelicateCoroutinesApi::class)
+//        fun getAllAlbumId():List<Long>{
+//            GlobalScope.launch {
+//                return musicDao.getAllAlbumId()
+//            }
+//        }
         fun getSongIdByUri(key:String):Long{
             val future = FutureTask {
                 musicDao.getSongIdByUri(key)
