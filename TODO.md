@@ -185,3 +185,11 @@ notification seekbar		done
 playfragment中播放列表
 
 对一首歌 加入歌单 点赞 加入长按的菜单
+
+
+
+## 5/28/22
+
+有机会一定把所有的数据库操作改成协程！！！！！！！ 
+
+future写的太丑了！！！

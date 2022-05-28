@@ -16,7 +16,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.softmusic.MainActivity
 import com.example.softmusic.R
+import com.example.softmusic.bottomSheet.StarBottomSheet
 import com.example.softmusic.databinding.CardSongBinding
 import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.entity.PlaylistSongCrossRef
@@ -51,7 +53,6 @@ class MusicSongAdapter(private val context: Context,
         return ViewHolder(cardSongListBinding)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     @SuppressLint("SetTextI18n", "Recycle")
     override fun onBindViewHolder(holder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
         with(holder.cardSongListBinding) {
@@ -88,6 +89,9 @@ class MusicSongAdapter(private val context: Context,
             } else if (longClickAction == ADD_ACTION){
                 songItem.setOnLongClickListener {
                     // TODO cache the song and update the url
+//                    val starSheet = StarBottomSheet()
+//                    starSheet.show((requireActivity() as MainActivity).supportFragmentManager, StarBottomSheet.TAG)
+
                     val fileName = musicSongList?.get(position)!!.songTitle  + musicSongList?.get(position)!!.albumId + ".mp3"
                     val cacheFile = File(context.cacheDir,fileName)
                     if (!cacheFile.exists()){
@@ -110,7 +114,6 @@ class MusicSongAdapter(private val context: Context,
                                                     // update url
                                                     song.mediaFileUri = cacheFile.path
                                                     song.musicSongId = DataBaseUtils.insertMusicSong(song)
-
                                                 } else {
                                                     song.musicSongId = DataBaseUtils.getMusicIdByAlbumId(song.albumId)
                                                     song = DataBaseUtils.getMusicSongById(song.musicSongId)

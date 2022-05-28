@@ -89,7 +89,6 @@ class SearchFragment : Fragment() {
                 when(it){
                     is LoadState.Success -> {
                         binding.loading.visibility = View.INVISIBLE
-                        Toast.makeText(requireContext(),"success",Toast.LENGTH_LONG).show()
                     }
                     is LoadState.Fail -> {
                         binding.loading.visibility = View.INVISIBLE

@@ -113,7 +113,7 @@ class MusicSongFragment : Fragment() {
             null,
             MediaStore.Audio.AudioColumns.IS_MUSIC
         )
-        val list = DataBaseUtils.getAllRef()
+        val list = DataBaseUtils.getAllRefSuspend()
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 if (cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)) > 100 * 1000) {

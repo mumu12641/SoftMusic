@@ -13,7 +13,6 @@ import com.example.softmusic.room.DataBaseUtils
 
 class SearchViewModel : ViewModel() {
 
-    var allMediaUri:List<String> = DataBaseUtils.getAllMediaUri()
 
     val loadState = MutableLiveData<LoadState>()
 
@@ -39,7 +38,8 @@ class SearchViewModel : ViewModel() {
                             it,detail.songs[0].dt,i.id.toLong())
                     }
                 }
-                if (detail.privileges[0].fee == 1){
+                Log.d(TAG, "getSongResultMsg: " + detail.privileges[0].fee)
+                if (detail.privileges[0].fee != 0){
                     song?.duration = 30000
                 }
                 song?.let {
@@ -50,10 +50,6 @@ class SearchViewModel : ViewModel() {
             loadState.value = LoadState.Success()
         }
 
-    }
-    fun getMediaUriList():List<String>{
-        allMediaUri = DataBaseUtils.getAllMediaUri()
-        return allMediaUri
     }
 
 }

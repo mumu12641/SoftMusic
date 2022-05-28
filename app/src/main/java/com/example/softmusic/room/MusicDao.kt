@@ -23,12 +23,9 @@ interface MusicDao {
     @Query("SELECT albumId FROM musicsong")
     suspend fun getAllAlbumId():List<Long>
     @Query("SELECT musicSongId FROM musicsong WHERE mediaFileUri = :key")
-    fun getSongIdByUri(key:String):Long
+    suspend fun getSongIdByUri(key:String):Long
     @Query("SELECT musicSongId FROM musicsong WHERE albumId = :key ")
-    fun getMusicIdByAlbumId(key: Long):Long
-
-    @Query("SELECT songAlbum FROM musicsong WHERE musicSongId = :key")
-    fun getImageUri(key: Long):String
+    suspend fun getMusicIdByAlbumId(key: Long):Long
 
     @Query("SELECT * FROM musicSong WHERE songTitle = :key")
     fun getMusicSongByKey(key:String): MusicSong
@@ -50,8 +47,6 @@ interface MusicDao {
     @Query("SELECT * FROM musicSongList")
     fun getAllList():List<MusicSongList>
 
-    @Query("SELECT * FROM musicSongList WHERE songListTitle =:key")
-    fun getMusicSongListByKey(key:String): MusicSongList
     @Query("SELECT * FROM musicSongList WHERE musicSongListId =:key")
     fun getMusicSongListById(key:Long): MusicSongList
 
@@ -68,6 +63,8 @@ interface MusicDao {
     val allPlayListSongCrossRef:LiveData<List<PlaylistSongCrossRef>>
     @Query("SELECT * FROM playlistSongCrossRef")
     fun getAllRef():List<PlaylistSongCrossRef>
+    @Query("SELECT * FROM playlistSongCrossRef")
+    suspend fun getAllRefSuspend():List<PlaylistSongCrossRef>
 
 
     @get:Query("SELECT * FROM musicSongList")

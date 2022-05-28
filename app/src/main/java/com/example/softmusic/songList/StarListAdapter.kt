@@ -26,8 +26,12 @@ class StarListAdapter(val context:Context,
                       private val startList:List<MusicSongList>,
                       private val songId:Long) : RecyclerView.Adapter<StarListAdapter.ViewHolder>() {
 
-    private val job = Job()
-    private val scope = CoroutineScope(job)
+    private val job1 = Job()
+    private val scope1 = CoroutineScope(job1)
+
+
+    private val job2 = Job()
+    private val scope2 = CoroutineScope(job2)
 
     class ViewHolder(var cardSongBinding: CardSongBinding) : RecyclerView.ViewHolder(
         cardSongBinding.root
@@ -44,8 +48,9 @@ class StarListAdapter(val context:Context,
         with(holder.cardSongBinding){
             songTitle.text = startList[position].songListTitle
             songSinger.text = startList[position].songNumber.toString() + "首"
-            scope.launch(Dispatchers.IO) {
-                val refs = getRef()
+
+            scope1.launch(Dispatchers.IO) {
+                val refs = DataBaseUtils.getAllRefSuspend()
                 if (refs.contains(PlaylistSongCrossRef(startList[position].musicSongListId,songId))){
                     songTitle.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorPrimaryDark))
                     songSinger.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorPrimaryDark))
@@ -54,19 +59,22 @@ class StarListAdapter(val context:Context,
                     songSinger.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorAccent))
                 }
             }
+
             songItem.setOnClickListener{
-                if (DataBaseUtils.getAllRef().contains(PlaylistSongCrossRef(startList[position].musicSongListId,songId))){
-                    Toast.makeText(context,"已经添加到该歌单",Toast.LENGTH_LONG).show()
-                } else {
-                    DataBaseUtils.insertMusicSongRef(PlaylistSongCrossRef(startList[position].musicSongListId,songId))
-                    songTitle.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorPrimaryDark))
-                    songSinger.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorPrimaryDark))
-                    songSinger.text = (startList[position].songNumber + 1).toString() + "首"
-                    Toast.makeText(context,"已经成功添加到" + startList[position].songListTitle,Toast.LENGTH_LONG).show()
-                    val songList =
-                        DataBaseUtils.getMusicSongListById(startList[position].musicSongListId)
-                    songList.songNumber++
-                    DataBaseUtils.updateMusicSongList(songList)
+                scope2.launch(Dispatchers.Main) {
+                    if (DataBaseUtils.getAllRefSuspend().contains(PlaylistSongCrossRef(startList[position].musicSongListId,songId))){
+                        Toast.makeText(context,"已经添加到该歌单",Toast.LENGTH_LONG).show()
+                    } else {
+                        DataBaseUtils.insertMusicSongRef(PlaylistSongCrossRef(startList[position].musicSongListId,songId))
+                        songTitle.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorPrimaryDark))
+                        songSinger.setTextColor(context.resolveColorAttr(androidx.appcompat.R.attr.colorPrimaryDark))
+                        songSinger.text = (startList[position].songNumber + 1).toString() + "首"
+                        Toast.makeText(context,"已经成功添加到" + startList[position].songListTitle,Toast.LENGTH_LONG).show()
+                        val songList =
+                            DataBaseUtils.getMusicSongListById(startList[position].musicSongListId)
+                        songList.songNumber++
+                        DataBaseUtils.updateMusicSongList(songList)
+                    }
                 }
             }
         }
@@ -87,8 +95,5 @@ class StarListAdapter(val context:Context,
         val typedValue = TypedValue()
         theme.resolveAttribute(attrRes, typedValue, true)
         return typedValue
-    }
-    suspend fun getRef():List<PlaylistSongCrossRef>{
-        return DataBaseUtils.getAllRef()
     }
 }
