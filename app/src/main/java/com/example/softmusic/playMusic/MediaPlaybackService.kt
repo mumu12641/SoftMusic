@@ -304,9 +304,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
 
                         val item =  MediaItem.fromUri(url)
-                        Log.d(TAG, "onCustomAction: " + mExoPlayer.getMediaItemAt(mExoPlayer.currentMediaItemIndex + 1))
                         mExoPlayer.addMediaItem(mExoPlayer.currentMediaItemIndex + 1,item)
-                        Log.d(TAG, "onCustomAction: " + mExoPlayer.getMediaItemAt(mExoPlayer.currentMediaItemIndex + 1))
                         val l =mutableListOf<MusicSong>()
                         list?.map {
                             l.add(it)

@@ -61,6 +61,7 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-core:2.17.1'
     implementation 'com.google.android.exoplayer:exoplayer-dash:2.17.1'
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.17.1'
+    implementation 'com.liulishuo.filedownloader:library:1.7.7'
 
     def lifecycle_version = "2.4.1"
     def arch_version = "2.1.0"

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Resources
 import android.content.res.TypedArray
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,7 @@ import android.widget.Toast
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.softmusic.R
@@ -21,6 +23,11 @@ import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.listener.ChangePlayMusicListener
 import com.example.softmusic.room.DataBaseUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.liulishuo.filedownloader.BaseDownloadTask
+import com.liulishuo.filedownloader.FileDownloadListener
+import com.liulishuo.filedownloader.FileDownloader
+import kotlinx.coroutines.*
+import java.io.File
 
 
 class MusicSongAdapter(private val context: Context,
@@ -32,6 +39,11 @@ class MusicSongAdapter(private val context: Context,
 ) :
     RecyclerView.Adapter<MusicSongAdapter.ViewHolder>() {
 
+    private  val TAG = "MusicSongAdapter"
+
+    private val job = Job()
+    private val scope = CoroutineScope(job)
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val cardSongListBinding: CardSongBinding = CardSongBinding.inflate(
             LayoutInflater.from(context), parent, false
@@ -39,8 +51,9 @@ class MusicSongAdapter(private val context: Context,
         return ViewHolder(cardSongListBinding)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     @SuppressLint("SetTextI18n", "Recycle")
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
         with(holder.cardSongListBinding) {
 
             songSinger.text = musicSongList?.get(position)?.songSinger
@@ -74,20 +87,59 @@ class MusicSongAdapter(private val context: Context,
                 }
             } else if (longClickAction == ADD_ACTION){
                 songItem.setOnLongClickListener {
-                    Toast.makeText(context, "成功收藏到《我喜欢》", Toast.LENGTH_LONG).show()
-                    musicSongList?.get(position)?.let {
-                        DataBaseUtils.insertMusicSongRef(
-                            PlaylistSongCrossRef(
-                                1L,
-                                it.musicSongId
-                            )
-                        )
-                    }
+                    // TODO cache the song and update the url
+                    val fileName = musicSongList?.get(position)!!.songTitle  + musicSongList?.get(position)!!.albumId + ".mp3"
+                    val cacheFile = File(context.cacheDir,fileName)
+                    if (!cacheFile.exists()){
+                        File.createTempFile(fileName,null,context.cacheDir)
+                        FileDownloader.setup(context)
+                        FileDownloader.getImpl().create(musicSongList?.get(position)!!.mediaFileUri)
+                                    .setPath(cacheFile.path)
+                                    .setListener(object : FileDownloadListener() {
+                                        override fun pending(task: BaseDownloadTask?, soFarBytes: Int, totalBytes: Int) {
+                                        }
+                                        override fun progress(task: BaseDownloadTask?, soFarBytes: Int, totalBytes: Int) {
+                                        }
+                                        override fun completed(task: BaseDownloadTask?) {
+                                            Log.d(TAG, "completed")
+                                            scope.launch {
+                                                Log.d(TAG, "completed:  launch")
+                                                val list = DataBaseUtils.dataBase.musicDao.getAllAlbumId()
+                                                var song = musicSongList?.get(position)!!
+                                                if (list.isEmpty() || !list.contains(song.albumId)){
+                                                    // update url
+                                                    song.mediaFileUri = cacheFile.path
+                                                    song.musicSongId = DataBaseUtils.insertMusicSong(song)
 
-                    val songList =
-                        DataBaseUtils.getMusicSongListById(1L)
-                    songList.songNumber = DataBaseUtils.getPlayListsWithSongsById(1L).size
-                    DataBaseUtils.updateMusicSongList(songList)
+                                                } else {
+                                                    song.musicSongId = DataBaseUtils.getMusicIdByAlbumId(song.albumId)
+                                                    song = DataBaseUtils.getMusicSongById(song.musicSongId)
+                                                    song.mediaFileUri = cacheFile.path
+                                                    DataBaseUtils.updateMusicSong(song)
+                                                }
+                                                DataBaseUtils.insertMusicSongRef(PlaylistSongCrossRef(1L,song.musicSongId))
+                                                val songList =
+                                                        DataBaseUtils.getMusicSongListById(1L)
+                                                songList.songNumber = DataBaseUtils.getPlayListsWithSongsById(1L).size
+                                                DataBaseUtils.updateMusicSongList(songList)
+                                            }
+                                            Toast.makeText(context, "成功收藏到《我喜欢》", Toast.LENGTH_LONG).show()
+                                        }
+
+                                        override fun paused(task: BaseDownloadTask?, soFarBytes: Int, totalBytes: Int) {
+                                        }
+
+                                        override fun error(task: BaseDownloadTask?, e: Throwable?) {
+                                        }
+
+                                        override fun warn(task: BaseDownloadTask?) {
+                                        }
+
+                                    }).start()
+                        }
+                    else {
+                        Toast.makeText(context, "已经收藏到《我喜欢》", Toast.LENGTH_LONG).show()
+                    }
                     true
                 }
             }
