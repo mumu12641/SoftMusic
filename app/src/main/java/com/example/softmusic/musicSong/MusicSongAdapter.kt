@@ -2,21 +2,16 @@ package com.example.softmusic.musicSong
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.res.Resources
-import android.content.res.TypedArray
 import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.softmusic.MainActivity
 import com.example.softmusic.R
 import com.example.softmusic.bottomSheet.StarBottomSheet
 import com.example.softmusic.databinding.CardSongBinding
@@ -28,7 +23,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.liulishuo.filedownloader.BaseDownloadTask
 import com.liulishuo.filedownloader.FileDownloadListener
 import com.liulishuo.filedownloader.FileDownloader
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.File
 
 
@@ -37,7 +34,8 @@ class MusicSongAdapter(private val context: Context,
                        private val musicSongListId:Long,
                        private val listener:ChangePlayMusicListener,
                        private var selectedId:Long,
-                       private val longClickAction:Int
+                       private val longClickAction:Int,
+                       private val manager: FragmentManager?
 ) :
     RecyclerView.Adapter<MusicSongAdapter.ViewHolder>() {
 
@@ -89,17 +87,14 @@ class MusicSongAdapter(private val context: Context,
             } else if (longClickAction == ADD_ACTION){
                 songItem.setOnLongClickListener {
                     // TODO cache the song and update the url
-//                    val starSheet = StarBottomSheet()
-//                    starSheet.show((requireActivity() as MainActivity).supportFragmentManager, StarBottomSheet.TAG)
-
                     val fileName = musicSongList?.get(position)!!.songTitle  + musicSongList?.get(position)!!.albumId + ".mp3"
                     val cacheFile = File(context.cacheDir,fileName)
                     if (!cacheFile.exists()){
                         File.createTempFile(fileName,null,context.cacheDir)
                         FileDownloader.setup(context)
                         FileDownloader.getImpl().create(musicSongList?.get(position)!!.mediaFileUri)
-                                    .setPath(cacheFile.path)
-                                    .setListener(object : FileDownloadListener() {
+                                .setPath(cacheFile.path)
+                                .setListener(object : FileDownloadListener() {
                                         override fun pending(task: BaseDownloadTask?, soFarBytes: Int, totalBytes: Int) {
                                         }
                                         override fun progress(task: BaseDownloadTask?, soFarBytes: Int, totalBytes: Int) {
@@ -120,13 +115,11 @@ class MusicSongAdapter(private val context: Context,
                                                     song.mediaFileUri = cacheFile.path
                                                     DataBaseUtils.updateMusicSong(song)
                                                 }
-                                                DataBaseUtils.insertMusicSongRef(PlaylistSongCrossRef(1L,song.musicSongId))
-                                                val songList =
-                                                        DataBaseUtils.getMusicSongListById(1L)
-                                                songList.songNumber = DataBaseUtils.getPlayListsWithSongsById(1L).size
-                                                DataBaseUtils.updateMusicSongList(songList)
+                                                val bottomSheet = StarBottomSheet(song.musicSongId)
+                                                manager?.let {
+                                                    it -> bottomSheet.show(it,StarBottomSheet.TAG)
+                                                }
                                             }
-                                            Toast.makeText(context, "成功收藏到《我喜欢》", Toast.LENGTH_LONG).show()
                                         }
 
                                         override fun paused(task: BaseDownloadTask?, soFarBytes: Int, totalBytes: Int) {
@@ -140,8 +133,16 @@ class MusicSongAdapter(private val context: Context,
 
                                     }).start()
                         }
-                    else {
-                        Toast.makeText(context, "已经收藏到《我喜欢》", Toast.LENGTH_LONG).show()
+                    else{
+                        scope.launch {
+                            var song = musicSongList?.get(position)!!
+                            song.musicSongId = DataBaseUtils.getMusicIdByAlbumId(song.albumId)
+                            song = DataBaseUtils.getMusicSongById(song.musicSongId)
+                            val bottomSheet = StarBottomSheet(song.musicSongId)
+                            manager?.let {
+                                it -> bottomSheet.show(it,StarBottomSheet.TAG)
+                            }
+                        }
                     }
                     true
                 }

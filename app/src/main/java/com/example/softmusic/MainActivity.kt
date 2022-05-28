@@ -162,11 +162,6 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onStop")
         // TODO MMKV save the position
         val kv = MMKV.defaultMMKV()
-//        val musicSong = DataBaseUtils.getMusicSongById(musicSongId)
-//        list = DataBaseUtils.getPlayListsWithSongsById(musicSongListId)
-//        rawList = list
-//        nowNum = list!!.indexOf(musicSong)
-//        Log.d(TAG, "loadMusic: $nowNum")
         if (mainViewModel.requestNetwork.value == false) {
             mainViewModel.currentMusicId.value?.let { kv.encode("musicSongId", it) }
             mainViewModel.currentId.value?.get(1)?.let { kv.encode("musicSongListId", it) }

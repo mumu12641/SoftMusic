@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RestrictTo
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.softmusic.MainActivity
@@ -15,15 +16,16 @@ import com.example.softmusic.room.DataBaseUtils
 import com.example.softmusic.songList.MusicSongListViewModel
 import com.example.softmusic.songList.StarListAdapter
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
-class StarBottomSheet : BottomSheetDialogFragment(){
+class StarBottomSheet(val id:Long) : BottomSheetDialogFragment(){
 
     private lateinit var _starBottomSheet : BottomStarSheetBinding
     private val binding get() = _starBottomSheet
-    private val mainViewModel: MainViewModel by lazy {
-        (requireActivity() as MainActivity).mainViewModel
-    }
-
+    private val job = Job()
+    private val scope = CoroutineScope(job)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -33,10 +35,9 @@ class StarBottomSheet : BottomSheetDialogFragment(){
         binding.starList.apply {
             layoutManager = GridLayoutManager(requireContext(),1,
                 GridLayoutManager.VERTICAL,false)
-            adapter =
-                mainViewModel.currentMusicId.value?.let {
-                    StarListAdapter(requireContext(),DataBaseUtils.getAllList(),it)
-                }
+            scope.launch {
+                adapter = StarListAdapter(requireContext(),DataBaseUtils.getAllList(),this@StarBottomSheet.id)
+            }
         }
         return binding.root
     }

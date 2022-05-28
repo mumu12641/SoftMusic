@@ -46,7 +46,7 @@ class ListBottomSheet(private val mode:Int,private val num:Int) : BottomSheetDia
                 override fun changePlayMusicByEntity(song: MusicSong) {
                 }
             }, mainViewModel.currentMusicId.value!!
-        ,MusicSongAdapter.NONE_ACTION)
+        ,MusicSongAdapter.NONE_ACTION,null)
 
         with(binding){
             bottomList.layoutManager = GridLayoutManager(requireContext(),1,GridLayoutManager.VERTICAL,false)

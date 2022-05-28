@@ -45,7 +45,7 @@ interface MusicDao {
     val allMusicSongList: LiveData<List<MusicSongList>>
 
     @Query("SELECT * FROM musicSongList")
-    fun getAllList():List<MusicSongList>
+    suspend fun getAllList():List<MusicSongList>
 
     @Query("SELECT * FROM musicSongList WHERE musicSongListId =:key")
     fun getMusicSongListById(key:Long): MusicSongList

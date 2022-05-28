@@ -112,12 +112,8 @@ class DataBaseUtils {
         fun getAllMusicSongList():LiveData<List<MusicSongList>>{
             return musicDao.allMusicSongList
         }
-        fun getAllList():List<MusicSongList>{
-            val future = FutureTask {
-                musicDao.getAllList()
-            }
-            Executors.newCachedThreadPool().execute(future)
-            return future.get()
+        suspend fun getAllList():List<MusicSongList>{
+               return  musicDao.getAllList()
         }
         fun getPlayListsWithSongsById(musicSongListId:Long):List<MusicSong>{
             val future = FutureTask {

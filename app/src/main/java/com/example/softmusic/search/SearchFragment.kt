@@ -79,7 +79,7 @@ class SearchFragment : Fragment() {
                     Log.d(TAG, "changePlayMusicByEntity: end")
                 }
             }
-        },-1L,MusicSongAdapter.ADD_ACTION)
+        },-1L,MusicSongAdapter.ADD_ACTION,(requireActivity() as MainActivity).supportFragmentManager)
         binding.songsList.layoutManager  = GridLayoutManager(
             requireContext(), 1, GridLayoutManager.VERTICAL, false
         )

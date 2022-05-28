@@ -63,7 +63,7 @@ class MusicSongFragment : Fragment() {
 
                     override fun changePlayMusicByEntity(song: MusicSong) {
                     }
-                }, 0L,MusicSongAdapter.DELETE_ACTION
+                }, 0L,MusicSongAdapter.DELETE_ACTION,null
         )
 
         fragmentSongBinding.songsList.adapter = adapter

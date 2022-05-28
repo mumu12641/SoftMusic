@@ -35,8 +35,8 @@ class SongBottomSheet (private val songId : Long):BottomSheetDialogFragment() {
             textView3.text = song.songSinger
             textView4.text = song.mediaFileUri
             star.setOnClickListener{
-                val starSheet = StarBottomSheet()
-                starSheet.show((requireActivity() as MainActivity).supportFragmentManager, StarBottomSheet.TAG)
+                val starSheet = (requireActivity() as MainActivity).mainViewModel.currentMusicId.value?.let { it1 -> StarBottomSheet(it1) }
+                starSheet?.show((requireActivity() as MainActivity).supportFragmentManager, StarBottomSheet.TAG)
             }
         }
         return binding.root
