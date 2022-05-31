@@ -2,6 +2,9 @@ package com.example.softmusic.search
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.support.v4.media.session.MediaControllerCompat
 import android.util.Log
 import android.view.KeyEvent
@@ -19,12 +22,13 @@ import com.example.softmusic.MainActivity
 import com.example.softmusic.MainViewModel
 import com.example.softmusic.databinding.SearchFragmentBinding
 import com.example.softmusic.entity.MusicSong
-import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.listener.ChangePlayMusicListener
 import com.example.softmusic.musicSong.MusicSongAdapter
 import com.example.softmusic.network.LoadState
+import com.example.softmusic.network.NetworkService
 import com.example.softmusic.playMusic.MediaPlaybackService
 import com.example.softmusic.room.DataBaseUtils
+import com.example.softmusic.search.SearchViewModel.Companion.NOT_LOAD
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -43,6 +47,15 @@ class SearchFragment : Fragment() {
     }
     private val TAG = "SearchFragment"
 
+    private val mHandler = Handler(Looper.getMainLooper()) {
+        when(it.what){
+            LOAD_OK ->  Toast.makeText(requireContext(),"已经添加到下一首播放",Toast.LENGTH_LONG).show()
+            LOAD_ERROR ->  Toast.makeText(requireContext(),"抱歉，该歌曲暂无版权",Toast.LENGTH_LONG).show()
+        }
+        true
+    }
+
+
     @SuppressLint("WrongConstant")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,29 +67,58 @@ class SearchFragment : Fragment() {
             override fun changePlayMusic(musicSongId: Long, musicSongListId: Long) {
             }
             override fun changePlayMusicByEntity(song: MusicSong) {
-                Toast.makeText(requireContext(),"已添加到下一首播放",Toast.LENGTH_LONG).show()
+
+                Toast.makeText(requireContext(),"加载歌曲中",Toast.LENGTH_SHORT).show()
                 lifecycleScope.launch(Dispatchers.IO){
-                    Log.d(TAG, "changePlayMusicByEntity: start")
-                    val list = DataBaseUtils.dataBase.musicDao.getAllAlbumId()
-                    if (list.isEmpty() || !list.contains(song.albumId)){
-                        song.musicSongId = DataBaseUtils.insertMusicSong(song)
-                    } else {
-                        song.musicSongId = DataBaseUtils.getMusicIdByAlbumId(song.albumId)
+
+                    // 点击也要加载一遍media
+                    if (song.mediaFileUri == NOT_LOAD){
+                        Log.d(TAG, "changePlayMusicByEntity: load again")
+                        val media = NetworkService.getMediaService.getSongMediaMsg(song.albumId.toInt())
+                        if (media.data[0].url!=null){
+                            song.mediaFileUri = media.data[0].url!!
+                        }else {
+                            Log.d(TAG, "changePlayMusicByEntity: 没有url")
+                            val msg = Message.obtain()
+                            msg.what = LOAD_ERROR
+                            mHandler.sendMessage(msg)
+                            return@launch
+                        }
                     }
-                    val bundle = Bundle()
-                    with(bundle){
-                        putString("url",song.mediaFileUri)
-                        putString("title",song.songTitle)
-                        putString("singer",song.songSinger)
-                        putInt("duration",song.duration)
-                        putString("picture",song.songAlbum)
-                        putLong("id",song.musicSongId)
+                    if (song.songAlbum == NOT_LOAD){
+                        val detail = NetworkService.getDetailService.getSongDetailMsg(song.albumId.toInt())
+                        detail.songs[0].al?.picUrl?.let {
+                            song.songAlbum = it
+                            song.duration = detail.songs[0].dt
+                        }
                     }
-                    mController.transportControls?.sendCustomAction(MediaPlaybackService.NEXT_TO_PLAY,bundle)
-                    if (mainViewModel.requestNetwork.value == false) {
-                        mainViewModel.requestNetwork.postValue(true)
+
+                    if (song.mediaFileUri != NOT_LOAD) {
+                        Log.d(TAG, "changePlayMusicByEntity: start")
+                        val list = DataBaseUtils.dataBase.musicDao.getAllAlbumId()
+                        if (list.isEmpty() || !list.contains(song.albumId)) {
+                            song.musicSongId = DataBaseUtils.insertMusicSong(song)
+                        } else {
+                            song.musicSongId = DataBaseUtils.getMusicIdByAlbumId(song.albumId)
+                        }
+                        val bundle = Bundle()
+                        with(bundle) {
+                            putString("url", song.mediaFileUri)
+                            putString("title", song.songTitle)
+                            putString("singer", song.songSinger)
+                            putInt("duration", song.duration)
+                            putString("picture", song.songAlbum)
+                            putLong("id", song.musicSongId)
+                        }
+                        mController.transportControls?.sendCustomAction(MediaPlaybackService.NEXT_TO_PLAY, bundle)
+                        if (mainViewModel.requestNetwork.value == false) {
+                            mainViewModel.requestNetwork.postValue(true)
+                        }
+                        Log.d(TAG, "changePlayMusicByEntity: end")
+                        val msg = Message.obtain()
+                        msg.what = LOAD_OK
+                        mHandler.sendMessage(msg)
                     }
-                    Log.d(TAG, "changePlayMusicByEntity: end")
                 }
             }
         },-1L,MusicSongAdapter.ADD_ACTION,(requireActivity() as MainActivity).supportFragmentManager)
@@ -95,6 +137,7 @@ class SearchFragment : Fragment() {
                         Toast.makeText(requireContext(),"fail",Toast.LENGTH_LONG).show()
                     }
                     is LoadState.Loading -> {
+                        Log.d(TAG, "onCreateView: loading")
                         binding.loading.visibility = View.VISIBLE
                         binding.loading.playAnimation()
                     }
@@ -102,6 +145,7 @@ class SearchFragment : Fragment() {
             }
             searchSongs.observe(viewLifecycleOwner) {
                 Log.d(TAG, "onCreateView: $it")
+                binding.loading.visibility = View.INVISIBLE
                 adapter.setMusicSongs(it)
             }
         }
@@ -118,6 +162,11 @@ class SearchFragment : Fragment() {
         })
 
         return binding.root
+    }
+
+    companion object{
+        const val LOAD_OK=1
+        const val LOAD_ERROR=2
     }
 
 }

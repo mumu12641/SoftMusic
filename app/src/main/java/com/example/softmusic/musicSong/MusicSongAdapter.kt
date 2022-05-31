@@ -19,6 +19,7 @@ import com.example.softmusic.entity.MusicSong
 import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.listener.ChangePlayMusicListener
 import com.example.softmusic.room.DataBaseUtils
+import com.example.softmusic.search.SearchViewModel.Companion.NOT_LOAD
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.liulishuo.filedownloader.BaseDownloadTask
 import com.liulishuo.filedownloader.FileDownloadListener
@@ -43,6 +44,8 @@ class MusicSongAdapter(private val context: Context,
 
     private val job = Job()
     private val scope = CoroutineScope(job)
+    private val jobLoad = Job()
+    private val scopeLoad = CoroutineScope(jobLoad)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val cardSongListBinding: CardSongBinding = CardSongBinding.inflate(
@@ -87,6 +90,10 @@ class MusicSongAdapter(private val context: Context,
             } else if (longClickAction == ADD_ACTION){
                 songItem.setOnLongClickListener {
                     // TODO cache the song and update the url
+                    if (musicSongList?.get(position)!!.mediaFileUri == NOT_LOAD){
+                        songItem.performClick()
+                        return@setOnLongClickListener true
+                    }
                     val fileName = musicSongList?.get(position)!!.songTitle  + musicSongList?.get(position)!!.albumId + ".mp3"
                     val cacheFile = File(context.cacheDir,fileName)
                     if (!cacheFile.exists()){
@@ -132,8 +139,7 @@ class MusicSongAdapter(private val context: Context,
                                         }
 
                                     }).start()
-                        }
-                    else{
+                        } else {
                         scope.launch {
                             var song = musicSongList?.get(position)!!
                             song.musicSongId = DataBaseUtils.getMusicIdByAlbumId(song.albumId)

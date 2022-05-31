@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_MEDIA_ID
@@ -32,6 +33,7 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var mBrowser: MediaBrowserCompat
     lateinit var mController: MediaControllerCompat
+    lateinit var mHandler: Handler
     val mainViewModel: MainViewModel by lazy {
         ViewModelProvider(this@MainActivity)[MainViewModel::class.java]
     }
