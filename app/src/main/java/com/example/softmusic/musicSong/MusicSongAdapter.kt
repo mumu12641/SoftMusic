@@ -113,7 +113,6 @@ class MusicSongAdapter(private val context: Context,
                                                 val list = DataBaseUtils.dataBase.musicDao.getAllAlbumId()
                                                 var song = musicSongList?.get(position)!!
                                                 if (list.isEmpty() || !list.contains(song.albumId)){
-                                                    // update url
                                                     song.mediaFileUri = cacheFile.path
                                                     song.musicSongId = DataBaseUtils.insertMusicSong(song)
                                                 } else {

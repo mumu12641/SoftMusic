@@ -25,11 +25,13 @@ import com.example.softmusic.BaseApplication.Companion.context
 import com.example.softmusic.MainActivity
 import com.example.softmusic.R
 import com.example.softmusic.entity.MusicSong
+import com.example.softmusic.entity.PlaylistSongCrossRef
 import com.example.softmusic.room.DataBaseUtils
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.tencent.mmkv.MMKV
+import java.io.File
 import java.lang.reflect.Array
 import java.util.*
 import kotlin.collections.ArrayList
@@ -349,6 +351,7 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
 
     private fun loadMusic() {
         val musicSong = DataBaseUtils.getMusicSongById(musicSongId)
+        var changeFlag = false
         list = DataBaseUtils.getPlayListsWithSongsById(musicSongListId)
         rawList = list
         nowNum = list!!.indexOf(musicSong)
@@ -359,6 +362,12 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         playNum = list!!.size
 
         for (i in list!!) {
+            if (!File(i.mediaFileUri).exists()){
+                Log.d(TAG, "loadMusic: not load")
+                DataBaseUtils.deleteMusicSongRef(PlaylistSongCrossRef(musicSongListId,i.musicSongId))
+                changeFlag = true
+                continue
+            }
             mExoPlayer.addMediaItem(MediaItem.fromUri(i.mediaFileUri))
         }
         mExoPlayer.seekTo(nowNum, 0)
@@ -367,6 +376,11 @@ class MediaPlaybackService : MediaBrowserServiceCompat() {
         mSession.isActive = true
         mSession.setMetadata(metadata)
         updatePlayBackState(PlaybackStateCompat.STATE_NONE)
+        if (changeFlag) {
+            val songList = DataBaseUtils.getMusicSongListById(musicSongListId)
+            songList.songNumber = DataBaseUtils.getPlayListsWithSongsById(musicSongListId).size
+            DataBaseUtils.updateMusicSongList(songList)
+        }
     }
 
     private fun reLoadMusic(l:List<MusicSong>?,position:Long,item: MediaItem?){

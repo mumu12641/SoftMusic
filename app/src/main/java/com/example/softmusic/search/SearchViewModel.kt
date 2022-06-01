@@ -5,11 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.softmusic.entity.MusicSong
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.launch
 import com.example.softmusic.network.LoadState
 import com.example.softmusic.network.NetworkService
-import com.example.softmusic.room.DataBaseUtils
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.launch
 
 class SearchViewModel : ViewModel() {
 
@@ -28,23 +27,6 @@ class SearchViewModel : ViewModel() {
             loadState.value = LoadState.Loading()
             val msg = NetworkService.getMsgService.getSongResultMsg(keywords,limit)
             val list = mutableListOf<MusicSong>()
-//            for(i in msg.result.songs){
-//                val media = NetworkService.getMediaService.getSongMediaMsg(i.id)
-//                Log.d(TAG, "getSongResultMsg: "+ i.id)
-//                val detail = NetworkService.getDetailService.getSongDetailMsg(i.id)
-//                val song = media.data[0].url?.let {
-//                    detail.songs[0].al?.picUrl?.let { it1 ->
-//                        MusicSong(0L,detail.songs[0].name,detail.songs[0].ar[0].name, it1,
-//                            it,detail.songs[0].dt,i.id.toLong())
-//                    }
-//                }
-//                Log.d(TAG, "getSongResultMsg: " + detail.privileges[0].fee)
-//                if (detail.privileges[0].fee != 0){
-//                    song?.duration = 30000
-//                }
-//                song?.let {
-//                    list.add(it)
-//                }
                 msg.result.songs.map {
                     val song = MusicSong(0L,it.name,it.artists[0].name,NOT_LOAD,
                             NOT_LOAD,0,it.id.toLong())
@@ -66,7 +48,6 @@ class SearchViewModel : ViewModel() {
                     searchSongs.value = list
                 }
             }
-//            searchSongs.value = list
             loadState.value = LoadState.Success()
         }
 
